@@ -1,0 +1,81 @@
+# Config-only contention-amplification variant of saclb_live.yaml: Lmax
+# lowered (10->4) to amplify the SAME real backlog difference already
+# measured between policies (see traffic-intensification finding: margin
+# moved 0.9975->0.9825 for urllc under heavier traffic) into a larger
+# normalised value feeding the QoE mapper's latency proxy -- makes an
+# EXISTING real gap more visible, rather than creating more contention.
+# Ceiling caps unchanged from saclb_live.yaml (4/4/3).
+name: saclb_live_lowlmax
+random_seed: 256
+paper_variant: paper2
+B: 100
+Lmax: 4  # lowered from 10
+
+gnbs:
+  - gnb_id: gnb-0
+    prb_capacity: 100
+
+slices:
+  - slice_id: urllc
+    sst: 1
+    sd: 1
+    nominal_ratio: 3
+    min_ratio_floor: 1
+    max_ratio_cap: 4
+    latency_budget_ms: 15
+    loss_budget_pct: 0.8
+    priority_weight: 12.0
+    accept_reward: 1.0
+    violation_penalty: 10.0
+  - slice_id: embb
+    sst: 1
+    sd: 0
+    nominal_ratio: 3
+    min_ratio_floor: 1
+    max_ratio_cap: 4
+    latency_budget_ms: 45
+    loss_budget_pct: 2.0
+    priority_weight: 3.5
+    accept_reward: 1.0
+    violation_penalty: 5.0
+  - slice_id: mmtc
+    sst: 1
+    sd: 2
+    nominal_ratio: 2
+    min_ratio_floor: 1
+    max_ratio_cap: 3
+    latency_budget_ms: 65
+    loss_budget_pct: 3.5
+    priority_weight: 0.3
+    accept_reward: 1.0
+    violation_penalty: 2.5
+
+reward:
+  congestion_coeff: 1.5
+  lb_coeff: 1.0
+
+arrivals:
+  synthetic_arrivals_per_step: 2
+  max_pending_per_step: 8
+  ceiling_step_ratio: 1
+
+episode:
+  step_seconds: 5.0
+  steps_per_episode: 60
+
+qoe:
+  reward:
+    alpha: 1.0
+    beta: 0.2
+    gamma: 0.5
+  lstm_hidden: 32
+  window: 8
+  max_staleness: 20
+  mapper_checkpoint:
+    urllc: qoe_oran_framework/results/qoe_mapper/qoe_mapper_urllc.pt
+    embb: qoe_oran_framework/results/qoe_mapper/qoe_mapper_embb.pt
+    mmtc: qoe_oran_framework/results/qoe_mapper/qoe_mapper_mmtc.pt
+  iqx_coeffs:
+    urllc: {alpha: 5.167748, beta: 9.999999, gamma: 44.904893, delta: 199.999999, epsilon: 0.000000}
+    embb:  {alpha: 3.522951, beta: 0.425081, gamma: 0.000000, delta: 0.000000, epsilon: 199.999999}
+    mmtc:  {alpha: 5.999999, beta: 9.999999, gamma: 0.000000, delta: 7.944624, epsilon: 0.000000}

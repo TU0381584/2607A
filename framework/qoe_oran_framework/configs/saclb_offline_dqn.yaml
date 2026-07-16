@@ -1,0 +1,134 @@
+# Paper #2 (ICRAIE) SAC-LB: multi-gNB cluster, URLLC+eMBB+mMTC, LB term enabled.
+name: saclb_offline_dqn
+random_seed: 256
+paper_variant: paper2
+B: 100
+Lmax: 100
+
+gnbs:
+  - gnb_id: gnb-0
+    prb_capacity: 100
+  - gnb_id: gnb-1
+    prb_capacity: 100
+  - gnb_id: gnb-2
+    prb_capacity: 100
+
+# max_ratio_cap tightened below train_offline.py's OVERSUBSCRIPTION_FACTOR
+# (1.25x nominal_ratio) mean offered demand -- e.g. urllc's old cap=60 sat
+# far above the 37.5 (=1.25*30) demand ClosedLoopKpmSource actually
+# generates, so AdmissionGate's ceiling (which rises +step_ratio per accept,
+# capped at max_ratio_cap) could climb up to fully satisfy demand within ~2
+# accepted steps -- exactly the "self-heals past real demand, contention is
+# only transient" bug already found and fixed for saclb_live.yaml, just not
+# applied here since this config trains rather than deploys. Caps below are
+# ~88% of the oversubscribed demand so scarcity is permanent, not transient.
+slices:
+  - slice_id: urllc
+    sst: 1
+    sd: 1
+    nominal_ratio: 30
+    min_ratio_floor: 5
+    max_ratio_cap: 33  # < 37.5 (1.25x nominal) oversubscribed demand
+    latency_budget_ms: 15
+    loss_budget_pct: 0.8
+    priority_weight: 12.0  # raised 4.0->8.0->12.0: urllc's accept must stay
+    # unambiguously positive to hold its <1 block/episode acceptance-bar target
+    # -- see saclb_offline_dqn.yaml reward comment. 8.0 got to 2.1 blocks/episode
+    # by end of training (epsilon-decay-fixed run); pushed further to close the gap.
+    accept_reward: 1.0
+    violation_penalty: 10.0
+  - slice_id: embb
+    sst: 1
+    sd: 0
+    nominal_ratio: 60
+    min_ratio_floor: 10
+    max_ratio_cap: 66  # < 75 (1.25x nominal) oversubscribed demand
+    latency_budget_ms: 45
+    loss_budget_pct: 2.0
+    priority_weight: 3.5  # widened 2.0->3.5: safety margin above the ~1.5
+    # marginal congestion cost, verified robust across multiple training reps
+    # -- see reward comment below for why a razor's-edge weight (2.0, only
+    # +0.5 above cost) was found to be noise-sensitive.
+    accept_reward: 1.0
+    violation_penalty: 5.0
+  - slice_id: mmtc
+    sst: 1
+    sd: 2
+    nominal_ratio: 10
+    min_ratio_floor: 5
+    max_ratio_cap: 11  # < 12.5 (1.25x nominal) oversubscribed demand
+    latency_budget_ms: 65
+    loss_budget_pct: 3.5
+    priority_weight: 0.3  # narrowed 1.0->0.3: safety margin below the ~1.5
+    # marginal congestion cost -- same rationale as embb above, mirrored.
+    accept_reward: 1.0
+    violation_penalty: 2.5
+
+# violation_penalty raised ~5x (see above): under the old weights, accepting
+# was always reward-optimal because service_term (priority_weight*
+# accept_reward per accepted request, e.g. urllc = +4.0/accept) dwarfed the
+# flat per-step violation_term. Confirmed live: DQN and A2C converged to
+# "always accept" (0 blocks/episode across 50 full episodes) while
+# LbOnlyHeuristic, which ignores reward entirely, showed 7.25 blocks/episode
+# under the same real contention -- i.e. the *environment* had genuine
+# scarcity, only the reward signal didn't make rejecting ever worthwhile.
+#
+# congestion_coeff calibration note: congestion_level = sum of prb_used_ratio
+# across ALL slices at a gNB, clipped to [0,1] (kpm_adapter.py) -- and the
+# three max_ratio_cap values above sum to 110% of one gNB's PRB budget by
+# construction (permanent multi-slice oversubscription), so congestion_level
+# sits pinned near 1.0 almost continuously once any contention exists, not
+# just occasionally. congestion_term's marginal cost per accept is therefore
+# ~congestion_coeff*1.0, not congestion_coeff*0.1-0.3 as originally assumed.
+# First attempt at congestion_coeff=6.0 made that marginal cost (6.0) exceed
+# even urllc's priority_weight (4.0) -- every accept, including urllc's,
+# went net-negative, collapsing to reject-everything (163 blocks/episode,
+# reward pinned negative even when nothing was accepted). congestion_coeff
+# =1.5 keeps marginal cost (~1.5) below urllc's weight (12.0, always worth
+# accepting) and above embb's (2.0, marginal, mostly accept) and mmtc's
+# (1.0, reject-optimal under congestion) -- calibrated to produce
+# differentiated shedding by priority instead of uniform collapse.
+#
+# CAUTION, confirmed by direct Q-value inspection (not just training-time
+# block counts, which are noisy due to residual epsilon-greedy exploration):
+# briefly dropped this to 0.5 chasing a "reward gets worse over training"
+# observation that turned out to be a measurement bug on my end (reading a
+# stale, accumulated omega_log.jsonl across multiple retraining runs --
+# OmegaLogger appends, it doesn't truncate on a fresh training run into the
+# same results_dir). At congestion_coeff=0.5 the marginal cost (~0.5) sits
+# below even mmtc's weight (1.0), making "accept" single-step optimal for
+# EVERY slice -- and a direct Q(accept) vs Q(reject) probe on a real trained
+# checkpoint confirmed the network had in fact converged to always-accept
+# (Q(accept) > Q(reject) by 5-14 for all three slices, epsilon=0 greedy eval
+# showed 0 blocks/episode for everything). 1.5 is the last value confirmed,
+# by that same direct Q-value check, to make reject genuinely argmax-optimal
+# for mmtc under real congestion. Always verify with a fresh
+# (non-accumulated) omega log and a direct Q-value/greedy-eval check, not
+# just training-time block counts, before trusting a calibration change.
+#
+# embb=3.5/mmtc=0.3 (was 2.0/1.0) -- SAFETY MARGIN, not just differentiation.
+# Discovered training itself isn't bit-reproducible even at a fixed seed
+# (set_seeds() covers random/np.random/torch.manual_seed, but two runs with
+# identical --seed 256 still produced different mean_reward/mean_rho/block
+# distributions -- residual non-determinism not root-caused, plausibly
+# CPU multi-threaded floating-point reduction-order in torch's matmul).
+# At embb=2.0/mmtc=1.0 (only +-0.5 from the ~1.5 marginal congestion cost),
+# that noise was enough to swing a retrain from "moderate, differentiated
+# shedding" (embb/mmtc a few/episode) to "near-total collapse" (embb/mmtc
+# 60+/episode) across nominally-identical reruns. Widening the margin so
+# each weight sits clearly on its intended side of the threshold (embb
+# comfortably above, mmtc comfortably below) was verified stable across 3
+# independent training reps (seeds 256/257/258) before being kept -- see
+# verification notes alongside this session's report.
+reward:
+  congestion_coeff: 1.5
+  lb_coeff: 1.0
+
+arrivals:
+  synthetic_arrivals_per_step: 3
+  max_pending_per_step: 12
+  ceiling_step_ratio: 5
+
+episode:
+  step_seconds: 5.0
+  steps_per_episode: 60

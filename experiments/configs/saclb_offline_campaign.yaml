@@ -1,0 +1,105 @@
+# Offline training config for this campaign's 4 learned arms
+# (dqn_sla/a2c_sla/dqn_qoe/a2c_qoe), used with
+# framework/qoe_oran_framework/scripts/train_offline.py (ClosedLoopKpmSource,
+# synthetic but closed-loop demand -- see that script's own docstring for why
+# closed_loop, not open_loop, is the only source whose numbers are
+# meaningful).
+#
+# CRITICAL INVARIANT: the `slices:` list below is in the EXACT SAME ORDER
+# (embb, urllc, mmtc) as experiments/configs/saclb_campaign.yaml (the live
+# evaluation config). encode_state()/encode_request_context() in env.py
+# iterate cfg.slices in file order to build the network's input vector --
+# if this order ever differs between the offline-training config and the
+# live-eval config, state_dim would still match (both have 3 slices) but
+# each input position would mean a DIFFERENT slice between training and
+# evaluation, silently producing garbage decisions with no error raised.
+# Keep this order identical to saclb_campaign.yaml if either file is ever
+# edited.
+#
+# max_ratio_cap values here are DELIBERATELY DIFFERENT from
+# saclb_campaign.yaml's (12/4/3): those were calibrated against the live
+# rig's REAL measured demand; these are calibrated against
+# ClosedLoopKpmSource's synthetic demand model instead (train_offline.py's
+# OVERSUBSCRIPTION_FACTOR=1.25 x nominal_ratio/100 -- see that script). Pinned
+# at nominal_ratio (zero elastic headroom) so they stay permanently below the
+# 1.25x-oversubscribed synthetic demand, exactly the same calibration
+# philosophy as the prior campaign's saclb_offline_live1gnb.yaml. Only
+# max_ratio_cap differs from the live config; every reward-shape parameter
+# (Lmax, congestion_coeff, priority_weight, violation_penalty, latency/loss
+# budgets) is IDENTICAL to saclb_campaign.yaml on purpose -- a policy must be
+# evaluated under the same reward/MDP shape it was trained under, or the
+# comparison is methodologically invalid.
+name: saclb_offline_campaign
+random_seed: 256
+paper_variant: paper2
+B: 100
+Lmax: 10
+
+gnbs:
+  - gnb_id: gnb-0
+    prb_capacity: 100
+
+slices:
+  - slice_id: embb
+    sst: 1
+    sd: 16777215
+    nominal_ratio: 3
+    min_ratio_floor: 1
+    max_ratio_cap: 3   # < 3.75 (1.25x nominal), pinned at nominal_ratio per the oversubscription philosophy above
+    latency_budget_ms: 45
+    loss_budget_pct: 2.0
+    priority_weight: 3.5
+    accept_reward: 1.0
+    violation_penalty: 5.0
+  - slice_id: urllc
+    sst: 1
+    sd: 1
+    nominal_ratio: 2
+    min_ratio_floor: 1
+    max_ratio_cap: 2   # < 2.5 (1.25x nominal)
+    latency_budget_ms: 20
+    loss_budget_pct: 0.5
+    priority_weight: 5.0
+    accept_reward: 1.0
+    violation_penalty: 8.0
+  - slice_id: mmtc
+    sst: 1
+    sd: 2
+    nominal_ratio: 2
+    min_ratio_floor: 1
+    max_ratio_cap: 2   # < 2.5 (1.25x nominal)
+    latency_budget_ms: 65
+    loss_budget_pct: 3.5
+    priority_weight: 0.3
+    accept_reward: 1.0
+    violation_penalty: 2.5
+
+reward:
+  congestion_coeff: 1.5
+  lb_coeff: 1.0
+
+arrivals:
+  synthetic_arrivals_per_step: 2
+  max_pending_per_step: 8
+  ceiling_step_ratio: 1
+
+episode:
+  step_seconds: 5.0
+  steps_per_episode: 60
+
+qoe:
+  reward:
+    alpha: 1.0
+    beta: 0.2
+    gamma: 0.5
+  lstm_hidden: 32
+  window: 8
+  max_staleness: 20
+  mapper_checkpoint:
+    urllc: qoe_oran_framework/results/qoe_mapper/qoe_mapper_urllc.pt
+    embb: qoe_oran_framework/results/qoe_mapper/qoe_mapper_embb.pt
+    mmtc: qoe_oran_framework/results/qoe_mapper/qoe_mapper_mmtc.pt
+  iqx_coeffs:
+    urllc: {alpha: 5.167748, beta: 9.999999, gamma: 44.904893, delta: 199.999999, epsilon: 0.000000}
+    embb:  {alpha: 3.522951, beta: 0.425081, gamma: 0.000000, delta: 0.000000, epsilon: 199.999999}
+    mmtc:  {alpha: 5.999999, beta: 9.999999, gamma: 0.000000, delta: 7.944624, epsilon: 0.000000}

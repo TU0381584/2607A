@@ -1,0 +1,29 @@
+{
+  "embb": {
+    "slice_id": "embb",
+    "mae_train": 0.013851679861545563,
+    "mae_test": 0.013100583106279373,
+    "pearson_r_test": 0.9970027924061525,
+    "n_train_windows": 1485,
+    "n_test_windows": 495,
+    "epochs": 60
+  },
+  "urllc": {
+    "slice_id": "urllc",
+    "mae_train": 0.03445868939161301,
+    "mae_test": 0.05474042892456055,
+    "pearson_r_test": 0.9109714886237742,
+    "n_train_windows": 1485,
+    "n_test_windows": 495,
+    "epochs": 60
+  },
+  "mmtc": {
+    "slice_id": "mmtc",
+    "mae_train": 0.044320765882730484,
+    "mae_test": 0.04678948596119881,
+    "pearson_r_test": 0.9990859407179096,
+    "n_train_windows": 1485,
+    "n_test_windows": 495,
+    "epochs": 60
+  }
+}

@@ -1,0 +1,116 @@
+# Campaign config for the 3-UE / 3-slice experimental campaign (conference +
+# IEEE Transactions papers). Derived from
+# qoe_oran_framework/configs/saclb_live.yaml (frozen, left untouched per the
+# hard rule) -- this file is the campaign's own copy, with:
+#   1. The "urllc" slice RESTORED (Stage 9 dropped it because this rig's core
+#      only had 2 real S-NSSAIs at the time; the post-Stage-10 addendum added
+#      the 3rd core slice -- sst=1/sd=0x000001 -- so urllc is real on this
+#      gNB now, see CAMPAIGN_LOG.md's stand-up section).
+#   2. max_ratio_cap values recalibrated against THIS campaign's real traffic
+#      profiles (experiments/configs/traffic_profiles.yaml), not Stage 9's
+#      light-ping-era numbers -- see CAMPAIGN_LOG.md's "Calibrated caps
+#      finalized" section for the live measurements and rationale.
+# Traffic profiles are pinned separately (experiments/configs/traffic_profiles.yaml)
+# and logged/never varied across arms -- this file only pins the RAN-side
+# slicing/reward/QoE parameters, shared by all 5 arms.
+#
+# THIS FILE (saclb_campaign_baseline.yaml) is a ONE-LINE variant of
+# saclb_campaign.yaml used ONLY by the `baseline` arm
+# (experiments/scripts/run_baseline_static.py): arrivals.ceiling_step_ratio
+# is 0 instead of 1, so the static-ratio baseline's ceiling can never move.
+# All 4 learned arms (dqn_sla/a2c_sla/dqn_qoe/a2c_qoe) use
+# saclb_campaign.yaml (step_ratio=1) unchanged -- every slice/reward/QoE
+# parameter besides this one is identical between the two files by
+# construction (copy + one edit), so this is not a confound between arms.
+name: saclb_campaign_baseline
+random_seed: 256
+paper_variant: paper2
+B: 100
+Lmax: 10
+
+gnbs:
+  - gnb_id: gnb-0
+    prb_capacity: 100
+
+# See CAMPAIGN_LOG.md "Ratio-to-PRB mapping" + "Calibrated caps finalized"
+# sections for how these were derived: max_ratio units do NOT map 1:1 onto
+# real PRBs on this rig (empirically swept, not assumed) -- each cap below
+# was validated live against this campaign's actual traffic profile, not
+# inherited from the old rig or reasoned about from the ratio formula.
+slices:
+  - slice_id: embb
+    sst: 1
+    sd: 16777215  # 0xFFFFFF, the confirmed real "no-SD" sentinel on this gNB
+    nominal_ratio: 3
+    min_ratio_floor: 1
+    max_ratio_cap: 12   # organic demand ~15 PRB mean (range 5-23) at 4Mbps campaign traffic; cap set just below mean
+    latency_budget_ms: 45
+    loss_budget_pct: 2.0
+    priority_weight: 3.5
+    accept_reward: 1.0
+    violation_penalty: 5.0
+  - slice_id: urllc
+    sst: 1
+    sd: 1  # confirmed real MAC slice id3 (sst=1, sd=0x000001) -- see gNB boot log
+    nominal_ratio: 2
+    min_ratio_floor: 1
+    max_ratio_cap: 4    # organic demand ~5 PRB floor (same as mmtc); cap set just below, mirroring embb's original Stage 9 philosophy
+    latency_budget_ms: 20     # tightest of the 3 slices -- URLLC's defining SLA characteristic
+    loss_budget_pct: 0.5      # tightest loss budget -- URLLC is loss-intolerant
+    priority_weight: 5.0      # highest priority weight -- matches papers #1/#2's objective (minimize URLLC block rate first)
+    accept_reward: 1.0
+    violation_penalty: 8.0    # highest violation penalty, consistent with priority_weight
+  - slice_id: mmtc
+    sst: 1
+    sd: 2
+    nominal_ratio: 2
+    min_ratio_floor: 1
+    max_ratio_cap: 3    # unchanged from Stage 9 -- already validated against this same ~5 PRB floor
+    latency_budget_ms: 65
+    loss_budget_pct: 3.5
+    priority_weight: 0.3
+    accept_reward: 1.0
+    violation_penalty: 2.5
+
+reward:
+  congestion_coeff: 1.5
+  lb_coeff: 1.0
+
+arrivals:
+  synthetic_arrivals_per_step: 2
+  max_pending_per_step: 8
+  # 0 (not 1, unlike every other arm's config): the `baseline` arm's whole
+  # point is a STATIC ratio -- with step_ratio=0, AdmissionGate.apply() can
+  # never move a slice's ceiling away from reset_ceilings()'s initial value
+  # (min_ratio_floor / nominal_ratio) regardless of accept/reject decisions.
+  # See experiments/scripts/run_baseline_static.py's module docstring for
+  # the full mechanism and why this realization was chosen over the (dead)
+  # rrmPolicy.json path.
+  ceiling_step_ratio: 0
+
+episode:
+  step_seconds: 5.0
+  steps_per_episode: 60
+
+# QoE-mode reward (eq.9) -- identical structure to saclb_live.yaml's qoe:
+# section, with a urllc entry now meaningful (the mapper checkpoint already
+# existed in results/qoe_mapper/ even though saclb_live.yaml's slices: list
+# didn't include urllc -- Stage One's QoE mapper was trained per-slice for
+# all 3 slices regardless of Stage 9's 2-slice live-core limitation at the
+# time).
+qoe:
+  reward:
+    alpha: 1.0
+    beta: 0.2
+    gamma: 0.5
+  lstm_hidden: 32
+  window: 8
+  max_staleness: 20
+  mapper_checkpoint:
+    urllc: qoe_oran_framework/results/qoe_mapper/qoe_mapper_urllc.pt
+    embb: qoe_oran_framework/results/qoe_mapper/qoe_mapper_embb.pt
+    mmtc: qoe_oran_framework/results/qoe_mapper/qoe_mapper_mmtc.pt
+  iqx_coeffs:
+    urllc: {alpha: 5.167748, beta: 9.999999, gamma: 44.904893, delta: 199.999999, epsilon: 0.000000}
+    embb:  {alpha: 3.522951, beta: 0.425081, gamma: 0.000000, delta: 0.000000, epsilon: 199.999999}
+    mmtc:  {alpha: 5.999999, beta: 9.999999, gamma: 0.000000, delta: 7.944624, epsilon: 0.000000}

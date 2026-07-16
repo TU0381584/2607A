@@ -1,0 +1,92 @@
+# Paper #2 (ICRAIE) SAC-LB: multi-gNB cluster, URLLC+eMBB+mMTC, LB term enabled.
+# Rainbow-specific copy of saclb_offline_dqn.yaml -- same topology/scarcity
+# calibration, but its OWN reward-weight calibration (see reward: comment
+# below). Kept as a separate file, not shared with DQN, precisely so tuning
+# Rainbow can never silently disturb DQN's already-verified-good weights
+# (congestion_coeff=1.5, priority_weight urllc=12/embb=2/mmtc=1 in
+# saclb_offline_dqn.yaml) -- confirmed via direct Q-value inspection and a
+# 5-seed x 10-episode greedy-eval sweep that Rainbow's dueling+PER+NoisyNet
+# architecture converges to noticeably higher (less reject-favorable)
+# embb/mmtc Q-margins (~+1.0) than DQN gets under the identical weights
+# (~+0.5) -- i.e. it needs its own, separately-verified numbers, not DQN's.
+name: saclb_offline_rainbow
+random_seed: 256
+paper_variant: paper2
+B: 100
+Lmax: 100
+
+gnbs:
+  - gnb_id: gnb-0
+    prb_capacity: 100
+  - gnb_id: gnb-1
+    prb_capacity: 100
+  - gnb_id: gnb-2
+    prb_capacity: 100
+
+# max_ratio_cap tightened below train_offline.py's OVERSUBSCRIPTION_FACTOR
+# (1.25x nominal_ratio) mean offered demand -- see saclb_offline_dqn.yaml's
+# comment for the full rationale (identical here, topology is unchanged).
+slices:
+  - slice_id: urllc
+    sst: 1
+    sd: 1
+    nominal_ratio: 30
+    min_ratio_floor: 5
+    max_ratio_cap: 33  # < 37.5 (1.25x nominal) oversubscribed demand
+    latency_budget_ms: 15
+    loss_budget_pct: 0.8
+    priority_weight: 12.0
+    accept_reward: 1.0
+    violation_penalty: 10.0
+  - slice_id: embb
+    sst: 1
+    sd: 0
+    nominal_ratio: 60
+    min_ratio_floor: 10
+    max_ratio_cap: 66  # < 75 (1.25x nominal) oversubscribed demand
+    latency_budget_ms: 45
+    loss_budget_pct: 2.0
+    priority_weight: 3.5  # widened 2.0->3.5 -- see reward comment below
+    accept_reward: 1.0
+    violation_penalty: 5.0
+  - slice_id: mmtc
+    sst: 1
+    sd: 2
+    nominal_ratio: 10
+    min_ratio_floor: 5
+    max_ratio_cap: 11  # < 12.5 (1.25x nominal) oversubscribed demand
+    latency_budget_ms: 65
+    loss_budget_pct: 3.5
+    priority_weight: 0.3  # narrowed 1.0->0.3 -- see reward comment below
+    accept_reward: 1.0
+    violation_penalty: 2.5
+
+# congestion_coeff KEPT at 1.5 (matching DQN), not raised further -- raising
+# it to 1.65-2.2 was tried first (to flip Rainbow's embb/mmtc margins, which
+# stayed accept-favored at 1.5 with the original 2.0/1.0 weights) and
+# produced a sharp bang-bang bifurcation: embb/mmtc collapsed to ~50-70
+# blocks/episode (near-total reject) rather than a graduated response, and
+# a PER-disabled ablation (per_alpha=0.0) showed the same collapse, ruling
+# out PER as the cause -- something about Rainbow's Double-Q+Dueling+
+# NoisyNet combination responds to congestion_coeff as a step function, not
+# smoothly like DQN does. Raising the coefficient further to fix the
+# weight-margin problem was therefore the wrong lever. Instead, widened the
+# WEIGHTS themselves (embb 2.0->3.5, mmtc 1.0->0.3) while leaving
+# congestion_coeff at the same safe 1.5 DQN uses -- avoids re-entering
+# Rainbow's bang-bang zone at all. Verify with the same discipline as DQN's
+# calibration (direct Q-value probe + multi-seed greedy eval, not
+# training-time block counts, which for Rainbow are inflated by NoisyNet's
+# own parameter-noise during training and don't reflect the converged
+# greedy policy).
+reward:
+  congestion_coeff: 1.5
+  lb_coeff: 1.0
+
+arrivals:
+  synthetic_arrivals_per_step: 3
+  max_pending_per_step: 12
+  ceiling_step_ratio: 5
+
+episode:
+  step_seconds: 5.0
+  steps_per_episode: 60

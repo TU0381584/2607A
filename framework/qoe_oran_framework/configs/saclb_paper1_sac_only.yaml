@@ -1,0 +1,66 @@
+# Paper #1 (MECON) comparator: single gNB, URLLC+eMBB only, no LB term.
+name: saclb_paper1_sac_only
+random_seed: 256
+paper_variant: paper1
+B: 100
+Lmax: 10  # scaled to match tight ratio bounds below -- see saclb_live.yaml comment
+
+gnbs:
+  - gnb_id: gnb-0
+    prb_capacity: 100
+
+# Ratio bounds tightened to match saclb_live.yaml's calibration against
+# observed real demand (~5 PRB/UE) -- see that file's comment for the
+# measurement and rationale. Offline-only configs (saclb_offline_dqn.yaml)
+# are untouched; this file doubles as both paper #1's offline training
+# config and its live-deployment config (same topology, single gNB).
+slices:
+  - slice_id: urllc
+    sst: 1
+    sd: 1
+    nominal_ratio: 3
+    min_ratio_floor: 1
+    max_ratio_cap: 4  # below observed ~5.0 PRB/UE real demand -> permanent scarcity
+    latency_budget_ms: 15
+    loss_budget_pct: 0.8
+    priority_weight: 4.0
+    accept_reward: 1.0
+    violation_penalty: 10.0
+  - slice_id: embb
+    sst: 1
+    sd: 0
+    nominal_ratio: 3
+    min_ratio_floor: 1
+    max_ratio_cap: 4  # below observed ~5.0 PRB/UE real demand -> permanent scarcity
+    latency_budget_ms: 45
+    loss_budget_pct: 2.0
+    priority_weight: 2.0
+    accept_reward: 1.0
+    violation_penalty: 5.0
+
+# congestion_coeff/violation_penalty retuned to match saclb_offline_dqn.yaml
+# and saclb_live.yaml -- see saclb_offline_dqn.yaml's comment for the full
+# rationale (old weights made "always accept" reward-optimal regardless of
+# backlog).
+#
+# KNOWN LIMITATION, not yet resolved: unlike saclb_offline_dqn.yaml, this
+# file's max_ratio_cap (4) was calibrated against *live* real UE demand
+# (~5.0), not train_offline.py's ClosedLoopKpmSource synthetic demand
+# (OVERSUBSCRIPTION_FACTOR=1.25 x nominal_ratio=3 -> 3.75). Since cap=4 sits
+# *above* 3.75, offline training against this file has weaker/no persistent
+# scarcity even after this reward retuning -- the admission ceiling can rise
+# to fully satisfy the synthetic demand. This comparator (sac_only) has not
+# yet been retrained/re-validated after the reset-per-episode bugfix; do
+# that before trusting its offline-trained block rate as evidence.
+reward:
+  congestion_coeff: 6.0
+  lb_coeff: 0.0
+
+arrivals:
+  synthetic_arrivals_per_step: 2
+  max_pending_per_step: 8
+  ceiling_step_ratio: 1
+
+episode:
+  step_seconds: 5.0
+  steps_per_episode: 60

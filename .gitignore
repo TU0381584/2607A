@@ -1,0 +1,23 @@
+# Upstream clones (each has its own git history -- not nested here)
+/ORANSlice/
+/docker_open5gs/
+/protobuf-c/
+
+# Python virtualenv (regenerable, huge)
+/venv/
+
+# Build artifacts / raw bring-up logs (regenerable, not the evidence chain)
+build_oai_*.log
+docker_build_open5gs_slicing.log
+/logs/
+
+# Live-eval / offline-training raw console logs under experiments (kept:
+# omega_log.jsonl and checkpoint.pt, the actual evidence chain + trained
+# weights -- these console logs are just stdout/stderr redirection)
+/experiments/logs/traffic/*.log
+/experiments/results/offline/log_*.log
+/experiments/results/offline/phase2_driver.log
+
+__pycache__/
+*.pyc
+.pytest_cache/

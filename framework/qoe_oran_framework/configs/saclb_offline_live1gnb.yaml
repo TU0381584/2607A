@@ -1,0 +1,154 @@
+# Single-gNB offline training config, dimension-matched to saclb_live.yaml.
+#
+# WHY THIS FILE EXISTS: discovered that saclb_offline_dqn.yaml (3 gNBs, used
+# to train the DQN/A2C checkpoints all session) produces state_dim=34, while
+# saclb_live.yaml (1 gNB, the real rig's actual topology -- hardware only
+# has one physical gNB) produces state_dim=13. Loading a checkpoint trained
+# on one into a policy built from the other fails outright:
+#   RuntimeError: size mismatch for net.0.weight: checkpoint [128, 34] vs
+#   live-config network [128, 13].
+# This was a latent, unnoticed incompatibility the whole session -- any
+# earlier live run claiming to use an offline checkpoint against
+# saclb_live.yaml could not actually have loaded it successfully as things
+# stood. Fix: train specifically against THIS single-gNB config (same
+# topology as saclb_live.yaml, so state_dim matches and the checkpoint
+# loads), not the 3-gNB one.
+#
+# Same slice roster/sd-mapping as saclb_live.yaml (urllc sd=1, embb sd=0,
+# mmtc sd=2), same Lmax=10, same DQN safety-margin reward weights
+# (congestion_coeff=1.5, priority_weight urllc=12.0/embb=3.5/mmtc=0.3 --
+# see saclb_offline_dqn.yaml's comments for the full calibration story).
+#
+# max_ratio_cap recalibrated for THIS file's own purpose (offline training
+# scarcity), not copied from saclb_live.yaml's caps (4/4/3): those were
+# calibrated against the live rig's REAL observed UE demand (~5.0 PRB/UE),
+# but offline training uses ClosedLoopKpmSource's synthetic demand model
+# (train_offline.py's OVERSUBSCRIPTION_FACTOR=1.25 x nominal_ratio/100) --
+# a different formula with a different scale. At nominal=3/3/2 that's
+# demand=3.75/3.75/2.5; saclb_live.yaml's caps (4/4/3) all sit ABOVE that
+# synthetic demand, meaning the offline admission ceiling could rise to
+# fully satisfy it -- no persistent scarcity, same "self-heals past
+# demand" bug already found and fixed for saclb_offline_dqn.yaml, and the
+# same known-but-never-fixed gap documented in saclb_paper1_sac_only.yaml.
+# Caps below are pinned at nominal_ratio (zero elastic headroom) so they
+# stay permanently below the 1.25x-oversubscribed synthetic demand.
+name: saclb_offline_live1gnb
+random_seed: 256
+paper_variant: paper2
+B: 100
+# Lmax=10, REVERTED back from an experimental 150.
+#
+# SLA-COMPLIANCE INVESTIGATION, dead-ended -- kept here as a durable record
+# so this isn't silently re-attempted the same way later. Traced that
+# Lmax=10 trips the queue-backlog violation flag within ~3 steps regardless
+# of policy (offered demand's own random-walk volatility is large relative
+# to its mean here), before a policy's Q-function has any reward-shaped
+# incentive to learn *early* rejection. Raised Lmax to 150 and retrained
+# DQN/A2C from scratch to test whether more runway would let a policy
+# learn to prevent its own SLA violations, not just its block rate. Result:
+# it didn't help -- SLA compliance stayed statistically overlapping between
+# DQN and A2C (2-26% either way) even though block-rate behavior changed
+# drastically, AND it broke A2C's previously-solid, verified urllc/eMBB
+# protection (A2C started rejecting urllc/eMBB 400+ times per 10 episodes,
+# instead of the robust 0 it showed under Lmax=10). Even a near-total-reject
+# policy didn't achieve meaningfully better SLA compliance than a moderate
+# one -- strong evidence the offered-demand model's volatility relative to
+# any Lmax/cap setting overwhelms whatever leverage admission policy has,
+# not a tuning problem fixable by another coefficient sweep. Reverted to
+# restore the verified-good block-rate behavior (this session's actual,
+# real result); SLA compliance is documented as a still-open limitation
+# (see notify_rejected() and AdmissionGate.apply() for the mechanism work
+# already done, which is real and kept, just insufficient on its own).
+Lmax: 10
+
+gnbs:
+  - gnb_id: gnb-0
+    prb_capacity: 100
+
+slices:
+  - slice_id: urllc
+    sst: 1
+    sd: 1
+    nominal_ratio: 3
+    min_ratio_floor: 1
+    max_ratio_cap: 3  # < 3.75 (1.25x nominal) oversubscribed offline demand
+    latency_budget_ms: 15
+    loss_budget_pct: 0.8
+    priority_weight: 12.0
+    accept_reward: 1.0
+    violation_penalty: 10.0
+  - slice_id: embb
+    sst: 1
+    sd: 0
+    nominal_ratio: 3
+    min_ratio_floor: 1
+    max_ratio_cap: 3  # < 3.75 (1.25x nominal) oversubscribed offline demand
+    latency_budget_ms: 45
+    loss_budget_pct: 2.0
+    priority_weight: 3.5
+    accept_reward: 1.0
+    violation_penalty: 5.0
+  - slice_id: mmtc
+    sst: 1
+    sd: 2
+    nominal_ratio: 2
+    min_ratio_floor: 1
+    max_ratio_cap: 2  # < 2.5 (1.25x nominal) oversubscribed offline demand
+    latency_budget_ms: 65
+    loss_budget_pct: 3.5
+    priority_weight: 0.3
+    accept_reward: 1.0
+    violation_penalty: 2.5
+
+reward:
+  congestion_coeff: 1.5
+  lb_coeff: 1.0
+
+arrivals:
+  synthetic_arrivals_per_step: 2
+  max_pending_per_step: 8
+  ceiling_step_ratio: 1
+
+episode:
+  step_seconds: 5.0
+  steps_per_episode: 60
+
+# Stage One: QoE-aware reward mode (eq.9), used ONLY when a run is launched
+# with --reward-mode qoe (see env.py's reward_mode switch) -- absent this
+# section, reward_mode="sla" (Stage Zero's frozen eq.2 baseline) is
+# unaffected.
+#
+# iqx_coeffs below are CALIBRATED (calibration/fit_iqx.py, run against
+# P.1203 mode-0 objective labels for eMBB -- via a simulated ABR video
+# client bridge, see calibration/video_client_model.py -- and ACR-style
+# task-success scoring for URLLC/mMTC, see calibration/acr_scoring.py).
+# Held-out alignment: eMBB MAE=0.089/r=0.926, URLLC MAE=0.131/r=0.742,
+# mMTC MAE=0.347/r=0.961 (full results in
+# calibration/fitted_iqx_coeffs.json). URLLC's weaker r is a genuine,
+# documented finding -- IQX's smooth log-based closed form fits a
+# near-binary, deadline-driven ACR profile less well than eMBB's/mMTC's
+# more continuous degradation curves; this motivates (and is
+# quantitatively closed by) the LSTM refinement below.
+#
+# mapper_checkpoint: per-slice trained QoEMapper LSTMs
+# (calibration/train_lstm.py), each refining that slice's IQX prior via a
+# window of KPM history. Held-out generalisation after refinement: eMBB
+# MAE=0.013/r=0.997, URLLC MAE=0.055/r=0.911, mMTC MAE=0.047/r=0.999 (see
+# results/qoe_mapper/lstm_train_results.json) -- the LSTM closes most of
+# the IQX prior's residual gap, most dramatically for URLLC (r 0.74->0.91).
+qoe:
+  reward:
+    alpha: 1.0    # QoE/MOS weight
+    beta: 0.2     # resource-cost weight
+    gamma: 0.5    # SLA-violation-penalty weight
+  lstm_hidden: 32
+  window: 8
+  max_staleness: 20
+  mapper_checkpoint:
+    urllc: qoe_oran_framework/results/qoe_mapper/qoe_mapper_urllc.pt
+    embb: qoe_oran_framework/results/qoe_mapper/qoe_mapper_embb.pt
+    mmtc: qoe_oran_framework/results/qoe_mapper/qoe_mapper_mmtc.pt
+  iqx_coeffs:
+    urllc: {alpha: 5.167748, beta: 9.999999, gamma: 44.904893, delta: 199.999999, epsilon: 0.000000}
+    embb:  {alpha: 3.522951, beta: 0.425081, gamma: 0.000000, delta: 0.000000, epsilon: 199.999999}
+    mmtc:  {alpha: 5.999999, beta: 9.999999, gamma: 0.000000, delta: 7.944624, epsilon: 0.000000}

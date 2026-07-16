@@ -1,0 +1,138 @@
+# Live evaluation config: single physical OAI gNB (this rig has one),
+# evaluation-only -- checkpoint is loaded from offline training, no
+# learning happens live (see xapp/saclb_xapp.py). Shared across all
+# algorithms (dqn/a2c/rainbow/lb_only) -- pick one via saclb_xapp.py's
+# --algorithm flag, no per-algorithm config needed since the env/reward
+# parameters here don't vary by algorithm.
+#
+# 2026-07-14 fresh-rig retune (this checkout's ORANSlice main + docker_open5gs
+# open5gs_slicing core ship TWO real S-NSSAIs, not three -- verified by
+# reading the AMF/gNB config directly, not assumed; see BRINGUP_LOG.md Stage
+# 4 finding). Dropped the "urllc" slice entry (sd=1): no MAC slice with that
+# (sst,sd) exists on this gNB (its 3 configured slices are id0
+# sst=0/sd=0=reserved-SRB-only, id1 sst=1/sd=0xFFFFFF, id2 sst=1/sd=2), so
+# apply_slicing_ctrl() (e2_message_handlers.c) would silently no-op for any
+# CONTROL targeting it every step -- a permanent no-op ceiling can't "bind"
+# on real hardware, it would just be misleading in the omega log. Kept
+# "embb" and "mmtc" (see each slice's own comment below for its sd fix).
+#
+# paper_variant: paper2 is set only to keep the mmtc slice available; the
+# LB term is a no-op here regardless (fairness_ratio is trivially 1.0 with
+# one gNB) -- see SINGLE_GNB_LIVE_LIMITATION in xapp/saclb_xapp.py.
+name: saclb_live
+random_seed: 256
+paper_variant: paper2
+B: 100
+# Lmax scaled down to match the tiny PRB quotas below (was 100, calibrated
+# for the original 30-90 ratio range): with a 1-2 PRB/step deficit, a
+# Lmax of 100 would take ~100 steps to ever trip queue_len_norm>1.0 and
+# the reward's violation penalty -- far longer than any of these live
+# runs -- silently making "accept everything" costless regardless of
+# actual backlog. 10 lets a few steps of real deficit matter.
+Lmax: 10
+
+gnbs:
+  - gnb_id: gnb-0
+    prb_capacity: 100
+
+# Ratio bounds deliberately tight relative to observed real demand.
+# RECALIBRATED 2026-07-14 against THIS rig's own live measurement (not
+# copied from the old rig's numbers, though they turned out close): Stage 7
+# probe (qoe_oran_framework/scripts/probe_e2_preconditions.py, 120 polls,
+# single UE on the embb slice, light ping traffic) measured avg_prbs_dl
+# mean=5.17 PRB, max=12.00 PRB (out of B=100, i.e. ~106 real PRBs at
+# 106-PRB/numerology-1). The *original* bounds here (nominal 30/60/10, cap
+# 60/90/40) left 10-20x headroom above that scale, so every policy
+# (heuristic or learned) could always accept without ever hitting a real
+# ceiling: zero blocks, no differentiation. Old rig's own retune (cap
+# 4/4/3) already landed close to this rig's measured scale by coincidence
+# (its ~5.0 PRB/UE reference vs. this rig's 5.17 mean/12 max) -- kept those
+# cap values as still-valid (mean sits just under embb's cap=4, and even
+# the max=12 burst sits comfortably below what a cap around this scale
+# would allow through, so ceiling enforcement remains meaningful, not
+# vacuous). mmtc's cap (3) has NOT been re-verified against a live
+# measurement on this rig (Stage 8 curtailed multi-UE scale-out -- this
+# machine started swapping with just the one required UE attached, see
+# BRINGUP_LOG.md Stage 8) -- left at the old rig's reference value, flagged
+# here as unverified rather than silently presented as measured.
+#
+# embb: sd corrected 0 -> 16777215 (0xFFFFFF). The old rig's "sd: 0" was
+# wrong for a real OAI slice on THIS checkout: 0xFFFFFF is the actual wire
+# value for "no SD configured" (3GPP's SD-absent sentinel), confirmed both
+# by this gNB's own MAC slice-init log ("Slice id = 1 [ sst = 1, sd = ffffff ]")
+# and by the Stage 7 probe's live P2/P4 output ("sst1/sd16777215"). Sending
+# CONTROL with sd=0 would target sst=1/sd=0 -- a slice that doesn't exist on
+# this gNB (id0's sst=0/sd=0 is the reserved SRB-only default slice, a
+# DIFFERENT sst) -- so every ceiling command for "embb" would have silently
+# no-opped against real hardware while this value was wrong. This is
+# load-bearing, not cosmetic: env.py sends slicing_control_m using this
+# exact (sst, sd) pair (env.py:183) each step.
+slices:
+  - slice_id: embb
+    sst: 1
+    sd: 16777215  # 0xFFFFFF, corrected from 0 -- see comment above
+    nominal_ratio: 3
+    min_ratio_floor: 1
+    max_ratio_cap: 4  # verified below this rig's measured demand (mean 5.17, max 12.00 PRB) -- see comment above
+    latency_budget_ms: 45
+    loss_budget_pct: 2.0
+    priority_weight: 3.5  # synced to saclb_offline_live1gnb.yaml's safety-margin weights (was 2.0)
+    accept_reward: 1.0
+    violation_penalty: 5.0
+  - slice_id: mmtc
+    sst: 1
+    sd: 2
+    nominal_ratio: 2
+    min_ratio_floor: 1
+    max_ratio_cap: 3  # UNVERIFIED against live demand on this rig -- old rig's reference value, no UE was ever attached to this slice here (Stage 8 curtailed)
+    latency_budget_ms: 65
+    loss_budget_pct: 3.5
+    priority_weight: 0.3  # synced to saclb_offline_live1gnb.yaml's safety-margin weights (was 1.0)
+    accept_reward: 1.0
+    violation_penalty: 2.5
+
+# congestion_coeff=1.5, violation_penalty raised ~5x per slice above --
+# matches the same retuning applied to saclb_offline_dqn.yaml (see that
+# file's comment for the full rationale and the congestion_coeff=6.0->1.5
+# recalibration story). Kept identical to the offline training config so a
+# checkpoint's learned value function stays meaningful against the reward
+# actually reported/logged here at live-eval time.
+reward:
+  congestion_coeff: 1.5
+  lb_coeff: 1.0
+
+arrivals:
+  synthetic_arrivals_per_step: 2
+  max_pending_per_step: 8
+  ceiling_step_ratio: 1
+
+episode:
+  step_seconds: 5.0
+  steps_per_episode: 60
+
+# Stage One: QoE-aware reward mode (eq.9) for the "+QoE-driven-ratio"
+# ablation arm (see saclb_xapp.py's --reward-mode flag) -- the "static/
+# heuristic-ratio baseline" arm uses lb_only unchanged and never reads this
+# section. Kept identical to saclb_offline_live1gnb.yaml's qoe: section
+# (same rationale as the reward: section above -- a checkpoint/mapper
+# trained under one set of weights must be evaluated under the same set).
+# iqx_coeffs are CALIBRATED and mapper_checkpoint points at the trained
+# per-slice LSTMs -- see saclb_offline_live1gnb.yaml's qoe: section comment
+# for the full alignment-metric evidence (calibration/fit_iqx.py,
+# calibration/train_lstm.py).
+qoe:
+  reward:
+    alpha: 1.0
+    beta: 0.2
+    gamma: 0.5
+  lstm_hidden: 32
+  window: 8
+  max_staleness: 20
+  mapper_checkpoint:
+    urllc: qoe_oran_framework/results/qoe_mapper/qoe_mapper_urllc.pt
+    embb: qoe_oran_framework/results/qoe_mapper/qoe_mapper_embb.pt
+    mmtc: qoe_oran_framework/results/qoe_mapper/qoe_mapper_mmtc.pt
+  iqx_coeffs:
+    urllc: {alpha: 5.167748, beta: 9.999999, gamma: 44.904893, delta: 199.999999, epsilon: 0.000000}
+    embb:  {alpha: 3.522951, beta: 0.425081, gamma: 0.000000, delta: 0.000000, epsilon: 199.999999}
+    mmtc:  {alpha: 5.999999, beta: 9.999999, gamma: 0.000000, delta: 7.944624, epsilon: 0.000000}
