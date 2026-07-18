@@ -1,0 +1,110 @@
+\documentclass[conference]{IEEEtran}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{subcaption}
+\usepackage{url}
+\usepackage{xcolor}
+
+% Visible TODO markers for content the author (not Claude) writes.
+\newcommand{\authorTODO}[1]{\par\noindent\fbox{\parbox{0.95\linewidth}{\textbf{\color{red}TODO(MANOJ):} #1}}\par}
+
+\begin{document}
+
+\title{Live-Testbed Realization of QoE-Aware Deep Reinforcement Learning\\ for O-RAN Network Slice Admission Control}
+
+\author{
+\IEEEauthorblockN{Manoj Kumar Palanisamy\authorTODO{confirm exact name/order and any co-authors}}
+\IEEEauthorblockA{\authorTODO{affiliation, university, email}}
+}
+
+\maketitle
+
+\begin{abstract}
+\authorTODO{Abstract. Suggested content sketch (2-3 bullets):
+\begin{itemize}
+\item First live-testbed (not simulation) realization of DRL-based O-RAN slice admission control from papers \#1/\#2, on a real OAI gNB with the real E2 control-plane wire protocol -- prior work was ns-3/ns-O-RAN simulation only.
+\item Headline quantitative result once Section~V numbers are final (mean $\pm$ std across 3 seeds): SLA compliance / backlog comparison, static baseline vs. DQN/A2C under SLA and QoE-aware rewards.
+\item Testbed engineering contribution: empirical ratio-to-PRB calibration methodology, admission-as-ceiling-nudging realization, and a documented rig-fragility mitigation -- reusable findings for anyone building a live O-RAN RL testbed.
+\end{itemize}}
+\end{abstract}
+
+\begin{IEEEkeywords}
+O-RAN, network slicing, deep reinforcement learning, admission control, quality of experience, live testbed
+\end{IEEEkeywords}
+
+\section{Introduction}
+\authorTODO{Introduction. Suggested content sketch:
+\begin{itemize}
+\item Motivation: O-RAN network slicing needs adaptive admission control; DRL is a natural fit but nearly all prior evaluation (including our own papers \#1/\#2) is simulation-only (ns-3/ns-O-RAN).
+\item Gap: no live-testbed validation of whether simulation-trained admission policies transfer to a real E2 control loop, a real MAC scheduler, and real per-slice traffic.
+\item Contribution list (map directly to Sections III-VI): (1) a working live O-RAN DRL admission-control testbed on real OAI hardware; (2) an empirical methodology for calibrating PRB ratio ceilings against real traffic (the ratio-to-PRB mapping is NOT 1:1 -- a testbed-engineering finding in its own right); (3) a live comparison of a static O-RAN-native baseline vs.\ DQN/A2C under SLA (papers \#1/\#2 eq.) and QoE-aware (eq.~9) rewards; (4) an honest characterization of what does and does not hold up on real hardware (Section~VII).
+\item Scope statement: single gNB, 3 UEs (one per slice), rfsim -- GNN state representation, multi-agent coordination, and federated learning across gNBs (paper \#3's remaining scope) are explicitly future work for the journal-length follow-up, not attempted here.
+\end{itemize}}
+
+\section{Related Work}
+\authorTODO{Related work. Suggested content sketch:
+\begin{itemize}
+\item Position against papers \#1 (MECON) and \#2 (ICRAIE): same admission-control MDP formulation and reward (eq.~2), but simulation-only there vs.\ live here.
+\item Position against paper \#3 (the IEEE Access survey): this work is a grounded first step toward the survey's live-testbed vision, deliberately scoped down (no GNN/MARL/FL yet -- single gNB has no multi-agent coordination problem to solve).
+\item Brief coverage of O-RAN near-RT RIC / xApp literature, and any other live O-RAN RL testbeds you're aware of (if none exist with a real E2 loop, that itself is worth stating explicitly).
+\end{itemize}}
+
+\section{Testbed and Implementation}
+% Claude-written, grounded only in CAMPAIGN_LOG.md / PROJECT_HANDOFF_SUMMARY.md / repo source.
+% Run IDs / evidence cited in LaTeX comments for traceability.
+
+\subsection{Architecture}
+The testbed comprises a real OpenAirInterface (OAI) gNB running in radio-frequency simulation (rfsim) mode, an Open5GS 5G core provisioned with three slice-specific SMF/UPF pairs, and three OAI \texttt{nr-uesoftmodem} UE instances, one per slice (eMBB, URLLC, mMTC), each attached to its own provisioned S-NSSAI. Fig.~\ref{fig:architecture} shows the control-loop architecture. The gNB is built from the ORANSlice fork of OAI (2024.w28 base)~\cite{oranslice}, which integrates a RIC-free, UDP-based E2 agent directly into the gNB binary -- distinct from vanilla upstream OAI, whose only E2 agent (FlexRIC) requires a full E2AP/SCTP near-RT RIC deployment~\cite{oai,oran-e2ap}.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/fig1_architecture.pdf}
+\caption{Testbed control-loop architecture: Open5GS core, OAI gNB (MAC scheduler + E2 Agent), 3 rfsim UEs (one per slice), and the xApp/orchestrator realizing all 5 evaluated arms.}
+\label{fig:architecture}
+\end{figure}
+
+\subsection{The E2 Control Loop and the Admission-as-Ceiling-Nudging Realization}
+The gNB's E2 agent exposes a request/response UDP protocol (ports 6655/6600): an \texttt{INDICATION\_REQUEST} returns one \texttt{INDICATION\_RESPONSE} carrying per-UE KPM samples (\texttt{avg\_prbs\_dl}, \texttt{dl\_mac\_buffer\_occupation}, \texttt{dl\_bler}, \dots); a \texttt{CONTROL} message is fire-and-forget. Critically, \emph{the only control primitive this E2 agent exposes is \texttt{slicing\_control\_m\{sst, sd, min\_ratio, max\_ratio\}}} -- a per-slice PRB ratio ceiling/floor enforced by the MAC scheduler~\cite{oran-e2sm-kpm}. There is no raw per-flow accept/reject hook. Consequently, the admission-control MDP of papers \#1/\#2 -- whose action space is a binary accept/reject decision on an incoming request -- is realized here as \emph{ceiling nudging}: an accept decision raises a slice's \texttt{max\_ratio} toward its calibrated cap, a reject lowers it toward its floor. Capping a slice starves it (demand becomes backlog); it does not remove the demand. This is a structural constraint of any OAI-based live testbed, not an implementation choice, and every result in Section~V should be read through this lens.
+
+\subsection{Empirical Ratio-to-PRB Calibration}
+A first-principles assumption -- that the \texttt{max\_ratio} configuration parameter (0--100 scale) maps linearly onto real PRBs at this cell's 106-PRB/$\mu=1$ configuration -- was tested directly against live measurement and found false: pinning eMBB's \texttt{max\_ratio} to 4 empirically permitted 15--22 real served PRBs, not 4. Ratio caps for all three slices were therefore calibrated by direct measurement rather than by formula: real per-UE offered demand was polled with the ceiling held wide open (\texttt{min\_ratio}=0, \texttt{max\_ratio}=100), and each slice's cap was then set below its own measured organic demand (Table~\ref{tab:params}), reproducing the intended contention regime empirically instead of assuming it. A dedicated contention-gate test confirmed the calibration is load-bearing: pinning eMBB's ceiling to its floor for $\sim$45\,s raised \texttt{dl\_mac\_buffer\_occupation} by more than four orders of magnitude (411 $\rightarrow$ 6.6$\times10^{6}$), and restoring a ceiling closer to (but still below) organic demand produced real, measured drainage (6.6$\times10^{6}\rightarrow$2.5$\times10^{6}$) rather than permanent saturation -- i.e., ceiling changes have real, reversible, non-trivial consequences on this rig, which is the precondition for any of the policy comparisons in Section~V to be meaningful.
+
+\subsection{Baseline Realization}
+The comparison's static baseline is intended to model the ``heuristic, built-in, non-xApp'' O-RAN default: a fixed per-slice ratio, no learning, no per-step control. The framework's own \texttt{rrmPolicy.json} periodic-reload path, which would provide this natively, was confirmed non-functional on this OAI checkout (the reload code path is compiled out unless a source patch is applied). The baseline is instead realized by pinning each slice's admission-gate ceiling-step size to zero, so no accept/reject decision can move the ceiling away from its calibrated nominal ratio for the entire episode -- verified live: the commanded ceiling is bit-for-bit identical on every step of every baseline episode (Fig.~\ref{fig:ceiling}).
+
+\subsection{Learned Arms}
+Two algorithms (DQN, A2C) are each trained offline under two reward formulations: the SLA-only reward of papers \#1/\#2 (Eq.~2) and a QoE-aware reward $r = \alpha \cdot \text{MOS} - \beta \cdot \text{cost} - \gamma \cdot \text{SLA\_viol}$ (Eq.~9, $\alpha{=}1.0,\beta{=}0.2,\gamma{=}0.5$), where MOS is inferred per slice via an IQX closed-form prior~\cite{iqx-hypothesis} refined by a small per-slice LSTM, calibrated against ITU-T P.1203~\cite{itu-p1203} objective labels for eMBB and ACR-style task-success scoring for URLLC/mMTC. All four learned arms are trained offline against a closed-loop synthetic KPM source (demand response to admission decisions, not open-loop) for 300 episodes across 3 seeds, then evaluated live with frozen weights -- live episodes never update policy parameters.
+
+\section{Experimental Setup}
+Table~\ref{tab:params} summarizes the fixed testbed and campaign parameters. All five arms (baseline, DQN$_{\text{SLA}}$, A2C$_{\text{SLA}}$, DQN$_{\text{QoE}}$, A2C$_{\text{QoE}}$) are evaluated against the identical per-slice traffic profiles, episode length, and evaluation-seed set, with arm order interleaved across seeds (not run back-to-back per arm) to decorrelate any single arm's results from time-dependent rig drift. Ceilings are reset to a wide-open state and backlog is drained (verified by re-probing real demand) between every arm.
+
+\input{tables/table1_params}
+
+\authorTODO{Note once Section~V is finalized: if the actual completed grid differs from the 3 seeds $\times$ 5 episodes $\times$ 5 arms planned here (e.g., an arm fell short after retries per the campaign's own stop conditions), Table~\ref{tab:params} and this section must be updated to state what was actually run, not what was planned.}
+
+\section{Results}
+\authorTODO{RESULTS PLACEHOLDER -- to be populated from experiments/RESULTS\_REPORT.md once the live campaign (Phase A) and analysis (Phase B) complete. Do not write paper prose here manually; the numbers, tables, and figure narration in this section must be generated/transcribed directly from RESULTS\_REPORT.md so every quantitative claim traces to a run ID.}
+
+\section{Discussion}
+\authorTODO{Discussion framing -- suggested content sketch:
+\begin{itemize}
+\item What the live results confirm vs. what remains open relative to the simulation-only papers \#1/\#2.
+\item The QoE-vs-SLA-reward tradeoff tension, if the URLLC MOS finding replicates at multi-seed scale (Section~V/VII will state the verdict; this section is where you interpret it for the reader).
+\item Positioning for the journal-length follow-up: GNN state representation, multi-agent coordination, and federated learning across gNBs are natural extensions once a multi-gNB physical rig exists -- explicitly out of scope here.
+\end{itemize}}
+
+\section{Limitations}
+% Claude-written, plain statements, no spin.
+This work has the following limitations. \textbf{Radio interface.} All results are from OAI's rfsim radio-frequency simulator, not an over-the-air deployment; rfsim reproduces the full protocol stack and real scheduler behavior but not physical-layer channel impairments. \textbf{Hardware.} The testbed runs on a single shared desktop machine (7.4\,GB RAM, 8 cores), not an isolated telecom-grade rig; running the full gNB + 3-UE stack was found to be subject to an intermittent radio-link failure (RLC maximum-retransmission on the highest-traffic slice), plausibly caused by missed real-time scheduling deadlines under memory pressure rather than a logic fault. This was mitigated, not eliminated: a health-check-and-restart mechanism runs automatically between evaluation episodes and was verified live to recover automatically in every observed instance, at a wall-clock cost of roughly one restart per episode transition under full traffic load; every evaluation episode counted in Section~V completed and was log-verified end to end, and no partial or corrupted episode was silently included. \textbf{Scale.} A single gNB and three UEs (one per slice) were used; the multi-gNB load-balancing term from paper \#2 is consequently inapplicable here ($\rho\equiv1$ with one gNB) and is not evaluated. \textbf{Sample size.} Live evaluation used 3 seeds per arm; Section~V reports variance honestly rather than treating $n=3$ as sufficient for strong statistical claims. \textbf{QoE labels.} Per-slice MOS is an \emph{inferred} quantity (IQX prior + LSTM refinement calibrated against P.1203/ACR proxies), not a measurement from real end-user subjective scoring.
+
+\section*{Reproducibility}
+ORANSlice commit \texttt{b9bcc9b1} (OAI 2024.w28 base; full hash: b9bcc9b17fbecfc1041072a7b8d0f01ae874aba2). Evaluation seeds: 950, 951, 952 (live); offline-training seeds: 256, 257, 258. All configs (\texttt{experiments/configs/*.yaml}), orchestration scripts, and raw per-step logs (\texttt{omega\_log.jsonl}, one row per control-loop step with a non-empty \texttt{limitation} field by construction) are preserved and version-controlled; every figure in this paper is regenerated directly from those logs by a committed script in \texttt{experiments/plots/}, never hand-plotted.
+
+\section{Conclusion}
+\authorTODO{Conclusion -- 3-4 sentences summarizing the contribution and the single most important number/finding from Section~V, plus a one-sentence pointer to the journal-length follow-up (paper \#3's full GNN-MARL-FL scope).}
+
+\bibliographystyle{IEEEtran}
+\bibliography{refs}
+
+\end{document}

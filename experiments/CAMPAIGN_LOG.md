@@ -593,3 +593,65 @@ a2c_qoe's blocking behavior are real nuances the full campaign needs
 enough seeds/episodes to characterize properly (n=1 cannot distinguish a
 systematic a2c_qoe issue from single-episode variance). Reported to the
 user with this full picture before proceeding to the 8h campaign.
+
+User then had this packaged for a conference-paper handoff
+(`HANDOFF_FOR_PAPER.md` + a zip on the Desktop), explicitly flagging that
+n=1 trial figures are "too basic" to be convincing -- correct, and stated
+as such in the handoff doc. New handover: run the full campaign, adjudicate
+the two flagged anomalies with pre-registered decision rules, produce
+`RESULTS_REPORT.md`, publication figures, and an IEEEtran paper scaffold.
+
+---
+
+## Phase A — Full live campaign
+
+### Pre-flight (2026-07-18, continued)
+
+Rig brought back up (`restart_ran_stack.sh`) after the trial -- clean on
+first try. `iperf3-target` needed a fresh recreate (the container's port
+5201 server had wedged after ~4.5h holding a stale session from the
+earlier trial: "the server is busy running a test" -- same failure mode
+as previously documented, same fix). Traffic confirmed flowing (embb
+~4.1 Mbps). Probe diff against CAMPAIGN_LOG's calibrated values:
+
+| Slice | Calibrated organic demand | This pre-flight | Drift? |
+|---|---|---|---|
+| embb | ~15 PRB mean (range 5-23) | 15.60 mean / 19 max | none, within range |
+| urllc | ~5 PRB floor | 5.00 mean / 5.00 max | none |
+| mmtc | ~5 PRB floor | 5.00 mean / 5.00 max | none |
+
+No material drift -- **pre-flight PASS**.
+
+### Campaign design
+
+- **Grid**: 5 arms x 3 seeds (950/951/952, continuing the trial's seed
+  950) x 5 episodes/arm/seed = 75 episodes total.
+- **Checkpoints**: fixed to each learned arm's seed-256 offline-trained
+  checkpoint (one representative, well-converged checkpoint per arm,
+  consistent with "evaluate frozen weights" -- the seed varying across
+  950/951/952 is the LIVE evaluation seed controlling env RNG/synthetic
+  arrivals, not which offline checkpoint is loaded).
+- **Arm order interleaved per seed** (rotation, not fixed), so no arm
+  always runs at the same point in the rig's uptime/drift curve:
+  - seed 950: baseline, dqn_sla, a2c_sla, dqn_qoe, a2c_qoe
+  - seed 951: dqn_sla, a2c_sla, dqn_qoe, a2c_qoe, baseline
+  - seed 952: a2c_sla, dqn_qoe, a2c_qoe, baseline, dqn_sla
+- **Between every arm**: `experiments/scripts/drain_backlog.sh` opens all
+  3 slices' ceilings wide (min=0,max=100), waits 20s, re-probes -- so no
+  arm inherits the previous arm's queue state.
+- **Crash-safe progress**: `experiments/scripts/run_phase_a_campaign.sh`
+  appends one plain-text line to
+  `experiments/results/live_campaign/PROGRESS.log` per completed
+  (arm, seed) BEFORE moving on, and skips any (arm, seed) already marked
+  DONE there on restart -- so a session crash mid-campaign loses at most
+  the in-flight (arm, seed), not prior accounting.
+- Uses the already-proven `run_live_eval_arm.py` orchestrator unchanged
+  (health-check + auto-restart between episode batches, batch size 2).
+
+Estimated wall-clock: 75 episodes x 5 min = 6.25h pure episode time, plus
+drain (20s x ~15 arm-transitions ~= 5 min) plus restart overhead (~once
+per episode transition at the trial's observed rate, ~1.5-2 min each) --
+consistent with the ~8h estimate already given to and approved by the
+user.
+
+Launched in tmux session `campaign` at [see timestamp in first PROGRESS.log line].

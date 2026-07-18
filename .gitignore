@@ -21,3 +21,13 @@ docker_build_open5gs_slicing.log
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# LaTeX build artifacts
+paper_conf/*.aux
+paper_conf/*.log
+paper_conf/*.bbl
+paper_conf/*.blg
+paper_conf/*.out
+paper_conf/figures/*.aux
+paper_conf/figures/*.log
+paper_conf/figures/*.png
