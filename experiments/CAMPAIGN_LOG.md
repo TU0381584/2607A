@@ -654,4 +654,138 @@ per episode transition at the trial's observed rate, ~1.5-2 min each) --
 consistent with the ~8h estimate already given to and approved by the
 user.
 
-Launched in tmux session `campaign` at [see timestamp in first PROGRESS.log line].
+Launched in tmux session `campaign` at 18:08:18.
+
+### Progress checkpoints (updated as (arm, seed) pairs complete)
+
+- **baseline/seed950: DONE** (1738s = ~29 min, incl. one health-check
+  restart before the first batch). On pace with the ~8h estimate
+  (15 arm-seed pairs x ~29 min each ~= 7.25h + inter-seed overhead).
+- **dqn_sla/seed950: DONE** (1725s = ~29 min, consistent with baseline's
+  timing). 2/15 arm-seed pairs complete.
+- **a2c_sla/seed950: DONE** (1738s). 3/15 complete.
+- **dqn_qoe/seed950: DONE** (1726s). 4/15 complete. All 4 pairs so far
+  ~1725-1738s each -- very consistent, restart mechanism firing reliably
+  (one restart per arm transition, same pattern as both trials) with no
+  anomalies.
+- **a2c_qoe/seed950: DONE** (1727s). **5/15 complete -- seed 950's full
+  5-arm rotation finished cleanly**, ~144 min total for the first seed
+  pass (matches the ~29min/arm-seed x 5 estimate closely). Now starting
+  seed 951's rotation (dqn_sla, a2c_sla, dqn_qoe, a2c_qoe, baseline order).
+  a2c_qoe/950's actual blocking numbers will be checked against the n=1
+  trial's 47/35/40 finding once Phase B analysis runs on the full dataset
+  (not spot-checked mid-campaign, to avoid biasing later interpretation).
+- **dqn_sla/951, a2c_sla/951, dqn_qoe/951, a2c_qoe/951: DONE** (1738s,
+  1728s, 1725s, 1731s). 9/15 complete. Pace remains steady (~29 min/pair
+  including restarts); no anomalies, no stop conditions triggered.
+  a2c_qoe/951 needed more health-check restarts within its own batches
+  than other arms typically do -- consistent with (not yet confirmed as
+  causally linked to) the trial's a2c_qoe anomaly; noted for Phase B, not
+  interpreted mid-campaign.
+- **baseline/951: DONE** (1716s). **10/15 complete -- seed 951's full
+  5-arm rotation finished cleanly.** Two of three seeds done, ~5h elapsed
+  (18:08-23:02), on pace for completion around 01:00-01:30. Now starting
+  seed 952's rotation (a2c_sla, dqn_qoe, a2c_qoe, baseline, dqn_sla
+  order).
+- **a2c_sla/952, dqn_qoe/952: DONE** (1721s, 1733s). 12/15 complete.
+  Remaining: a2c_qoe/952 (in progress), baseline/952, dqn_sla/952.
+
+### Phase A ended early: two genuine crashes, stop condition triggered
+
+**Timeline of the final stretch:** after 13/15 arm-seed pairs completed
+cleanly (baseline, a2c_sla, dqn_qoe, a2c_qoe all fully done across all 3
+seeds; dqn_sla done for seeds 950/951), `baseline/seed952` failed partway
+through its final batch (4/5 episodes already written) when the health
+check found all 3 UEs unreachable and the automated
+`restart_ran_stack.sh` recovery **itself failed** (UE1 did not attach
+within 20s even on a fresh launch) -- the first time in ~6h45m of
+continuous operation this recovery mechanism has failed outright. The
+campaign driver logged `FAILED arm=baseline seed=952` per its crash-safe
+design and moved to the next arm, `dqn_sla/seed952`, which immediately
+hit the same "UE unreachable" health check and its own restart attempt
+also failed, so it was logged `FAILED` with zero episodes completed. The
+campaign loop then reached the end of seed 952's rotation and printed
+`PHASE A CAMPAIGN COMPLETE` (all 15 slots attempted, not all succeeded --
+this is the driver behaving exactly as designed, not a silent success).
+
+**Manual investigation (not further blind retries) found TWO DISTINCT,
+genuine crash signatures in the vendored OAI/ORANSlice source within the
+same recovery window:**
+
+1. **A real segfault** in `nr-uesoftmodem`, thread `Tpool3_-1`, captured
+   via `dmesg` and resolved with `addr2line` against the kernel's own
+   reported file-offset (`nr-uesoftmodem[41a205,...]` -- the kernel's
+   bracket notation already gives the PIE-corrected file offset, no
+   manual `/proc/<pid>/maps` correction needed this time):
+   ```
+   addr2line -f -C -e nr-uesoftmodem 0x41a205
+   -> nr_ue_periodic_srs_scheduling
+      openair2/LAYER2/NR_MAC_UE/nr_ue_scheduler.c:1140
+   ```
+   Root cause read directly from source: the function guards against
+   `current_UL_BWP->srs_Config` being NULL, then unconditionally
+   dereferences `srs_config->srs_ResourceSetToAddModList->list.count` --
+   but `srs_Config` can be non-NULL while `srs_ResourceSetToAddModList`
+   itself is NULL (plausibly during a BWP/config reconfiguration
+   transient), which is exactly the same CLASS of bug as the old rig's
+   `nr_dci_size`/`get_ul_tdalist` NULL-derefs from the original bring-up
+   (a config sub-struct that's present-but-incomplete during a transient
+   window) -- just a different specific function, apparently not covered
+   by the NULL-guard fixes that landed between v2.1.0 and this 2024.w28
+   base for the *other* functions.
+
+2. **A second, different crash** on the very next restart attempt: an
+   explicit `AssertFatal` (not a kernel segfault -- a controlled abort),
+   in `lockGet_ul_iterator()`,
+   `openair2/LAYER2/NR_MAC_UE/nr_ue_scheduler.c:223`:
+   ```
+   Assertion (is_nr_UL_slot(tdd_config, slot_tx, mac->frame_type) != 0) failed!
+   UL config_request called at wrong slot 7
+   ```
+   This happened AFTER a full, clean RA procedure (PRACH -> RAR ->
+   RRCSetup -> RRC_CONNECTED) -- the UE actually attached successfully,
+   then the gNB immediately sent an `RRC Release`, and the UE's own
+   scheduler crashed shortly after on a UL config request for a slot the
+   TDD configuration says isn't an uplink slot. `nr-softmodem` (gNB) was
+   NOT affected either time -- E2 agent heartbeats continued uninterrupted
+   throughout both crashes; both are UE-side (`nr-uesoftmodem`) bugs.
+
+**Why this is a stop condition, not "just another restart cycle":** every
+prior restart in this campaign (dozens, across 13 clean arm-seed pairs)
+recovered via the SAME mechanism on the first or second attempt with no
+crash signature at all (the earlier RLC-max-retx pattern is a link
+degradation, not a process crash). Two DIFFERENT genuine crashes on two
+CONSECUTIVE fresh-restart attempts, after ~6h45m of continuous heavy
+operation, is a materially different and more severe failure mode --
+matching the handover's explicit stop condition ("rig instability
+materially worse than the characterized... restart pattern") and
+separately, on its own, the "any gNB/UE crash or segfault" stop condition
+(interpreted to cover the UE process here, since both crashes are
+architecturally the same class of real-time-scheduling/NULL-deref bug
+the handoff docs already treat as gNB-adjacent). Both bugs are in the
+frozen, vendored `ORANSlice/oai_ran/` C source -- not something I can or
+should patch.
+
+**Data completeness as of stopping (verified directly from omega log row
+counts, 61 rows/episode):**
+
+| Arm | seed 950 | seed 951 | seed 952 | Valid seeds (>=3 ep) |
+|---|---|---|---|---|
+| baseline | 5/5 | 5/5 | **4/5** | 3 (meets floor) |
+| dqn_sla | 5/5 | 5/5 | **0/5 (missing)** | **2 (BELOW the 3-seed floor)** |
+| a2c_sla | 5/5 | 5/5 | 5/5 | 3 (complete) |
+| dqn_qoe | 5/5 | 5/5 | 5/5 | 3 (complete) |
+| a2c_qoe | 5/5 | 5/5 | 5/5 | 3 (complete) |
+
+13/15 arm-seed pairs are complete and clean (65 valid episodes' worth of
+data across 4 of 5 arms, all with full 3-seed coverage). Only `dqn_sla`
+falls short of the campaign's own stop-condition floor (3 seeds x >=3
+episodes) -- its seed-952 rep has zero data, not a partial one.
+
+**Rig left in a safe state**: all native RAN processes (gNB + 3 UEs)
+stopped cleanly (no lingering broken processes); Docker core left
+running (unaffected by either crash, stable throughout the entire ~6h45m
+run exactly as in every prior session). Traffic generators stopped.
+**Stopping here to report to the user rather than attempting further
+unilateral recovery or silently treating dqn_sla as n=2**, per the
+handover's explicit instruction.

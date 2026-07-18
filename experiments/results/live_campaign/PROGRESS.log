@@ -1,0 +1,15 @@
+DONE arm=baseline seed=950 elapsed_s=1738 rotation_idx=0 ts=2026-07-18T18:37:53+08:00
+DONE arm=dqn_sla seed=950 elapsed_s=1725 rotation_idx=0 ts=2026-07-18T19:07:13+08:00
+DONE arm=a2c_sla seed=950 elapsed_s=1738 rotation_idx=0 ts=2026-07-18T19:36:46+08:00
+DONE arm=dqn_qoe seed=950 elapsed_s=1726 rotation_idx=0 ts=2026-07-18T20:06:07+08:00
+DONE arm=a2c_qoe seed=950 elapsed_s=1727 rotation_idx=0 ts=2026-07-18T20:35:29+08:00
+DONE arm=dqn_sla seed=951 elapsed_s=1738 rotation_idx=1 ts=2026-07-18T21:05:02+08:00
+DONE arm=a2c_sla seed=951 elapsed_s=1728 rotation_idx=1 ts=2026-07-18T21:34:26+08:00
+DONE arm=dqn_qoe seed=951 elapsed_s=1725 rotation_idx=1 ts=2026-07-18T22:03:46+08:00
+DONE arm=a2c_qoe seed=951 elapsed_s=1731 rotation_idx=1 ts=2026-07-18T22:33:12+08:00
+DONE arm=baseline seed=951 elapsed_s=1716 rotation_idx=1 ts=2026-07-18T23:02:23+08:00
+DONE arm=a2c_sla seed=952 elapsed_s=1721 rotation_idx=2 ts=2026-07-18T23:31:39+08:00
+DONE arm=dqn_qoe seed=952 elapsed_s=1733 rotation_idx=2 ts=2026-07-19T00:01:07+08:00
+DONE arm=a2c_qoe seed=952 elapsed_s=1729 rotation_idx=2 ts=2026-07-19T00:30:31+08:00
+FAILED arm=baseline seed=952 elapsed_s=1365 rc=1 ts=2026-07-19T00:53:51+08:00
+FAILED arm=dqn_sla seed=952 elapsed_s=38 rc=1 ts=2026-07-19T00:55:17+08:00
