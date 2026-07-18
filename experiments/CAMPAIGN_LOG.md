@@ -827,3 +827,43 @@ exactly, for all 15):**
 clean (no segfaults) since the resume. Rig stopped safely (RAN processes
 + traffic off, Docker core stable throughout). **Proceeding to Phase B
 (analysis + anomaly adjudication) with the complete dataset.**
+
+---
+
+## Final summary: what the n=3 campaign confirmed vs. changed relative to the n=1 trial
+
+The n=1 trial's core qualitative claim held up: all four learned arms
+achieve robust, consistent SLA compliance (100.0±0.0% across 45 episodes)
+via the same ceiling-riding mechanism, while the static baseline does not
+match that reliability. But the trial's specific *numbers* were
+misleading at n=1 and the n=3 campaign corrected them honestly rather
+than confirming them by coincidence:
+- **Baseline's ~1.7-3.3% compliance did not replicate.** The real,
+  3-seed picture is bimodal (60%/100%/60%) with a mean of ~74% and large
+  variance -- the trial's single episode sampled the worse mode. The
+  corrected finding (reliability vs. an inconsistent baseline, not
+  rescuing an always-failing one) is arguably a *more* interesting result
+  for the paper, not a weaker one.
+- **The "URLLC MOS pinned at exactly 1.0" finding did not replicate as
+  stated.** Real values range 1.2-1.7 across arms with real (if modest)
+  policy-driven differentiation. The underlying real finding -- eMBB and
+  URLLC both show low, largely policy-independent inferred MOS while
+  mMTC is high, and baseline's URLLC MOS variance is the largest of any
+  arm/slice -- is genuine and now properly characterized instead of
+  overstated as a hard floor.
+- **The `a2c_qoe` mass-blocking anomaly DID replicate, decisively.**
+  100% of its 15 episodes across all 3 seeds show 28-49 blocks on all 3
+  slices simultaneously, while every algorithm/reward control (`a2c_sla`,
+  `dqn_qoe`) shows exactly zero. This is the strongest-evidence finding
+  of the whole campaign precisely because n=1 could not have
+  distinguished it from noise, and n=3 removes all doubt.
+
+Two genuine crashes in the vendored OAI source (a segfault and a
+separate AssertFatal, both in `nr_ue_scheduler.c`, both root-caused via
+dmesg+addr2line+source reading) interrupted the campaign once after
+~6h45m of continuous operation; the affected arm-seed pairs were
+discarded and redone from scratch on a freshly restarted rig, completing
+cleanly with no recurrence. Final dataset: 15/15 arm-seed pairs, 75/75
+episodes, fully verified. `RESULTS_REPORT.md`, all Phase 4 figures, and
+`paper_conf/` (6-page IEEEtran scaffold, compiles cleanly, author-owned
+sections left as explicit TODO blocks) are complete and committed.

@@ -1,0 +1,1038 @@
+{
+  "per_rep": {
+    "baseline": {
+      "950": {
+        "compliance_pct": {
+          "embb": 60.33333333333333,
+          "urllc": 60.33333333333333,
+          "mmtc": 60.33333333333333
+        },
+        "blocks_per_episode": {
+          "embb": 0.0,
+          "urllc": 0.0,
+          "mmtc": 0.0
+        },
+        "mean_margin": {
+          "embb": -386834.42066669435,
+          "urllc": -334652.76693037205,
+          "mmtc": -315.60966908113176
+        },
+        "mean_mos": {
+          "embb": 1.2770175242424011,
+          "urllc": 1.0137091088294983,
+          "mmtc": 4.594785539309184
+        },
+        "mean_episode_reward": -0.8569666666666664,
+        "n_episodes": 5,
+        "raw_blocks_per_episode_by_slice": {
+          "embb": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "urllc": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "mmtc": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "951": {
+        "compliance_pct": {
+          "embb": 100.0,
+          "urllc": 100.0,
+          "mmtc": 100.0
+        },
+        "blocks_per_episode": {
+          "embb": 0.0,
+          "urllc": 0.0,
+          "mmtc": 0.0
+        },
+        "mean_margin": {
+          "embb": 0.7259999885386659,
+          "urllc": 0.750839398781478,
+          "mmtc": 0.7309982753473412
+        },
+        "mean_mos": {
+          "embb": 1.2244101440906525,
+          "urllc": 1.708273716767629,
+          "mmtc": 4.772309274673462
+        },
+        "mean_episode_reward": 5.677166666666667,
+        "n_episodes": 5,
+        "raw_blocks_per_episode_by_slice": {
+          "embb": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "urllc": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "mmtc": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "952": {
+        "compliance_pct": {
+          "embb": 60.66666666666667,
+          "urllc": 60.0,
+          "mmtc": 61.0
+        },
+        "blocks_per_episode": {
+          "embb": 0.0,
+          "urllc": 0.0,
+          "mmtc": 0.0
+        },
+        "mean_margin": {
+          "embb": -386048.34166667674,
+          "urllc": -334636.7536000635,
+          "mmtc": -128.5390016738736
+        },
+        "mean_mos": {
+          "embb": 1.2771318380037944,
+          "urllc": 1.0,
+          "mmtc": 4.5782151031494145
+        },
+        "mean_episode_reward": -0.4211666666666673,
+        "n_episodes": 5,
+        "raw_blocks_per_episode_by_slice": {
+          "embb": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "urllc": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "mmtc": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "dqn_sla": {
+      "950": {
+        "compliance_pct": {
+          "embb": 100.0,
+          "urllc": 100.0,
+          "mmtc": 100.0
+        },
+        "blocks_per_episode": {
+          "embb": 0.0,
+          "urllc": 0.0,
+          "mmtc": 0.0
+        },
+        "mean_margin": {
+          "embb": 0.9999999989807579,
+          "urllc": 0.7358576142672393,
+          "mmtc": 0.7459991528559593
+        },
+        "mean_mos": {
+          "embb": 1.2232594446341196,
+          "urllc": 1.550808198451996,
+          "mmtc": 4.78175252755483
+        },
+        "mean_episode_reward": 5.388166666666668,
+        "n_episodes": 5,
+        "raw_blocks_per_episode_by_slice": {
+          "embb": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "urllc": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "mmtc": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "951": {
+        "compliance_pct": {
+          "embb": 100.0,
+          "urllc": 100.0,
+          "mmtc": 100.0
+        },
+        "blocks_per_episode": {
+          "embb": 0.0,
+          "urllc": 0.0,
+          "mmtc": 0.0
+        },
+        "mean_margin": {
+          "embb": 0.9999999947342064,
+          "urllc": 0.732782941768402,
+          "mmtc": 0.7459958762523006
+        },
+        "mean_mos": {
+          "embb": 1.2232594422499339,
+          "urllc": 1.4962949923674265,
+          "mmtc": 4.7818797556559245
+        },
+        "mean_episode_reward": 5.677166666666667,
+        "n_episodes": 5,
+        "raw_blocks_per_episode_by_slice": {
+          "embb": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "urllc": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "mmtc": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "952": {
+        "compliance_pct": {
+          "embb": 100.0,
+          "urllc": 100.0,
+          "mmtc": 100.0
+        },
+        "blocks_per_episode": {
+          "embb": 0.0,
+          "urllc": 0.0,
+          "mmtc": 0.0
+        },
+        "mean_margin": {
+          "embb": 0.9999999952265942,
+          "urllc": 0.7297634785906607,
+          "mmtc": 0.7299988417156654
+        },
+        "mean_mos": {
+          "embb": 1.2232594426472982,
+          "urllc": 1.4377798946698506,
+          "mmtc": 4.771600802739461
+        },
+        "mean_episode_reward": 5.876500000000002,
+        "n_episodes": 5,
+        "raw_blocks_per_episode_by_slice": {
+          "embb": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "urllc": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "mmtc": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "a2c_sla": {
+      "950": {
+        "compliance_pct": {
+          "embb": 100.0,
+          "urllc": 100.0,
+          "mmtc": 100.0
+        },
+        "blocks_per_episode": {
+          "embb": 0.0,
+          "urllc": 0.0,
+          "mmtc": 0.0
+        },
+        "mean_margin": {
+          "embb": 0.9999999812486882,
+          "urllc": 0.7427883327903402,
+          "mmtc": 0.734998460087453
+        },
+        "mean_mos": {
+          "embb": 1.2232594418525695,
+          "urllc": 1.6134306661287943,
+          "mmtc": 4.774879679679871
+        },
+        "mean_episode_reward": 5.388166666666668,
+        "n_episodes": 5,
+        "raw_blocks_per_episode_by_slice": {
+          "embb": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "urllc": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "mmtc": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "951": {
+        "compliance_pct": {
+          "embb": 100.0,
+          "urllc": 100.0,
+          "mmtc": 100.0
+        },
+        "blocks_per_episode": {
+          "embb": 0.0,
+          "urllc": 0.0,
+          "mmtc": 0.0
+        },
+        "mean_margin": {
+          "embb": 0.9999999957728979,
+          "urllc": 0.7397454459116369,
+          "mmtc": 0.7309983985284192
+        },
+        "mean_mos": {
+          "embb": 1.2232594430446624,
+          "urllc": 1.5430576515197754,
+          "mmtc": 4.772317186991374
+        },
+        "mean_episode_reward": 5.677166666666667,
+        "n_episodes": 5,
+        "raw_blocks_per_episode_by_slice": {
+          "embb": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "urllc": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "mmtc": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "952": {
+        "compliance_pct": {
+          "embb": 100.0,
+          "urllc": 100.0,
+          "mmtc": 100.0
+        },
+        "blocks_per_episode": {
+          "embb": 0.0,
+          "urllc": 0.0,
+          "mmtc": 0.0
+        },
+        "mean_margin": {
+          "embb": 0.9999999945896555,
+          "urllc": 0.7667521385990937,
+          "mmtc": 0.7269988471564404
+        },
+        "mean_mos": {
+          "embb": 1.2232594446341196,
+          "urllc": 1.8252697018782298,
+          "mmtc": 4.769725790023804
+        },
+        "mean_episode_reward": 5.876500000000002,
+        "n_episodes": 5,
+        "raw_blocks_per_episode_by_slice": {
+          "embb": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "urllc": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "mmtc": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "dqn_qoe": {
+      "950": {
+        "compliance_pct": {
+          "embb": 100.0,
+          "urllc": 100.0,
+          "mmtc": 100.0
+        },
+        "blocks_per_episode": {
+          "embb": 0.0,
+          "urllc": 0.0,
+          "mmtc": 0.0
+        },
+        "mean_margin": {
+          "embb": 0.9999999974402151,
+          "urllc": 0.7318453041626394,
+          "mmtc": 0.7299973206498613
+        },
+        "mean_mos": {
+          "embb": 1.2232594414552054,
+          "urllc": 1.4900194052855174,
+          "mmtc": 4.771599826812744
+        },
+        "mean_episode_reward": 0.3131398894627889,
+        "n_episodes": 5,
+        "raw_blocks_per_episode_by_slice": {
+          "embb": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "urllc": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "mmtc": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "951": {
+        "compliance_pct": {
+          "embb": 100.0,
+          "urllc": 100.0,
+          "mmtc": 100.0
+        },
+        "blocks_per_episode": {
+          "embb": 0.0,
+          "urllc": 0.0,
+          "mmtc": 0.0
+        },
+        "mean_margin": {
+          "embb": 0.9999999959536827,
+          "urllc": 0.7467364592036321,
+          "mmtc": 0.7319982085263115
+        },
+        "mean_mos": {
+          "embb": 1.2232594446341196,
+          "urllc": 1.6296774272123973,
+          "mmtc": 4.772967613538106
+        },
+        "mean_episode_reward": 0.32489204044871867,
+        "n_episodes": 5,
+        "raw_blocks_per_episode_by_slice": {
+          "embb": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "urllc": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "mmtc": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      "952": {
+        "compliance_pct": {
+          "embb": 100.0,
+          "urllc": 100.0,
+          "mmtc": 100.0
+        },
+        "blocks_per_episode": {
+          "embb": 0.0,
+          "urllc": 0.0,
+          "mmtc": 0.0
+        },
+        "mean_margin": {
+          "embb": 0.999999996421138,
+          "urllc": 0.7367549783348223,
+          "mmtc": 0.733996889855493
+        },
+        "mean_mos": {
+          "embb": 1.2232594418525695,
+          "urllc": 1.536820552746455,
+          "mmtc": 4.774205821355184
+        },
+        "mean_episode_reward": 0.3172571513295174,
+        "n_episodes": 5,
+        "raw_blocks_per_episode_by_slice": {
+          "embb": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "urllc": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "mmtc": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    "a2c_qoe": {
+      "950": {
+        "compliance_pct": {
+          "embb": 100.0,
+          "urllc": 100.0,
+          "mmtc": 100.0
+        },
+        "blocks_per_episode": {
+          "embb": 41.2,
+          "urllc": 38.8,
+          "mmtc": 41.2
+        },
+        "mean_margin": {
+          "embb": 0.7329999972132354,
+          "urllc": 0.7497715938596353,
+          "mmtc": 0.7169987381042957
+        },
+        "mean_mos": {
+          "embb": 1.2243782238165537,
+          "urllc": 1.682069983879725,
+          "mmtc": 4.763335242271423
+        },
+        "mean_episode_reward": 0.38914862083064183,
+        "n_episodes": 5,
+        "raw_blocks_per_episode_by_slice": {
+          "embb": [
+            47,
+            38,
+            35,
+            45,
+            41
+          ],
+          "urllc": [
+            35,
+            36,
+            46,
+            37,
+            40
+          ],
+          "mmtc": [
+            40,
+            46,
+            41,
+            38,
+            41
+          ]
+        }
+      },
+      "951": {
+        "compliance_pct": {
+          "embb": 100.0,
+          "urllc": 100.0,
+          "mmtc": 100.0
+        },
+        "blocks_per_episode": {
+          "embb": 42.8,
+          "urllc": 41.4,
+          "mmtc": 37.0
+        },
+        "mean_margin": {
+          "embb": 0.7329999886894865,
+          "urllc": 0.7436712280023592,
+          "mmtc": 0.7349981738910695
+        },
+        "mean_mos": {
+          "embb": 1.224379924138387,
+          "urllc": 1.5731498034795126,
+          "mmtc": 4.774904823303222
+        },
+        "mean_episode_reward": 0.38103621257676024,
+        "n_episodes": 5,
+        "raw_blocks_per_episode_by_slice": {
+          "embb": [
+            42,
+            45,
+            41,
+            47,
+            39
+          ],
+          "urllc": [
+            39,
+            38,
+            39,
+            45,
+            46
+          ],
+          "mmtc": [
+            41,
+            37,
+            42,
+            28,
+            37
+          ]
+        }
+      },
+      "952": {
+        "compliance_pct": {
+          "embb": 100.0,
+          "urllc": 100.0,
+          "mmtc": 100.0
+        },
+        "blocks_per_episode": {
+          "embb": 43.6,
+          "urllc": 43.4,
+          "mmtc": 34.2
+        },
+        "mean_margin": {
+          "embb": 0.7359999932554695,
+          "urllc": 0.7597300631848825,
+          "mmtc": 0.7179984347109336
+        },
+        "mean_mos": {
+          "embb": 1.2243645493189494,
+          "urllc": 1.7252331387996673,
+          "mmtc": 4.764048560460409
+        },
+        "mean_episode_reward": 0.3928038540482521,
+        "n_episodes": 5,
+        "raw_blocks_per_episode_by_slice": {
+          "embb": [
+            48,
+            43,
+            43,
+            49,
+            35
+          ],
+          "urllc": [
+            42,
+            43,
+            46,
+            39,
+            47
+          ],
+          "mmtc": [
+            32,
+            34,
+            33,
+            32,
+            40
+          ]
+        }
+      }
+    }
+  },
+  "aggregate": {
+    "baseline": {
+      "n_seeds": 3,
+      "seeds": [
+        950,
+        951,
+        952
+      ],
+      "embb": {
+        "compliance_pct_mean": 73.66666666666667,
+        "compliance_pct_std": 18.620975826758936,
+        "blocks_per_episode_mean": 0.0,
+        "blocks_per_episode_std": 0.0,
+        "mean_margin_mean": -257627.34544446087,
+        "mean_margin_std": 182170.83900776273,
+        "mean_mos_mean": 1.2595198354456159,
+        "mean_mos_std": 0.02482634470597191,
+        "compliance_pct_per_seed": {
+          "950": 60.33333333333333,
+          "951": 100.0,
+          "952": 60.66666666666667
+        }
+      },
+      "urllc": {
+        "compliance_pct_mean": 73.44444444444444,
+        "compliance_pct_std": 18.778106505998345,
+        "blocks_per_episode_mean": 0.0,
+        "blocks_per_episode_std": 0.0,
+        "mean_margin_mean": -223096.25656367894,
+        "mean_margin_std": 157753.40693259923,
+        "mean_mos_mean": 1.240660941865709,
+        "mean_mos_std": 0.3306995266147503,
+        "compliance_pct_per_seed": {
+          "950": 60.33333333333333,
+          "951": 100.0,
+          "952": 60.0
+        }
+      },
+      "mmtc": {
+        "compliance_pct_mean": 73.77777777777777,
+        "compliance_pct_std": 18.543908520316762,
+        "blocks_per_episode_mean": 0.0,
+        "blocks_per_episode_std": 0.0,
+        "mean_margin_mean": -147.80589082655266,
+        "mean_margin_std": 129.86214285182538,
+        "mean_mos_mean": 4.648436639044021,
+        "mean_mos_std": 0.08785202419208323,
+        "compliance_pct_per_seed": {
+          "950": 60.33333333333333,
+          "951": 100.0,
+          "952": 61.0
+        }
+      },
+      "episode_reward_mean": 1.4663444444444445,
+      "episode_reward_std": 2.982811676966368
+    },
+    "dqn_sla": {
+      "n_seeds": 3,
+      "seeds": [
+        950,
+        951,
+        952
+      ],
+      "embb": {
+        "compliance_pct_mean": 100.0,
+        "compliance_pct_std": 0.0,
+        "blocks_per_episode_mean": 0.0,
+        "blocks_per_episode_std": 0.0,
+        "mean_margin_mean": 0.999999996313853,
+        "mean_margin_std": 1.8964701009284976e-09,
+        "mean_mos_mean": 1.223259443177117,
+        "mean_mos_std": 1.0429498359086296e-09,
+        "compliance_pct_per_seed": {
+          "950": 100.0,
+          "951": 100.0,
+          "952": 100.0
+        }
+      },
+      "urllc": {
+        "compliance_pct_mean": 100.0,
+        "compliance_pct_std": 0.0,
+        "blocks_per_episode_mean": 0.0,
+        "blocks_per_episode_std": 0.0,
+        "mean_margin_mean": 0.7328013448754339,
+        "mean_margin_std": 0.002487954503455702,
+        "mean_mos_mean": 1.494961028496424,
+        "mean_mos_std": 0.04615325166351834,
+        "compliance_pct_per_seed": {
+          "950": 100.0,
+          "951": 100.0,
+          "952": 100.0
+        }
+      },
+      "mmtc": {
+        "compliance_pct_mean": 100.0,
+        "compliance_pct_std": 0.0,
+        "blocks_per_episode_mean": 0.0,
+        "blocks_per_episode_std": 0.0,
+        "mean_margin_mean": 0.7406646236079751,
+        "mean_margin_std": 0.007541846821337313,
+        "mean_mos_mean": 4.778411028650072,
+        "mean_mos_std": 0.0048158370309216054,
+        "compliance_pct_per_seed": {
+          "950": 100.0,
+          "951": 100.0,
+          "952": 100.0
+        }
+      },
+      "episode_reward_mean": 5.647277777777778,
+      "episode_reward_std": 0.20047837850230557
+    },
+    "a2c_sla": {
+      "n_seeds": 3,
+      "seeds": [
+        950,
+        951,
+        952
+      ],
+      "embb": {
+        "compliance_pct_mean": 100.0,
+        "compliance_pct_std": 0.0,
+        "blocks_per_episode_mean": 0.0,
+        "blocks_per_episode_std": 0.0,
+        "mean_margin_mean": 0.9999999905370806,
+        "mean_margin_std": 6.5856252549239455e-09,
+        "mean_mos_mean": 1.223259443177117,
+        "mean_mos_std": 1.1394189878234072e-09,
+        "compliance_pct_per_seed": {
+          "950": 100.0,
+          "951": 100.0,
+          "952": 100.0
+        }
+      },
+      "urllc": {
+        "compliance_pct_mean": 100.0,
+        "compliance_pct_std": 0.0,
+        "blocks_per_episode_mean": 0.0,
+        "blocks_per_episode_std": 0.0,
+        "mean_margin_mean": 0.7497619724336904,
+        "mean_margin_std": 0.01207791648381904,
+        "mean_mos_mean": 1.660586006508933,
+        "mean_mos_std": 0.11994062402332183,
+        "compliance_pct_per_seed": {
+          "950": 100.0,
+          "951": 100.0,
+          "952": 100.0
+        }
+      },
+      "mmtc": {
+        "compliance_pct_mean": 100.0,
+        "compliance_pct_std": 0.0,
+        "blocks_per_episode_mean": 0.0,
+        "blocks_per_episode_std": 0.0,
+        "mean_margin_mean": 0.7309985685907708,
+        "mean_margin_std": 0.003265828305672428,
+        "mean_mos_mean": 4.772307552231683,
+        "mean_mos_std": 0.0021040776709640627,
+        "compliance_pct_per_seed": {
+          "950": 100.0,
+          "951": 100.0,
+          "952": 100.0
+        }
+      },
+      "episode_reward_mean": 5.647277777777778,
+      "episode_reward_std": 0.20047837850230557
+    },
+    "dqn_qoe": {
+      "n_seeds": 3,
+      "seeds": [
+        950,
+        951,
+        952
+      ],
+      "embb": {
+        "compliance_pct_mean": 100.0,
+        "compliance_pct_std": 0.0,
+        "blocks_per_episode_mean": 0.0,
+        "blocks_per_episode_std": 0.0,
+        "mean_margin_mean": 0.9999999966050118,
+        "mean_margin_std": 6.206457999369848e-10,
+        "mean_mos_mean": 1.223259442647298,
+        "mean_mos_std": 1.4142298646826574e-09,
+        "compliance_pct_per_seed": {
+          "950": 100.0,
+          "951": 100.0,
+          "952": 100.0
+        }
+      },
+      "urllc": {
+        "compliance_pct_mean": 100.0,
+        "compliance_pct_std": 0.0,
+        "blocks_per_episode_mean": 0.0,
+        "blocks_per_episode_std": 0.0,
+        "mean_margin_mean": 0.7384455805670312,
+        "mean_margin_std": 0.00619570962007221,
+        "mean_mos_mean": 1.552172461748123,
+        "mean_mos_std": 0.058039363680343965,
+        "compliance_pct_per_seed": {
+          "950": 100.0,
+          "951": 100.0,
+          "952": 100.0
+        }
+      },
+      "mmtc": {
+        "compliance_pct_mean": 100.0,
+        "compliance_pct_std": 0.0,
+        "blocks_per_episode_mean": 0.0,
+        "blocks_per_episode_std": 0.0,
+        "mean_margin_mean": 0.7319974730105553,
+        "mean_margin_std": 0.0016328173736208115,
+        "mean_mos_mean": 4.772924420568678,
+        "mean_mos_std": 0.0010643311243102435,
+        "compliance_pct_per_seed": {
+          "950": 100.0,
+          "951": 100.0,
+          "952": 100.0
+        }
+      },
+      "episode_reward_mean": 0.3184296937470083,
+      "episode_reward_std": 0.004868908501203255
+    },
+    "a2c_qoe": {
+      "n_seeds": 3,
+      "seeds": [
+        950,
+        951,
+        952
+      ],
+      "embb": {
+        "compliance_pct_mean": 100.0,
+        "compliance_pct_std": 0.0,
+        "blocks_per_episode_mean": 42.53333333333333,
+        "blocks_per_episode_std": 0.9977753031397167,
+        "mean_margin_mean": 0.7339999930527304,
+        "mean_margin_std": 0.001414213705735533,
+        "mean_mos_mean": 1.22437423242463,
+        "mean_mos_std": 6.882086665184836e-06,
+        "compliance_pct_per_seed": {
+          "950": 100.0,
+          "951": 100.0,
+          "952": 100.0
+        }
+      },
+      "urllc": {
+        "compliance_pct_mean": 100.0,
+        "compliance_pct_std": 0.0,
+        "blocks_per_episode_mean": 41.199999999999996,
+        "blocks_per_episode_std": 1.8832595855767387,
+        "mean_margin_mean": 0.751057628348959,
+        "mean_margin_std": 0.006618759218345952,
+        "mean_mos_mean": 1.6601509753863015,
+        "mean_mos_std": 0.06399305910553493,
+        "compliance_pct_per_seed": {
+          "950": 100.0,
+          "951": 100.0,
+          "952": 100.0
+        }
+      },
+      "mmtc": {
+        "compliance_pct_mean": 100.0,
+        "compliance_pct_std": 0.0,
+        "blocks_per_episode_mean": 37.46666666666667,
+        "blocks_per_episode_std": 2.8767265347188555,
+        "mean_margin_mean": 0.7233317822354329,
+        "mean_margin_std": 0.008259474116566998,
+        "mean_mos_mean": 4.767429542011684,
+        "mean_mos_std": 0.005293837832826274,
+        "compliance_pct_per_seed": {
+          "950": 100.0,
+          "951": 100.0,
+          "952": 100.0
+        }
+      },
+      "episode_reward_mean": 0.38766289581855135,
+      "episode_reward_std": 0.0049176471717720886
+    }
+  },
+  "comparisons_vs_baseline": {
+    "dqn_sla": {
+      "wins": 6,
+      "losses": 0,
+      "ties": 3,
+      "cohens_d_compliance": {
+        "embb": 1.632949554320579,
+        "urllc": 1.632950281071477,
+        "mmtc": 1.6328172717378766
+      }
+    },
+    "a2c_sla": {
+      "wins": 6,
+      "losses": 0,
+      "ties": 3,
+      "cohens_d_compliance": {
+        "embb": 1.632949554320579,
+        "urllc": 1.632950281071477,
+        "mmtc": 1.6328172717378766
+      }
+    },
+    "dqn_qoe": {
+      "wins": 6,
+      "losses": 0,
+      "ties": 3,
+      "cohens_d_compliance": {
+        "embb": 1.632949554320579,
+        "urllc": 1.632950281071477,
+        "mmtc": 1.6328172717378766
+      }
+    },
+    "a2c_qoe": {
+      "wins": 6,
+      "losses": 0,
+      "ties": 3,
+      "cohens_d_compliance": {
+        "embb": 1.632949554320579,
+        "urllc": 1.632950281071477,
+        "mmtc": 1.6328172717378766
+      }
+    }
+  }
+}

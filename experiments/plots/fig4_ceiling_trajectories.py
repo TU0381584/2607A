@@ -26,11 +26,28 @@ ARM_REWARD_MODE = {
 GNB_ID = "gnb-0"
 
 
-def load_episode_ceilings(omega_path: Path, episode: int) -> dict:
-    """slice_id -> (steps[], max_ratio[]) for the given episode index."""
+def load_episode_ceilings(omega_path: Path, episode: int, run_id: str = None) -> dict:
+    """slice_id -> (steps[], max_ratio[]) for the given episode index.
+
+    IMPORTANT: episode numbers are only unique WITHIN a run_id (batch) --
+    experiments/scripts/run_live_eval_arm.py reseeds a fresh local episode
+    counter starting at 1 for every batch, so "episode 1" appears once per
+    batch (see CAMPAIGN_LOG.md's documented batch-reseeding caveat). Without
+    also constraining run_id, filtering by episode number alone silently
+    overlays multiple distinct episodes from different batches onto one
+    plot. If run_id is not given, the FIRST run_id encountered in the file
+    is used (deterministic given JSONL is append-ordered), not "all
+    run_ids" -- this was caught by inspecting a rendered figure that showed
+    two overlapping ceiling trajectories where only one was expected.
+    """
     series = {s: ([], []) for s in SLICE_ORDER}
+    resolved_run_id = run_id
     for row in read_omega_log(omega_path):
         if row.step < 1 or row.episode != episode:
+            continue
+        if resolved_run_id is None:
+            resolved_run_id = row.run_id
+        if row.run_id != resolved_run_id:
             continue
         ceilings = row.evidence.get("ceilings") or {}
         for slice_id in SLICE_ORDER:

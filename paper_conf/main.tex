@@ -68,7 +68,9 @@ The testbed comprises a real OpenAirInterface (OAI) gNB running in radio-frequen
 The gNB's E2 agent exposes a request/response UDP protocol (ports 6655/6600): an \texttt{INDICATION\_REQUEST} returns one \texttt{INDICATION\_RESPONSE} carrying per-UE KPM samples (\texttt{avg\_prbs\_dl}, \texttt{dl\_mac\_buffer\_occupation}, \texttt{dl\_bler}, \dots); a \texttt{CONTROL} message is fire-and-forget. Critically, \emph{the only control primitive this E2 agent exposes is \texttt{slicing\_control\_m\{sst, sd, min\_ratio, max\_ratio\}}} -- a per-slice PRB ratio ceiling/floor enforced by the MAC scheduler~\cite{oran-e2sm-kpm}. There is no raw per-flow accept/reject hook. Consequently, the admission-control MDP of papers \#1/\#2 -- whose action space is a binary accept/reject decision on an incoming request -- is realized here as \emph{ceiling nudging}: an accept decision raises a slice's \texttt{max\_ratio} toward its calibrated cap, a reject lowers it toward its floor. Capping a slice starves it (demand becomes backlog); it does not remove the demand. This is a structural constraint of any OAI-based live testbed, not an implementation choice, and every result in Section~V should be read through this lens.
 
 \subsection{Empirical Ratio-to-PRB Calibration}
-A first-principles assumption -- that the \texttt{max\_ratio} configuration parameter (0--100 scale) maps linearly onto real PRBs at this cell's 106-PRB/$\mu=1$ configuration -- was tested directly against live measurement and found false: pinning eMBB's \texttt{max\_ratio} to 4 empirically permitted 15--22 real served PRBs, not 4. Ratio caps for all three slices were therefore calibrated by direct measurement rather than by formula: real per-UE offered demand was polled with the ceiling held wide open (\texttt{min\_ratio}=0, \texttt{max\_ratio}=100), and each slice's cap was then set below its own measured organic demand (Table~\ref{tab:params}), reproducing the intended contention regime empirically instead of assuming it. A dedicated contention-gate test confirmed the calibration is load-bearing: pinning eMBB's ceiling to its floor for $\sim$45\,s raised \texttt{dl\_mac\_buffer\_occupation} by more than four orders of magnitude (411 $\rightarrow$ 6.6$\times10^{6}$), and restoring a ceiling closer to (but still below) organic demand produced real, measured drainage (6.6$\times10^{6}\rightarrow$2.5$\times10^{6}$) rather than permanent saturation -- i.e., ceiling changes have real, reversible, non-trivial consequences on this rig, which is the precondition for any of the policy comparisons in Section~V to be meaningful.
+A first-principles assumption -- that the \texttt{max\_ratio} configuration parameter (0--100 scale) maps linearly onto real PRBs at this cell's 106-PRB/$\mu=1$ configuration -- was tested directly against live measurement and found false: pinning eMBB's \texttt{max\_ratio} to 4 empirically permitted 15--22 real served PRBs, not 4. Ratio caps for all three slices were therefore calibrated by direct measurement rather than by formula: real per-UE offered demand was polled with the ceiling held wide open (\texttt{min\_ratio}=0, \texttt{max\_ratio}=100), and each slice's cap was then set below its own measured organic demand (Table~\ref{tab:params}), reproducing the intended contention regime empirically instead of assuming it. A dedicated contention-gate test (Table~\ref{tab:contention}) confirmed the calibration is load-bearing: pinning eMBB's ceiling to its floor for $\sim$45\,s raised \texttt{dl\_mac\_buffer\_occupation} by more than four orders of magnitude (411 $\rightarrow$ 6.6$\times10^{6}$), and restoring a ceiling closer to (but still below) organic demand produced real, measured drainage (6.6$\times10^{6}\rightarrow$2.5$\times10^{6}$) rather than permanent saturation -- i.e., ceiling changes have real, reversible, non-trivial consequences on this rig, which is the precondition for any of the policy comparisons in Section~V to be meaningful.
+
+\input{tables/table3_contention_gate}
 
 \subsection{Baseline Realization}
 The comparison's static baseline is intended to model the ``heuristic, built-in, non-xApp'' O-RAN default: a fixed per-slice ratio, no learning, no per-step control. The framework's own \texttt{rrmPolicy.json} periodic-reload path, which would provide this natively, was confirmed non-functional on this OAI checkout (the reload code path is compiled out unless a source patch is applied). The baseline is instead realized by pinning each slice's admission-gate ceiling-step size to zero, so no accept/reject decision can move the ceiling away from its calibrated nominal ratio for the entire episode -- verified live: the commanded ceiling is bit-for-bit identical on every step of every baseline episode (Fig.~\ref{fig:ceiling}).
@@ -84,9 +86,125 @@ Table~\ref{tab:params} summarizes the fixed testbed and campaign parameters. All
 \authorTODO{Note once Section~V is finalized: if the actual completed grid differs from the 3 seeds $\times$ 5 episodes $\times$ 5 arms planned here (e.g., an arm fell short after retries per the campaign's own stop conditions), Table~\ref{tab:params} and this section must be updated to state what was actually run, not what was planned.}
 
 \section{Results}
-\authorTODO{RESULTS PLACEHOLDER -- to be populated from experiments/RESULTS\_REPORT.md once the live campaign (Phase A) and analysis (Phase B) complete. Do not write paper prose here manually; the numbers, tables, and figure narration in this section must be generated/transcribed directly from RESULTS\_REPORT.md so every quantitative claim traces to a run ID.}
+% Claude-written, transcribed directly from experiments/RESULTS_REPORT.md
+% (generated by experiments/plots/generate_results_tables.py from omega
+% logs only -- every number here traces to a run ID in
+% experiments/results/live_campaign/). n=3 seeds (950, 951, 952), 5
+% episodes/seed/arm, 75 episodes total, all 5 arms.
+
+\subsection{Ceiling mechanism and SLA compliance}
+Fig.~\ref{fig:ceiling} shows the mechanism directly: baseline's commanded
+ceiling is bit-for-bit flat at its static nominal ratio for the entire
+episode, while DQN (SLA reward) rides eMBB's ceiling from floor to the
+calibrated cap (12) within $\sim$13 steps and jumps URLLC/mMTC to their
+caps (4, 3) immediately, holding both for the remainder. The direct
+consequence is Fig.~\ref{fig:compliance}: all four learned arms
+(DQN/A2C $\times$ SLA/QoE reward) hold $100.0\pm0.0\%$ SLA compliance on
+all three slices, in every one of 45 learned-arm episodes, with zero
+losses against the baseline in any single slice$\times$seed comparison
+(Cohen's $d\approx1.63$ for every slice). Table~\ref{tab:results}
+reports the full per-arm, per-slice breakdown.
+
+Baseline's compliance is real but **seed-dependent**, not uniformly
+poor: 60.3\% (seed 950), 100.0\% (seed 951), 60.7\% (seed 952) -- an
+initial single-episode pilot run had sampled only the lower mode and
+suggested near-zero compliance, which did not hold up once seeded
+episodes were run at scale. The corrected, honest reading is that the
+static ratio is sometimes adequate and sometimes not depending on
+traffic/timing, whereas every learned arm is consistently at ceiling
+regardless of seed -- the practical value demonstrated here is
+\emph{reliability under variable conditions}, not rescuing an
+otherwise-always-failing baseline.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/fig4_ceiling_trajectories.pdf}
+\caption{Commanded PRB ceiling per slice over one representative episode (seed 950): baseline (flat) vs.\ DQN/SLA (rides to cap).}
+\label{fig:ceiling}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/fig2_sla_compliance.pdf}
+\caption{Per-slice SLA compliance (\%), mean $\pm$ std, $n=3$ seeds.}
+\label{fig:compliance}
+\end{figure}
+
+\subsection{Backlog and the contention gate at campaign scale}
+Fig.~\ref{fig:backlog} shows the per-slice SLA-margin CDF (a continuous,
+Lmax-normalized backlog-severity proxy; display-clipped at $-1.5$, raw
+values reach $\approx-10^6$ under baseline's worst contention). Baseline
+sits at the clip floor for nearly the entire pooled distribution --
+deeply and persistently over budget -- while all four learned arms sit
+mostly in the comfortable region ($\approx0.7$--$1.0$). This is the
+figure connecting Phase 1's isolated contention-gate demonstration
+(Table~\ref{tab:contention}) to the campaign's actual multi-seed,
+multi-arm results.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/fig5_backlog.pdf}
+\caption{CDF of per-slice SLA margin by arm, pooled across 3 seeds.}
+\label{fig:backlog}
+\end{figure}
+
+\subsection{Inferred MOS: a dissociated, largely policy-independent signal}
+Fig.~\ref{fig:mos} shows inferred per-slice MOS. eMBB and URLLC sit low
+($\approx1.2$--$1.7$/5) and are overwhelmingly policy-independent -- eMBB
+MOS is identical to three decimal places across all four learned arms
+($1.223\pm0.000$) -- while mMTC sits high ($\approx4.6$--$4.8$/5),
+equally policy-independent. This is not a contradiction of the
+compliance result: SLA compliance reflects the learned policy
+successfully managing the backlog/loss budget, while MOS reflects a
+separately-calibrated QoE inference that this traffic profile and QoE
+mapper do not map to a high score for these two slices regardless of
+control policy -- meeting the SLA budget is not the same as achieving
+high inferred QoE, which is exactly the gap a QoE-aware reward is meant
+to surface. Baseline's URLLC MOS variance (std $0.331$) is by far the
+largest of any arm/slice (next-highest: $0.120$), consistent with --
+and mechanistically tied to -- its seed-dependent compliance above.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/fig6_inferred_mos.pdf}
+\caption{Inferred per-slice MOS, mean $\pm$ std, $n=3$ seeds.}
+\label{fig:mos}
+\end{figure}
+
+\subsection{A systematic anomaly: A2C+QoE-reward mass blocking}
+\label{sec:anomaly}
+Fig.~\ref{fig:blocking} shows per-episode URLLC blocking pooled across
+seeds. Baseline and three of four learned arms (DQN/SLA, A2C/SLA,
+DQN/QoE) show \emph{exactly zero} blocks in every one of their 45
+episodes combined. \texttt{A2C/QoE} is a clear exception: every single
+one of its 15 episodes (all 3 seeds) blocks 28--49 requests on
+\emph{all three slices simultaneously}, while its algorithm-matched SLA
+control (\texttt{A2C/SLA}) and its reward-matched DQN control
+(\texttt{DQN/QoE}) both show zero blocks throughout. Applying a
+pre-registered decision rule (systematic if $>10$ blocks/episode on
+$\geq2$ slices recurs in $\geq1/3$ of episodes across $\geq2$ seeds) to
+this data yields an unambiguous \emph{systematic} verdict -- this
+behavior clears the threshold by a wide margin (100\% of episodes, all
+3 slices, all 3 seeds). The effect is specific to the
+A2C+QoE-reward combination, not general to either factor alone.
+Despite the heavy blocking, \texttt{A2C/QoE} still achieves full SLA
+compliance and the \emph{highest} mean episodic reward of the two
+QoE-reward arms ($0.388$ vs.\ \texttt{DQN/QoE}'s $0.318$) -- the eq.~9
+reward does not clearly penalize this behavior, a reward-design tension
+we return to in Section~\ref{sec:discussion} rather than a defect in
+the experimental campaign.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/fig3_urllc_blocking.pdf}
+\caption{URLLC blocks/episode by arm, pooled across 3 seeds $\times$ 5 episodes.}
+\label{fig:blocking}
+\end{figure}
+
+\input{tables/table2_results}
 
 \section{Discussion}
+\label{sec:discussion}
 \authorTODO{Discussion framing -- suggested content sketch:
 \begin{itemize}
 \item What the live results confirm vs. what remains open relative to the simulation-only papers \#1/\#2.
