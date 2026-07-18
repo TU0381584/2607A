@@ -509,3 +509,87 @@ earlier (which was mostly observed under idle/light-ping conditions) --
 closer to needing a restart roughly once per episode-scale unit of
 activity under real load. Reported to the user with a revised wall-clock
 estimate before launching the full campaign.
+
+---
+
+## Session resume (2026-07-18)
+
+Machine had rebooted since the last session (docker containers "Exited
+137 hours ago", RAN processes gone -- expected/handled). New finding:
+**`ue2ns`/`ue3ns` network namespaces do NOT survive a reboot** (`ip netns
+list` came back empty) -- `restart_ran_stack.sh` was not yet
+self-healing for this, so UE2's launch hung with no PDU session. Fixed:
+the script now checks for and idempotently recreates both netns + veth
+pairs if missing, before launching anything. Verified working on this
+same resume (UE2/UE3 attached cleanly after the fix).
+
+### 30-minute END-TO-END trial (real cadence, real checkpoints) -- run before committing to the full 8h campaign
+
+Per the user's request for a real (not compressed) dry run: 1 FULL-LENGTH
+episode (60 steps x 5s = 5 min) per arm, all 5 arms, via
+`experiments/scripts/run_phase3_trial30.sh` (real `saclb_campaign.yaml` /
+seed-256 checkpoints, not the trial-config variants). Total wall-clock
+21:31:52-14:04:05 = **32m13s** for 5 real episodes + 4 automatic
+health-check restarts (one before nearly every arm transition, same
+pattern as the earlier compressed trial) -- restart mechanism worked
+flawlessly again, zero manual intervention.
+
+**Bug caught before reporting anything (verify, don't trust a chart on
+sight):** `fig5_backlog.py`'s CDF used `per_slice_sla_margin` assuming it
+was pre-clipped to [0,1] per `RunSummary`'s docstring description --
+actual raw values go far outside that range under real contention (seen:
+mean ~-944,615 for a badly-backlogged slice, matching Phase 1's
+multi-order-of-magnitude backlog finding). On a linear axis this
+compressed the entire informative region into an invisible sliver,
+making the CDF look like baseline was "comfortable" (~1.0) the whole
+episode -- the OPPOSITE of the true result, and directly contradicted by
+the compliance numbers below. Caught by cross-checking the figure against
+`fig2`'s numbers before reporting; fixed by clipping the display (not the
+underlying data) at -1.5 with the clipping stated on the axis label.
+
+### Trial result (n=1 episode/seed per arm -- directional, not final evidence)
+
+**SLA compliance (fig2) -- dramatic, consistent with the corrected
+backlog CDF (fig5):**
+
+| Arm | eMBB | URLLC | mMTC |
+|---|---|---|---|
+| baseline | 1.7% | 1.7% | 3.3% |
+| dqn_sla / a2c_sla / dqn_qoe / a2c_qoe | ~100% | ~100% | ~100% |
+
+Mechanism, directly visible in `fig4` (ceiling trajectory, baseline vs.
+dqn_sla): baseline's ceiling sits flat at its nominal ratio (embb=3,
+urllc=2, mmtc=2) for all 60 steps; dqn_sla rides eMBB's ceiling from ~4
+to the cap (12) within ~13 steps and holds there, and URLLC/mMTC jump to
+their caps (4/3) immediately. This is the real, mechanistic reason the
+compliance numbers differ so starkly -- not a reward-shaping artifact.
+
+**Inferred MOS (fig6) -- mixed, NOT uniformly favorable to the learned
+arms, reported plainly rather than omitted:** eMBB/mMTC MOS improves
+somewhat under the learned arms, but **URLLC MOS is pinned at the exact
+floor (1.0) for all 4 learned arms** (dqn_sla/a2c_sla mean=1.0000 exactly,
+dqn_qoe mean=1.0047, a2c_qoe mean=1.0000), while baseline's URLLC MOS is
+also low on average (1.06) but shows real variance up to 4.83 at some
+steps. This does not contradict the compliance result (compliance is a
+backlog/loss-budget measure; MOS is a separately-calibrated QoE
+inference) but is a genuine limitation worth carrying into the paper
+rather than hiding -- plausibly related to the already-documented
+"URLLC's weaker IQX-alone fit" finding from Stage One calibration.
+
+**URLLC blocking (fig3) -- one clear outlier:** baseline and 3 of 4
+learned arms (dqn_sla, a2c_sla, dqn_qoe) show 0 URLLC blocks this
+episode; **a2c_qoe blocked all three slices heavily this one episode**
+(embb=47, urllc=35, mmtc=40) -- a real, single-episode data point, not
+noise-filtered yet (n=1). Plausibly connects to a previously-documented
+framework-level finding (an old rig investigation noted A2C's tendency
+to over-reject under certain Lmax/reward configurations) -- flagged as
+something to watch across more seeds/episodes in the full campaign, not
+dismissed as a fluke without more data.
+
+**Overall read**: strong, mechanistically-explained evidence that the
+learned arms outperform the static baseline on SLA compliance and
+backlog control -- a genuine, non-cherry-picked result. MOS and
+a2c_qoe's blocking behavior are real nuances the full campaign needs
+enough seeds/episodes to characterize properly (n=1 cannot distinguish a
+systematic a2c_qoe issue from single-episode variance). Reported to the
+user with this full picture before proceeding to the 8h campaign.

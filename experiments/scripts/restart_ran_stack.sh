@@ -30,6 +30,34 @@ if pgrep -af "nr-softmodem|nr-uesoftmodem" >/dev/null 2>&1; then
 fi
 echo "[restart] confirmed clean: no RAN processes running"
 
+# Network namespaces + veth pairs for UE2/UE3 do NOT survive a machine
+# reboot (found the hard way: a reboot between sessions left `ip netns
+# list` empty, causing UE2's launch to silently hang with no PDU session).
+# Idempotent: only (re)creates what's missing, never touches an
+# already-healthy setup.
+if ! ip netns list 2>/dev/null | grep -q ue2ns; then
+  echo "[restart] ue2ns missing, recreating netns + veth pair"
+  sudo ip netns add ue2ns
+  sudo ip link add veth-ue2h type veth peer name veth-ue2n
+  sudo ip link set veth-ue2n netns ue2ns
+  sudo ip addr add 10.99.2.1/30 dev veth-ue2h
+  sudo ip link set veth-ue2h up
+  sudo ip netns exec ue2ns ip addr add 10.99.2.2/30 dev veth-ue2n
+  sudo ip netns exec ue2ns ip link set veth-ue2n up
+  sudo ip netns exec ue2ns ip link set lo up
+fi
+if ! ip netns list 2>/dev/null | grep -q ue3ns; then
+  echo "[restart] ue3ns missing, recreating netns + veth pair"
+  sudo ip netns add ue3ns
+  sudo ip link add veth-ue3h type veth peer name veth-ue3n
+  sudo ip link set veth-ue3n netns ue3ns
+  sudo ip addr add 10.99.3.1/30 dev veth-ue3h
+  sudo ip link set veth-ue3h up
+  sudo ip netns exec ue3ns ip addr add 10.99.3.2/30 dev veth-ue3n
+  sudo ip netns exec ue3ns ip link set veth-ue3n up
+  sudo ip netns exec ue3ns ip link set lo up
+fi
+
 echo "[restart] launching gNB"
 tmux new-session -d -s gnb -c "$BUILD_DIR"
 tmux send-keys -t gnb "sudo ./nr-softmodem -O $CONF_DIR/ORANSlice.gnb.sa.band78.fr1.106PRB.usrpx310.conf --sa --rfsim 2>&1 | tee $LOG_DIR/gnb_${TS}.log" Enter

@@ -36,6 +36,19 @@ ARM_REWARD_MODE = {
 }
 
 
+# per_slice_sla_margin is NOT pre-clipped to [0,1] -- reward.py's
+# ViolationCheck computes it as an unbounded continuous distance, and under
+# real contention it was observed going to roughly -1e6 (matching Phase 1's
+# multi-order-of-magnitude backlog blowup). Clip at MARGIN_FLOOR for
+# display only (raw data is untouched) -- without this, a linear-axis CDF
+# compresses the entire informative [-1,1] region into an invisible sliver
+# next to the massively-negative tail, which silently made a badly-violating
+# arm's CDF look like it was sitting at ~1.0 (comfortable) the whole time --
+# caught by cross-checking against fig2's compliance numbers before
+# shipping this figure.
+MARGIN_FLOOR = -1.5
+
+
 def collect_margins(omega_path: Path) -> dict:
     out = {s: [] for s in SLICE_ORDER}
     for row in read_omega_log(omega_path):
@@ -44,7 +57,7 @@ def collect_margins(omega_path: Path) -> dict:
         margins = row.evidence.get("per_slice_sla_margin") or {}
         for s in SLICE_ORDER:
             if s in margins:
-                out[s].append(margins[s])
+                out[s].append(max(MARGIN_FLOOR, margins[s]))
     return out
 
 
@@ -74,8 +87,8 @@ def main() -> None:
             ax.plot(sorted_vals, cdf, color=style["color"], linestyle=style["linestyle"],
                     label=style["label"], linewidth=1.0)
         ax.set_title(SLICE_STYLE[slice_id]["label"], fontsize=8)
-        ax.set_xlabel("SLA margin (1=comfortable, 0=at budget)")
-        ax.set_xlim(0, 1.05)
+        ax.set_xlabel(f"SLA margin (1=comfortable, 0=at budget,\nclipped at {MARGIN_FLOOR})")
+        ax.set_xlim(MARGIN_FLOOR - 0.05, 1.05)
 
     axes[0].set_ylabel("CDF")
     axes[-1].legend(loc="lower right", frameon=False, fontsize=5.5)
