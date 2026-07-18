@@ -789,3 +789,41 @@ run exactly as in every prior session). Traffic generators stopped.
 **Stopping here to report to the user rather than attempting further
 unilateral recovery or silently treating dqn_sla as n=2**, per the
 handover's explicit instruction.
+
+### Resume + successful retry: Phase A now 15/15 complete
+
+Resumed with a genuinely fresh rig restart (not continuing the crashed
+6h45m session -- docker core and all RAN processes had stopped between
+sessions, netns self-healed correctly). `iperf3-target` recreated fresh.
+Discarded `baseline/seed952`'s partial 4/5 episodes (not patched/topped
+up -- redone cleanly from scratch, consistent with this campaign's
+established discipline for handling any partial/incomplete data) and
+reran the campaign driver, which correctly skipped all 13 already-`DONE`
+pairs (via `PROGRESS.log`) and retried only `baseline/seed952` and
+`dqn_sla/seed952`.
+
+Both completed cleanly on the fresh rig: `baseline/seed952` (1720s, 5/5
+episodes) and `dqn_sla/seed952` (1723s, 5/5 episodes) -- ordinary
+health-check-restart cycles throughout, no crash signatures, same
+well-characterized pattern as the other 13 pairs. **Neither of the two
+crash bugs (SRS-scheduling segfault, UL-iterator AssertFatal) recurred**
+on the fresh rig, consistent with them being genuine but low-probability
+/ cumulative-uptime-correlated bugs in the vendored source rather than a
+deterministic, immediately-reproducible fault.
+
+**Phase A final result: 15/15 arm-seed pairs complete, verified directly
+from omega log row counts (305 rows = 5 episodes x 61 rows/episode,
+exactly, for all 15):**
+
+| Arm | seed 950 | seed 951 | seed 952 |
+|---|---|---|---|
+| baseline | 5/5 | 5/5 | 5/5 |
+| dqn_sla | 5/5 | 5/5 | 5/5 |
+| a2c_sla | 5/5 | 5/5 | 5/5 |
+| dqn_qoe | 5/5 | 5/5 | 5/5 |
+| a2c_qoe | 5/5 | 5/5 | 5/5 |
+
+75/75 episodes, full 3-seed x 5-episode coverage for all 5 arms. `dmesg`
+clean (no segfaults) since the resume. Rig stopped safely (RAN processes
++ traffic off, Docker core stable throughout). **Proceeding to Phase B
+(analysis + anomaly adjudication) with the complete dataset.**
