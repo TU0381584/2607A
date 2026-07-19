@@ -62,9 +62,15 @@ def main() -> None:
             slice_id: min(0.98, OVERSUBSCRIPTION_FACTOR * spec.nominal_ratio / 100.0)
             for slice_id, spec in cfg.slice_by_id.items()
         }
+        # sd_for_slice MUST come from the config's real SliceSpec.sd values,
+        # not ClosedLoopKpmSource's {embb:0,urllc:1,mmtc:2} default -- embb's
+        # real NSSAI SD is 0xFFFFFF=16777215 on this rig (saclb_campaign.yaml),
+        # not 0. Without this, send_control() silently never updates embb's
+        # ceiling (confirmed: 2026-07-20 CAMPAIGN_LOG entry).
+        sd_for_slice = {slice_id: spec.sd for slice_id, spec in cfg.slice_by_id.items()}
         return ClosedLoopKpmSource(
             seed=seed, gnb_ids=cfg.gnb_ids, slice_ids=list(cfg.slice_by_id),
-            B=cfg.B, mean_offered_ratio=mean_offered_ratio,
+            B=cfg.B, mean_offered_ratio=mean_offered_ratio, sd_for_slice=sd_for_slice,
         )
 
     summaries = run_mc(

@@ -192,7 +192,21 @@ class ClosedLoopKpmSource:
         backlog_capacity: float = 200.0,
         churn_prob: float = 0.05,
         initial_ceiling_ratio: float = 100.0,
+        sd_for_slice: Optional[Dict[str, int]] = None,
     ):
+        """sd_for_slice: maps each slice_id to the NSSAI SD value callers
+        will use in poll()'s generated samples and send_control()'s `sd`
+        argument. Defaults to the module-level _SD_FOR_SLICE ({embb:0,
+        urllc:1, mmtc:2}) for backward compatibility with callers/tests
+        that don't pass real config SD values. MUST be overridden with the
+        caller's actual SliceSpec.sd values (e.g. embb's real NSSAI SD is
+        0xFFFFFF=16777215 on this rig, not 0 -- see saclb_campaign.yaml's
+        comment) whenever this source is driven from a real
+        SacLbExperimentConfig, or send_control() silently fails to update
+        that slice's ceiling (confirmed: 2026-07-20 CAMPAIGN_LOG entry --
+        embb's ceiling never moved off its initial_ceiling_ratio default
+        for the entire prior offline-training history because the
+        hardcoded default's sd=0 never matched embb's real sd=16777215)."""
         self._rng = np.random.RandomState(seed)
         self._gnb_ids = gnb_ids
         self._slice_ids = slice_ids
@@ -203,6 +217,8 @@ class ClosedLoopKpmSource:
         self._ues_per_slice = ues_per_slice
         self._backlog_capacity = backlog_capacity
         self._churn_prob = churn_prob
+        self._sd_for_slice = dict(sd_for_slice) if sd_for_slice else dict(_SD_FOR_SLICE)
+        self._sd_for_slice_reverse = {v: k for k, v in self._sd_for_slice.items()}
 
         self._offered: Dict[tuple, float] = {}
         self._backlog: Dict[tuple, float] = {}
@@ -240,7 +256,7 @@ class ClosedLoopKpmSource:
         for gnb_id in self._gnb_ids:
             for slice_id in self._slice_ids:
                 key = (gnb_id, slice_id)
-                sd = _SD_FOR_SLICE[slice_id]
+                sd = self._sd_for_slice[slice_id]
 
                 mean = self._mean_offered_ratio[slice_id] * self._B * self._gnb_load_multiplier[gnb_id]
                 drift = 0.1 * (mean - self._offered[key])
@@ -296,7 +312,7 @@ class ClosedLoopKpmSource:
         self.sent_controls.append(
             {"gnb_id": gnb_id, "sst": sst, "sd": sd, "min_ratio": min_ratio, "max_ratio": max_ratio}
         )
-        slice_id = _SD_FOR_SLICE_REVERSE.get(int(sd))
+        slice_id = self._sd_for_slice_reverse.get(int(sd))
         key = (gnb_id, slice_id)
         if key in self._ceiling_ratio:
             self._ceiling_ratio[key] = float(max_ratio)

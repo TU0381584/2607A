@@ -941,3 +941,318 @@ compliance, ~-1e6 vs. ~0.7-1.0 margin) were already in the n=3 dataset;
 only their presentation changed. Static-max probe, S2 hard-scenario
 design, retraining, and a second live campaign remain on hold pending
 explicit authorization.
+
+---
+
+## 2026-07-20 -- Objectives v3 (Design-only): A1/B1 investigation, NOT frozen -- major finding, decision needed
+
+A third pasted "handover" (same third-party-attributed pattern as the
+2026-07-19 one) proposed three new evaluation objectives (A: stochastic
+admission control under overload: B: resource efficiency/beta-cost sweep;
+C: QoE-vs-QoS dissociation via a real ABR client) requiring retraining and
+up to ~10h of live-rig time. Given the cost and the pattern, only a
+"design-only" scope was authorized: A1 (overload arrival-process design +
+freeze) and B1 (beta-cost sweep design + freeze) via offline
+simulation/config only -- explicitly NO retraining, NO live rig time.
+Everything else (A2/A3, B2/B3, Objective C, and the live campaigns)
+remains on hold.
+
+**A1 finding #1 -- frozen-code gap (STOP condition per the plan's own
+rules).** Read `types.AdmissionRequest` (`framework/qoe_oran_framework/types.py`):
+fields are `request_id, slice_id, gnb_id, arrival_step, synthetic` only --
+no resource_demand, lifetime, or per-request SLA weight. `action_mapping.AdmissionGate.apply()`
+always nudges a slice's ceiling by a fixed `ceiling_step_ratio` per
+accept/reject, regardless of any notion of request "size"; there is no
+occupancy/lifetime model (a request is a one-shot decision, not a
+session that holds and later releases capacity). `config.ArrivalConfig`
+exposes exactly 3 knobs (`synthetic_arrivals_per_step` -- one GLOBAL
+count, not per-slice; `max_pending_per_step`; `ceiling_step_ratio`), and
+`env._synthesize_requests` assigns each synthetic arrival to a UNIFORM
+RANDOM slice -- there is no per-slice arrival-rate weight in the config
+surface. **Conclusion: A1's literal ask ("heterogeneous request classes
+per slice with distinct resource demands, lifetimes, and SLA weights")
+is NOT achievable via config alone.** What IS achievable without touching
+frozen source: (a) a global offered-load sweep via `synthetic_arrivals_per_step`;
+(b) per-SLICE (not per-request) value asymmetry via `SliceSpec`'s
+already-config-driven `priority_weight`/`accept_reward`/`violation_penalty`/
+`nominal_ratio`/`min_ratio_floor`/`max_ratio_cap` fields -- these can
+realize "URLLC high-value/scarce, eMBB bulky, mMTC numerous/tiny" in
+spirit, at slice granularity, not per-request granularity. Reported here
+rather than silently narrowed.
+
+**A1 finding #2 -- "capacity" units mismatch.** The plan's A1 says
+"capacity = measured, from the live rig's calibrated demand mapping."
+But per PROJECT_HANDOFF_SUMMARY.md finding #5 (confirmed by reading
+`env.py`/`replay_kpm_source.py` directly): the synthetic admission-request
+stream and real UE traffic are decoupled layers with their OWN abstract
+capacity notion (`GnbSpec.prb_capacity=100`=B, per-slice `nominal_ratio`
+as "% of B", entirely separate from the live rig's real `avg_prbs_dl`
+PRB measurements). "Sustainable capacity" for A1's load sweep must be
+defined and measured within the admission-MDP's own B/nominal_ratio
+abstraction, not via live PRB polling -- the plan's literal instruction
+does not match the architecture.
+
+**A1/B1 finding #3 -- MAJOR, confirmed via a zero-training offline
+diagnostic (not retraining; 3 fixed non-learning policies x 3 seeds x 10
+episodes each, `ClosedLoopKpmSource` + `RANEnv` as-is, no frozen-code
+edits, ~seconds of compute): the EXISTING offline training environment
+(`experiments/configs/saclb_offline_campaign.yaml`, used for ALL 4
+learned arms' already-completed 300-episode x 3-seed offline training)
+has almost NO admission-policy leverage over SLA outcomes, for three
+compounding, identified reasons:**
+1. `nominal_ratio`/`max_ratio_cap` for embb/urllc/mmtc are 3/2/2 (tiny,
+   inherited-looking from the LIVE campaign's PRB-cap numbers without
+   re-deriving them against the offline `ClosedLoopKpmSource`'s own
+   demand/backlog dynamics, which routinely reach the hundreds) -- the
+   admission ceiling's entire serving-capacity range (1-3 units) is a
+   rounding error against backlog once it accumulates even slightly, so
+   accept vs. reject choices barely move backlog at all past the first
+   few steps of an episode.
+2. `Lmax: 10` in the same config (the divisor for `queue_len_norm`) is
+   similarly tiny relative to that same backlog scale, so the SLA
+   violation-severity metric (`per_slice_sla_margin`/`sla_viol`) saturates
+   at its worst value almost immediately in every episode, regardless of
+   policy.
+3. `ClosedLoopKpmSource`'s `backlog_capacity` default (200.0, not
+   currently overridden by any experiments/-level config) further clips
+   the raw signal early.
+
+   **Direct evidence** (existing offline `dqn_qoe`/`a2c_qoe` training logs,
+   300 episodes x 3 seeds x 2 algos, zero new compute -- just re-read):
+   `sla_viol` sits above 0.9 in 99.9% of all 108,000 pooled steps, with
+   NO improvement from the first to the last training quartile (0.997 ->
+   1.000), and `mean_mos` is pinned near-floor (~1.07-1.08) the entire
+   time. **Confirmed causally**, not just correlationally, via the new
+   diagnostic: accept-all, reject-all, and a crude threshold-like policy
+   were run through the SAME environment at the current config
+   (backlog_capacity=200, Lmax=10) and, separately, at backlog_capacity
+   raised 10x (2000) and Lmax raised up to 80x (800) -- across every
+   combination tested, `sla_viol` and `backlog_mean` were STATISTICALLY
+   INDISTINGUISHABLE between accept-all and reject-all (e.g. at
+   backlog_capacity=2000/Lmax=800: sla_viol 0.492 vs. 0.473, backlog_mean
+   850.7 vs. 831.8 -- a <2.5% gap between the two most extreme opposite
+   admission strategies possible). Only the reward's "cost" term
+   (accepted-count-driven, from eq.9) differentiated between policies;
+   the actual SLA/backlog/MOS outcome barely did.
+
+   **Implication:** this is a pre-existing characteristic of the
+   ALREADY-COMPLETED offline training underpinning the S1 live campaign,
+   not a new problem introduced by this session -- it does NOT retroactively
+   invalidate S1 (S1's live evaluation used the REAL rig with a separately,
+   already-validated PRB-cap calibration chain, per Phase 1's contention
+   gate). But it means what DQN/A2C "learned" offline may have been driven
+   substantially by minimizing the cost term rather than genuine SLA-outcome
+   optimization, and it means Objective A/B's "restore the hard admission
+   problem" premise requires recalibrating this nominal_ratio/cap/Lmax/
+   backlog_capacity scale relationship as a PRECONDITION, not merely adding
+   heterogeneous arrival classes on top of the current (structurally
+   saturated) calibration -- a bigger lift than either objective's own A1/B1
+   sub-task anticipated.
+
+**B1 retroactive beta-sweep (zero new compute, existing qoe-reward offline
+logs only, pooled 108,000 steps across dqn_qoe/a2c_qoe x 3 seeds):**
+recomputed eq.9's `alpha*mos_norm - beta*cost - gamma*sla_viol` for
+beta in {0.2 (current), 0.5, 1.0, 1.5, 2.0, 3.0, 5.0} using the ALREADY-LOGGED
+mos_norm/cost/sla_viol per step (alpha=1.0, gamma=0.5 held fixed). Even at
+beta=5.0 (25x current), beta*cost's mean contribution (0.227) stays well
+below gamma*sla_viol's mean contribution (0.500, itself pinned near its
+ceiling per finding #3 above) -- **this data cannot support a real B1
+freeze decision**, because "compliance" in this dataset is already pinned
+at its structural floor for reasons unrelated to beta (finding #3), so
+"does raising beta destabilize compliance" is untestable against it. A
+trustworthy B1 sweep needs the finding-#3 recalibration resolved first.
+
+**Not frozen. Nothing retrained. No rig time used.** Reported back to
+the user with the above findings and a request for a decision on how to
+proceed (options: authorize an experiments/-level recalibration of
+nominal_ratio/cap/Lmax/backlog_capacity as a new prerequisite design step;
+narrow A1 to a slice-level-only heterogeneity design and accept the
+current calibration's limits; or hold pending further review).
+
+**User decision: recalibrate first.** Proceeded with a design iteration
+(still zero training, zero rig time -- constructor kwargs + in-memory
+`SliceSpec` overrides on the existing frozen `ClosedLoopKpmSource`/`RANEnv`,
+no frozen-code edits):
+
+**Recalibration #1 (iteration 1 of the plan's own 2-iteration budget):**
+rescaled `nominal_ratio`/`min_ratio_floor`/`max_ratio_cap` from the
+existing config's 2-3 units to tens-of-units matching the papers' own "%
+of B=100" convention (embb 10/50/65, urllc 5/20/30, mmtc 5/15/20 --
+floor/nominal/cap), keeping the EXISTING per-slice value asymmetry
+(`priority_weight`/`violation_penalty`: urllc(5.0/8.0) > embb(3.5/5.0) >
+mmtc(0.3/2.5)) unchanged since it was already reasonable. Redefined
+"sustainable capacity" as the ceiling achievable AT `max_ratio_cap` (per
+A1's literal wording), not `nominal_ratio` (the existing frozen
+`train_offline.py`'s convention) -- offered demand = 1.5x that cap.
+Swept `Lmax` in {30,60,150,300,600} and `backlog_capacity` in {300,600}
+against the same 3-policy diagnostic (accept-all/reject-all/threshold-like).
+
+**Result: the scale fix works, and reveals a genuinely rich mechanism --
+but only for eMBB so far.** At Lmax=300, backlog_capacity=600,
+oversub=1.5x cap (10 episodes x 3 seeds, per-slice, pooled):
+
+| Policy | eMBB margin | eMBB compliant | eMBB block rate | URLLC/mMTC margin | URLLC/mMTC compliant |
+|---|---|---|---|---|---|
+| accept_all | +0.362 | 71.8% | 0% | -0.86 to -0.91 | 4.7%/6.2% |
+| reject_all | +0.971 | 100.0% | 100% | -0.93 to -0.95 | 2.3%/3.6% |
+| threshold_like | +0.840 | 99.9% | **7.9%** | -0.89 to -0.92 | 4.3%/5.6% |
+
+For eMBB this is exactly the mechanism Objective A wants: threshold_like
+achieves reject-all's near-full compliance at 1/12th the blocking cost --
+genuine evidence a smart selective policy can beat both naive extremes,
+not just tie one of them. **For URLLC/mMTC, all three policies remain
+similarly poor (2-6% compliant) regardless of policy** -- the same
+uniform 1.5x-of-cap oversubscription and Lmax that works for eMBB leaves
+these two slices in an apparently-unwinnable regime for any tested
+policy. Not yet root-caused (candidate explanations: their much smaller
+absolute cap/demand scale interacting differently with the
+`notify_rejected` relief formula, which relieves `offered/n_ues` per
+reject -- same `n_ues` for every slice regardless of scale; or Lmax/
+oversub genuinely need to be set per-slice, not uniformly, matching the
+existing config's own already-asymmetric philosophy for other fields).
+
+**Iteration 2 of 2, spent on URLLC/mMTC -- superseded by a much bigger
+finding.** First tried bringing urllc/mmtc's absolute cap/floor scale up
+to eMBB's range (urllc 8/35/55, mmtc 8/30/45, floor/nominal/cap) under
+the same Lmax=300/oversub=1.5, keeping their existing higher
+priority_weight/violation_penalty. Result: NO improvement -- all three
+policies remained statistically indistinguishable for urllc/mmtc
+(2-6% compliant regardless of policy), even at matched absolute scale to
+eMBB. This ruled out "absolute scale mismatch" as urllc/mmtc's problem
+and prompted checking the mechanism directly rather than guessing another
+parameter.
+
+**MAJOR FINDING, corrects the eMBB result reported above: eMBB's
+admission-ceiling control has been completely non-functional in the
+offline `ClosedLoopKpmSource` environment for the ENTIRE project's offline
+training history (all 4 learned arms, both reward modes, every seed) --
+a frozen-code / config interaction bug, verified directly and
+reproducibly, not inferred:**
+
+`replay_kpm_source.py` (frozen) hardcodes `_SD_FOR_SLICE = {"embb": 0,
+"urllc": 1, "mmtc": 2}` and its reverse map, used by `ClosedLoopKpmSource
+.send_control()` to figure out which slice's ceiling to update from the
+`sd` argument it receives. But `experiments/configs/saclb_offline_campaign.yaml`
+(and every other campaign config, correctly mirroring the LIVE rig's real
+NSSAI convention) sets embb's `sd: 16777215` (0xFFFFFF, "the confirmed
+real no-SD sentinel on this gNB" per that config's own comment) -- a
+value `_SD_FOR_SLICE_REVERSE` has no entry for. Direct verification (60
+scripted accept-all steps against the real `ClosedLoopKpmSource`/`RANEnv`,
+zero training): `send_control()` was called 40 times for embb over 60
+steps (confirmed via `sent_controls`), yet `_ceiling_ratio[('gnb-0','embb')]`
+never moved off its `initial_ceiling_ratio` default of 100.0 the entire
+time -- while urllc (sd=1) and mmtc (sd=2) correctly updated to their
+configured caps in the same run. `_SD_FOR_SLICE`/`_SD_FOR_SLICE_REVERSE`
+are used ONLY inside `replay_kpm_source.py` (grep-confirmed) -- `live_kpm_source.py`
+does not use them at all, so **this does NOT affect S1's live-evaluation
+results** (those go through the real E2 `slicing_control_m` wire protocol
+against real OAI, unaffected). It DOES mean: every offline-trained
+checkpoint's embb-slice admission decisions, for the entire project so
+far, were made against a permanently-wide-open (ceiling=100, never
+constrained) synthetic embb environment during training -- whatever an
+agent "learned" to do for embb offline could never have had any real
+effect on embb's simulated SLA outcome, by construction of this bug.
+
+**This retroactively corrects this session's own eMBB recalibration
+result reported above.** The clean accept-all/reject-all/threshold-like
+differentiation observed for eMBB was NOT the ceiling-riding mechanism
+(which cannot function for eMBB in this environment) -- it was entirely
+attributable to the `notify_rejected` relief pathway (which fires from
+block decisions directly, independent of `send_control()`/ceiling state).
+eMBB's apparent "fix" was real in its measured numbers but was validating
+a different, accidental mechanism than the one A1/B1 need. URLLC/mMTC's
+resistance to every recalibration attempt in this session is now
+explained too: they don't have this specific sd-mismatch bug (their sd
+values happen to match `_SD_FOR_SLICE`'s hardcoded {1,2}), so their
+ceiling control DOES function -- but under the SAME Lmax/oversub
+parameters, the ceiling range still couldn't produce differentiation on
+its own, and their fix genuinely required a different diagnosis than the
+one this session had budget to complete before the sd bug was found.
+
+**This is a genuine frozen-code bug (inside `replay_kpm_source.py`), not
+a calibration or design choice -- a stop condition per this session's own
+integrity rules ("if an objective turns out to require frozen-code
+changes, STOP and report options; do not patch frozen code").** Reported
+to the user with three options: (a) authorize a minimal, disclosed
+frozen-code fix (make `_SD_FOR_SLICE`/`_SD_FOR_SLICE_REVERSE` read from
+`cfg.slice_by_id`'s actual configured `sd` values instead of a hardcoded
+{0,1,2}, a small and well-understood change); (b) work around it without
+touching frozen code, by changing the OFFLINE config's embb `sd` to 0
+(breaking its intentional parity with the live config's real NSSAI
+convention, and needing a documented rationale for why offline/live
+configs would then intentionally diverge on this field); (c) hold pending
+further review. **Not fixed. Nothing retrained. No rig time used. A1/B1
+remain un-frozen pending this decision.**
+
+**User decision: fix the frozen code.** Implemented, minimally and with
+full backward compatibility:
+- `replay_kpm_source.py`, `ClosedLoopKpmSource.__init__`: added an
+  optional `sd_for_slice: Optional[Dict[str,int]] = None` parameter,
+  defaulting to the old module-level `_SD_FOR_SLICE` dict when not
+  supplied (so every existing test/caller that doesn't pass real config
+  SD values is byte-identical in behavior). `poll()`/`send_control()`
+  now read `self._sd_for_slice`/`self._sd_for_slice_reverse` (built from
+  the constructor arg) instead of the module-level globals directly.
+  `SyntheticKpmSource` (the explicitly-non-authoritative open-loop smoke
+  path) and `notify_rejected()` (already keyed by slice_id, not sd) were
+  left untouched -- out of the bug's blast radius.
+- `scripts/train_offline.py`'s `kpm_source_factory`: now passes
+  `sd_for_slice={slice_id: spec.sd for slice_id, spec in cfg.slice_by_id.items()}`
+  when constructing `ClosedLoopKpmSource`, so future offline training
+  runs use the config's REAL sd values instead of the broken default.
+
+**Verified, not assumed:** full test suite (`pytest qoe_oran_framework/tests/`)
+-- 134 passed, 1 skipped (pre-existing skip, unrelated), zero
+regressions. Direct re-run of the earlier reproduction script: after
+the fix, `embb`'s ceiling now correctly rides to its configured cap
+(3.0, under the OLD unscaled config) after 60 accept-all steps, instead
+of staying stuck at 100.0 -- bug confirmed fixed at the mechanism level.
+
+**Re-ran the full 3-policy diagnostic with the fix + Recalibration #1's
+scale (nominal/cap/floor at tens-of-units) -- corrects the earlier
+report again:** with the ceiling genuinely functional for all 3 slices
+now, eMBB's PREVIOUSLY-clean differentiation collapsed back to
+near-total, undifferentiated violation (~2% compliant for all 3
+policies) at the SAME Lmax=300/backlog_capacity=600/oversub=1.5 that
+looked good before the fix -- confirming that earlier "success" really
+was 100% a bug artifact (relief-only), not a real result, exactly as
+predicted. Re-swept Lmax/backlog_capacity/oversub post-fix (same
+zero-training methodology): found a working combination that
+differentiates all 3 slices simultaneously and monotonically:
+`backlog_capacity=1000, oversub_of_cap=1.2, Lmax=1000` (10 episodes x 3
+seeds, pooled):
+
+| Policy | eMBB compliant | URLLC compliant | mMTC compliant |
+|---|---|---|---|
+| accept_all | 20% | 53% | 77% |
+| threshold_like | 12% | 17% | 25% |
+| reject_all | 11% | 12% | 22% |
+
+With a genuinely functioning ceiling, accept_all is now consistently
+the BEST policy for raw compliance (not reject_all, as the earlier
+buggy/relief-only run suggested) -- intuitive once the ceiling actually
+works: riding to cap maximizes served capacity, which dominates reject's
+one-off relief bonus. This reframes what a learned policy needs to beat:
+raw SLA compliance is NOT where accept-all is weak (it's the strongest
+naive baseline on that axis); accept-all's real cost is the reward's
+`beta*cost` congestion-penalty term (accepting unconditionally racks up
+cost regardless of whether the request was worth it) -- meaning
+Objective A's "selective rejection beats naive extremes" story and
+Objective B's efficiency story are now the SAME underlying tension in
+this environment, not two separate objectives to design independently.
+Worth flagging back to whoever scopes A2/A3's design next.
+
+**B1 implication:** the retroactive beta-sweep run earlier in this
+session used offline logs collected under BOTH the scale-mismatch AND
+the sd-mapping bug -- now doubly superseded. Any real B1 sweep needs
+fresh short offline runs under this corrected environment (a small
+amount of retraining), which stays out of scope for a design-only
+session.
+
+**Status: A1's core validity premise (a genuine overload regime where
+accept/reject choices produce real, non-saturated, non-trivial
+differentiation) is now demonstrated end-to-end, zero-training, for all
+3 slices simultaneously, with a real bug fixed along the way.** Not yet
+frozen as a final campaign config -- reported back to the user with the
+above numbers and the A1/B1-conflation finding before writing a final
+`saclb_admission_v3.yaml` and calling A1 "frozen."
