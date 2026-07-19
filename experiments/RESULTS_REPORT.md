@@ -32,27 +32,39 @@ recurrence.
 
 ## 2. Summary tables (mean ± std across 3 seeds)
 
-| Arm | Slice | SLA compliance (%) | Blocks/episode | Backlog margin | Inferred MOS |
-|---|---|---|---|---|---|
-| baseline | eMBB | 73.7 ± 18.6 | 0.0 ± 0.0 | −257627 ± 182171 | 1.260 ± 0.025 |
-| baseline | URLLC | 73.4 ± 18.8 | 0.0 ± 0.0 | −223096 ± 157753 | 1.241 ± 0.331 |
-| baseline | mMTC | 73.8 ± 18.5 | 0.0 ± 0.0 | −147.8 ± 129.9 | 4.648 ± 0.088 |
-| dqn_sla | eMBB | 100.0 ± 0.0 | 0.0 ± 0.0 | 1.000 ± 0.000 | 1.223 ± 0.000 |
-| dqn_sla | URLLC | 100.0 ± 0.0 | 0.0 ± 0.0 | 0.733 ± 0.002 | 1.495 ± 0.046 |
-| dqn_sla | mMTC | 100.0 ± 0.0 | 0.0 ± 0.0 | 0.741 ± 0.008 | 4.778 ± 0.005 |
-| a2c_sla | eMBB | 100.0 ± 0.0 | 0.0 ± 0.0 | 1.000 ± 0.000 | 1.223 ± 0.000 |
-| a2c_sla | URLLC | 100.0 ± 0.0 | 0.0 ± 0.0 | 0.750 ± 0.012 | 1.661 ± 0.120 |
-| a2c_sla | mMTC | 100.0 ± 0.0 | 0.0 ± 0.0 | 0.731 ± 0.003 | 4.772 ± 0.002 |
-| dqn_qoe | eMBB | 100.0 ± 0.0 | 0.0 ± 0.0 | 1.000 ± 0.000 | 1.223 ± 0.000 |
-| dqn_qoe | URLLC | 100.0 ± 0.0 | 0.0 ± 0.0 | 0.738 ± 0.006 | 1.552 ± 0.058 |
-| dqn_qoe | mMTC | 100.0 ± 0.0 | 0.0 ± 0.0 | 0.732 ± 0.002 | 4.773 ± 0.001 |
-| a2c_qoe | eMBB | 100.0 ± 0.0 | **42.5 ± 1.0** | 0.734 ± 0.001 | 1.224 ± 0.000 |
-| a2c_qoe | URLLC | 100.0 ± 0.0 | **41.2 ± 1.9** | 0.751 ± 0.007 | 1.660 ± 0.064 |
-| a2c_qoe | mMTC | 100.0 ± 0.0 | **37.5 ± 2.9** | 0.723 ± 0.008 | 4.767 ± 0.005 |
+**Updated 2026-07-19** (Phase 1 re-visualization follow-up): added "Worst
+ep." (minimum single-episode compliance, pooled across all 15
+episodes/arm — not a mean of per-seed means) and "P5 margin" (5th
+percentile of pooled per-step SLA margin) columns. These make explicit
+what the mean±std columns alone obscure: baseline's *worst* episode is
+0.0% compliant on every slice, against 100.0% for every learned arm's
+worst episode — see `fig2_sla_compliance.py`'s new reliability strip
+plot and `results_tables.md`/`results_raw.json`, both regenerated from
+the same omega logs (no new data collected).
+
+| Arm | Slice | SLA compliance (%) | Worst ep. (%) | P5 margin | Blocks/episode | Backlog margin | Inferred MOS |
+|---|---|---|---|---|---|---|---|
+| baseline | eMBB | 73.7 ± 18.6 | 0.0 | −1.0e6 | 0.0 ± 0.0 | −257627 ± 182171 | 1.260 ± 0.025 |
+| baseline | URLLC | 73.4 ± 18.8 | 0.0 | −1.02e6 | 0.0 ± 0.0 | −223096 ± 157753 | 1.241 ± 0.331 |
+| baseline | mMTC | 73.8 ± 18.5 | 0.0 | −810 | 0.0 ± 0.0 | −147.8 ± 129.9 | 4.648 ± 0.088 |
+| dqn_sla | eMBB | 100.0 ± 0.0 | 100.0 | 1.0 | 0.0 ± 0.0 | 1.000 ± 0.000 | 1.223 ± 0.000 |
+| dqn_sla | URLLC | 100.0 ± 0.0 | 100.0 | 0.7 | 0.0 ± 0.0 | 0.733 ± 0.002 | 1.495 ± 0.046 |
+| dqn_sla | mMTC | 100.0 ± 0.0 | 100.0 | 0.7 | 0.0 ± 0.0 | 0.741 ± 0.008 | 4.778 ± 0.005 |
+| a2c_sla | eMBB | 100.0 ± 0.0 | 100.0 | 1.0 | 0.0 ± 0.0 | 1.000 ± 0.000 | 1.223 ± 0.000 |
+| a2c_sla | URLLC | 100.0 ± 0.0 | 100.0 | 0.7 | 0.0 ± 0.0 | 0.750 ± 0.012 | 1.661 ± 0.120 |
+| a2c_sla | mMTC | 100.0 ± 0.0 | 100.0 | 0.7 | 0.0 ± 0.0 | 0.731 ± 0.003 | 4.772 ± 0.002 |
+| dqn_qoe | eMBB | 100.0 ± 0.0 | 100.0 | 1.0 | 0.0 ± 0.0 | 1.000 ± 0.000 | 1.223 ± 0.000 |
+| dqn_qoe | URLLC | 100.0 ± 0.0 | 100.0 | 0.7 | 0.0 ± 0.0 | 0.738 ± 0.006 | 1.552 ± 0.058 |
+| dqn_qoe | mMTC | 100.0 ± 0.0 | 100.0 | 0.7 | 0.0 ± 0.0 | 0.732 ± 0.002 | 4.773 ± 0.001 |
+| a2c_qoe | eMBB | 100.0 ± 0.0 | 100.0 | 0.7 | **42.5 ± 1.0** | 0.734 ± 0.001 | 1.224 ± 0.000 |
+| a2c_qoe | URLLC | 100.0 ± 0.0 | 100.0 | 0.7 | **41.2 ± 1.9** | 0.751 ± 0.007 | 1.660 ± 0.064 |
+| a2c_qoe | mMTC | 100.0 ± 0.0 | 100.0 | 0.7 | **37.5 ± 2.9** | 0.723 ± 0.008 | 4.767 ± 0.005 |
 
 (Backlog margin is `per_slice_sla_margin`, a continuous Lmax-normalized
 distance from budget — 1.0 = comfortable, 0.0 = at budget, negative =
-deeply over budget. Not raw bytes; see `fig5_backlog.py`'s docstring.)
+deeply over budget. Not raw bytes; see `fig5_backlog.py`'s docstring. P5
+margin is the 5th percentile of this same quantity, pooled across all
+steps/episodes/seeds.)
 
 | Arm | Mean episodic reward |
 |---|---|

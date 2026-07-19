@@ -103,9 +103,13 @@ consequence is Fig.~\ref{fig:compliance}: all four learned arms
 all three slices, in every one of 45 learned-arm episodes, with zero
 losses against the baseline in any single slice$\times$seed comparison
 (Cohen's $d\approx1.63$ for every slice). Table~\ref{tab:results}
-reports the full per-arm, per-slice breakdown.
+reports the full per-arm, per-slice breakdown, including worst-episode
+compliance and P5 margin alongside the means: baseline's \emph{worst}
+single episode is $0.0\%$ compliant on every slice, against $100.0\%$ for
+every learned arm's worst episode -- the mean$\pm$std view alone
+understates how categorical this gap is.
 
-Baseline's compliance is real but **seed-dependent**, not uniformly
+Baseline's compliance is real but \emph{seed-dependent}, not uniformly
 poor: 60.3\% (seed 950), 100.0\% (seed 951), 60.7\% (seed 952) -- an
 initial single-episode pilot run had sampled only the lower mode and
 suggested near-zero compliance, which did not hold up once seeded
@@ -119,32 +123,38 @@ otherwise-always-failing baseline.
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/fig4_ceiling_trajectories.pdf}
-\caption{Commanded PRB ceiling per slice over one representative episode (seed 950): baseline (flat) vs.\ DQN/SLA (rides to cap).}
+\caption{Commanded PRB ceiling per slice over one representative episode (seed 950): baseline (flat) vs.\ DQN/SLA (rides to the calibrated cap, annotated per slice).}
 \label{fig:ceiling}
 \end{figure}
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/fig2_sla_compliance.pdf}
-\caption{Per-slice SLA compliance (\%), mean $\pm$ std, $n=3$ seeds.}
+\caption{Per-episode SLA compliance (\%) by arm, $n=15$ episodes/arm (3 seeds $\times$ 5 episodes). Top: one point per episode -- every learned arm sits at exactly 100.0\% in all 15 of its episodes, while baseline shows a genuine bimodal split (a majority near 100\%, a real cluster at 0\%) rather than the uniform mean the original mean$\pm$std bar figure implied. Bottom: fraction of episodes fully SLA-compliant and worst single-episode compliance, per arm -- baseline's worst episode is 0.0\% compliant against 100.0\% for every learned arm.}
 \label{fig:compliance}
 \end{figure}
 
 \subsection{Backlog and the contention gate at campaign scale}
-Fig.~\ref{fig:backlog} shows the per-slice SLA-margin CDF (a continuous,
-Lmax-normalized backlog-severity proxy; display-clipped at $-1.5$, raw
-values reach $\approx-10^6$ under baseline's worst contention). Baseline
-sits at the clip floor for nearly the entire pooled distribution --
-deeply and persistently over budget -- while all four learned arms sit
-mostly in the comfortable region ($\approx0.7$--$1.0$). This is the
-figure connecting Phase 1's isolated contention-gate demonstration
-(Table~\ref{tab:contention}) to the campaign's actual multi-seed,
-multi-arm results.
+Fig.~\ref{fig:backlog} shows the per-slice SLA margin (a continuous,
+Lmax-normalized backlog-severity proxy; raw values reach $\approx-10^6$
+under baseline's worst contention). The top row plots one representative
+episode's margin trajectory (seed 950, episode 1; baseline vs.\ DQN/SLA)
+on a symlog axis, the only way to render a $+1.0$-margin trajectory and a
+$-10^6$-margin trajectory on shared axes -- baseline collapses to its
+floor within the first $\sim$5 steps and never recovers, while the
+learned arm stays flat near $+1.0$ for the entire episode. The bottom row
+keeps the original pooled CDF across all 3 seeds $\times$ 5 episodes
+(display-clipped at $-1.5$): baseline sits at the clip floor for nearly
+the entire pooled distribution, while all four learned arms sit mostly in
+the comfortable region ($\approx0.7$--$1.0$). Together these connect
+Phase 1's isolated contention-gate demonstration (Table~\ref{tab:contention})
+to the campaign's actual multi-seed, multi-arm results, both as a single
+concrete event and as an aggregate.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/fig5_backlog.pdf}
-\caption{CDF of per-slice SLA margin by arm, pooled across 3 seeds.}
+\caption{Top: per-slice SLA margin over one representative episode (seed 950, episode 1), baseline vs.\ DQN/SLA, symlog axis. Bottom: CDF of per-slice SLA margin by arm, pooled across 3 seeds $\times$ 5 episodes.}
 \label{fig:backlog}
 \end{figure}
 

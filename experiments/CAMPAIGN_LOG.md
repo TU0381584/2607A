@@ -867,3 +867,77 @@ cleanly with no recurrence. Final dataset: 15/15 arm-seed pairs, 75/75
 episodes, fully verified. `RESULTS_REPORT.md`, all Phase 4 figures, and
 `paper_conf/` (6-page IEEEtran scaffold, compiles cleanly, author-owned
 sections left as explicit TODO blocks) are complete and committed.
+
+---
+
+## 2026-07-19 -- Phase 1 follow-up: re-visualization of existing S1 data (zero rig time)
+
+A proposed multi-phase follow-up plan (static-max diagnostic probe, a
+harder scarcity+dynamics S2 scenario, retraining, and a second ~10-14h
+live campaign) arrived via a pasted "handover" attributed to a separate
+Claude session. Given the plan's real rig-time cost and irreversibility
+(a second live campaign, a frozen scenario redesign, a paper
+restructure) and the fact that it arrived as third-party pasted content
+rather than direct instruction, only the zero-rig-time, data-safe piece
+was authorized to proceed: re-visualizing the EXISTING S1 campaign data
+to state its results more decisively without collecting anything new.
+Everything else in that plan (static_max probe, S2 scenario design,
+retraining, second campaign) remains on hold, not started.
+
+**What changed, all from the same omega logs already in
+`experiments/results/live_campaign/` (no new data collected):**
+
+1. **`experiments/plots/fig2_sla_compliance.py` rewritten.** The original
+   grouped-bar mean±std figure collapsed a genuinely bimodal per-episode
+   distribution into a misleading "73.7%±18.6%" summary. The new figure
+   is a two-panel per-episode reliability plot: top panel is a strip/dot
+   plot, one point per episode (n=15/arm, deterministically jittered, no
+   RNG), showing every learned arm's episodes flat at 100.0% against
+   baseline's real bimodal split (majority near 100%, a genuine cluster
+   at 0%); bottom panel is fraction-of-episodes-fully-compliant and
+   worst-single-episode-compliance per arm. Confirmed by direct
+   computation: baseline's worst episode is 0.0% compliant on every
+   slice; every learned arm's worst episode is 100.0%.
+2. **`experiments/plots/fig5_backlog.py` rewritten.** Added a top row
+   showing one representative episode's per-step SLA margin (seed 950,
+   episode 1 -- same seed/episode/run_id convention as fig4, first
+   `run_id` in file order) on a symlog axis: baseline (bad seed)
+   collapses to its floor (~-1e6) within ~5 steps and never recovers,
+   while DQN/SLA stays flat near +1.0 for the whole episode. The
+   original pooled CDF (all 3 seeds x 5 episodes, clipped at -1.5) is
+   kept unchanged as the bottom row -- it still earns its space as the
+   aggregate complement to the single-episode illustration.
+3. **`experiments/plots/fig4_ceiling_trajectories.py` updated in place**
+   (kept, not replaced, per the follow-up's own instruction): each
+   per-slice panel now annotates its calibrated `max_ratio_cap` (embb=12,
+   urllc=4, mmtc=3, sourced from `saclb_campaign.yaml`) as a dotted
+   reference line, so the ceiling-riding mechanism reads against the
+   actual ceiling-of-the-ceiling.
+4. **`experiments/plots/generate_results_tables.py` updated**: added
+   "Worst ep. (%)" (minimum per-episode compliance, pooled across ALL
+   episodes/seeds -- not a mean of per-rep means) and "P5 margin" (5th
+   percentile of pooled per-step SLA margin) columns to the Markdown,
+   LaTeX (Table III), and JSON outputs, alongside the existing mean±std
+   columns. Re-ran against the same seeds (950/951/952); numbers
+   unchanged elsewhere, new columns added.
+5. **`experiments/RESULTS_REPORT.md` §2 and `experiments/figures_manifest.md`**
+   updated to describe the new figures/columns and carry the new numbers.
+6. **`paper_conf/main.tex`** captions for Fig. 2 (compliance) and Fig. 4
+   (backlog, per this repo's float-order numbering) rewritten to
+   describe the new panels; one added sentence in §V-A citing the new
+   worst-episode/P5-margin columns; a pre-existing stray Markdown
+   `**bold**` marker in prose (would have rendered as literal asterisks)
+   fixed to `\emph{}`. No claims changed -- same underlying data, stated
+   more precisely.
+7. Recompiled cleanly: `pdflatex` x2 + `bibtex` + `pdflatex` x1, 6 pages,
+   no undefined references, no errors. New figures visually verified in
+   the compiled PDF (Table III widened to 8 columns fits within
+   `table*`; both new figures legible at single/double-column size).
+
+**Verdict: this re-visualization makes the S1 reliability result more
+decisive using only existing, already-collected data.** No new claims
+were introduced -- the underlying numbers (100.0% vs. bimodal 60-100%
+compliance, ~-1e6 vs. ~0.7-1.0 margin) were already in the n=3 dataset;
+only their presentation changed. Static-max probe, S2 hard-scenario
+design, retraining, and a second live campaign remain on hold pending
+explicit authorization.

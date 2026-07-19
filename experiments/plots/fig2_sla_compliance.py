@@ -1,17 +1,28 @@
 #!/usr/bin/env python3
-"""Figure 2: per-slice SLA compliance (%) by arm -- grouped bars with error
-bars (mean +/- std across seeds), URLLC/eMBB/mMTC, reading only from live
-evaluation omega logs (experiments/results/live/<arm>/<reward_mode>/rep_seed<N>/omega_log.jsonl,
-see run_live_eval_arm.py). Uses each rep's LAST episode rollup as that
-rep's summary compliance (matches RunSummary.sla_compliance_by_slice's own
-"mean across episodes" semantics -- we instead take the mean across
-episode-rollups directly here since a live-eval rep's episodes may span
-several health-checked batches with independently-seeded RNG streams; see
-CAMPAIGN_LOG.md).
+"""Figure 2: per-episode SLA compliance reliability plot by arm.
+
+Replaces the original grouped-bar mean+-std figure: mean+-std across n=3
+seeds collapses a genuinely bimodal distribution (baseline: ~60% in 2
+seeds, ~100% in the third) into a misleading "73%+-19%" summary, and hides
+that every learned arm is at exactly 100.0% in EVERY one of its 15
+episodes (3 seeds x 5 episodes), not just on average. This figure shows
+the raw per-episode distribution directly.
+
+Top panel: one dot per episode (mean SLA compliance across the 3 slices,
+%), x-jittered deterministically (no RNG) within each arm's column, so a
+stack of identical values (all 4 learned arms) renders as a tight flat
+band while baseline's bimodal spread is visible as two clusters.
+
+Bottom panel: two bars per arm -- fraction of episodes fully SLA-compliant
+(compliance == 100.0% on all 3 slices) and worst single-episode compliance
+-- pooled across all seeds/episodes (n=15/arm), not a mean-of-means.
+
+Reads only from live-eval omega logs (episode-rollup rows, step==-1),
+same data source as the original figure.
 
 Usage:
     python3 experiments/plots/fig2_sla_compliance.py \
-        --live-root experiments/results/live --seeds 256 257 258 \
+        --live-root experiments/results/live_campaign --seeds 950 951 952 \
         --out experiments/plots/out/fig2_sla_compliance
 """
 import argparse
@@ -22,83 +33,116 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import ARM_STYLE, ARMS, SLICE_ORDER, SLICE_STYLE, arm_run_dir, read_omega_log  # noqa: E402
+from common import ARM_STYLE, ARMS, SLICE_ORDER, arm_run_dir, read_omega_log  # noqa: E402
 
 ARM_REWARD_MODE = {
     "baseline": "sla", "dqn_sla": "sla", "a2c_sla": "sla",
     "dqn_qoe": "qoe", "a2c_qoe": "qoe",
 }
 
+FULLY_COMPLIANT_THRESHOLD = 99.995  # % , tolerant of float roundoff at exactly 100.0
 
-def per_rep_mean_compliance(omega_path: Path) -> dict:
-    """Mean, across all episode-rollup rows in this rep's log, of each
-    slice's per-episode SLA compliance fraction."""
-    per_slice_vals = {s: [] for s in SLICE_ORDER}
+
+def per_episode_overall_compliance(omega_path: Path) -> list:
+    """One value per episode-rollup row: mean SLA compliance (%) across the
+    3 slices for that episode."""
+    out = []
     for row in read_omega_log(omega_path):
         if row.step != -1:
             continue
         by_slice = row.evidence.get("episode_sla_compliance_by_slice")
         if not by_slice:
             continue
-        for slice_id in SLICE_ORDER:
-            if slice_id in by_slice:
-                per_slice_vals[slice_id].append(by_slice[slice_id])
-    return {s: (float(np.mean(v)) if v else float("nan")) for s, v in per_slice_vals.items()}
+        vals = [by_slice[s] for s in SLICE_ORDER if s in by_slice]
+        if vals:
+            out.append(100.0 * float(np.mean(vals)))
+    return out
+
+
+def deterministic_jitter(n: int, width: float = 0.30) -> np.ndarray:
+    """Symmetric, evenly-spaced offsets -- a fixed layout given n, not a
+    random draw, so the figure is exactly reproducible from the data."""
+    if n <= 1:
+        return np.zeros(n)
+    return (np.arange(n) - (n - 1) / 2) / (n - 1) * width
 
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--live-root", default="experiments/results/live")
-    ap.add_argument("--seeds", type=int, nargs="+", default=[256, 257, 258])
+    ap.add_argument("--live-root", default="experiments/results/live_campaign")
+    ap.add_argument("--seeds", type=int, nargs="+", default=[950, 951, 952])
     ap.add_argument("--out", default="experiments/plots/out/fig2_sla_compliance")
     args = ap.parse_args()
 
-    arm_slice_means: dict = {}
-    arm_slice_stds: dict = {}
+    arm_episode_vals: dict = {}
     n_seeds_used = {}
 
     for arm in ARMS:
         mode = ARM_REWARD_MODE[arm]
-        per_slice_across_seeds = {s: [] for s in SLICE_ORDER}
+        pooled = []
+        seeds_seen = 0
         for seed in args.seeds:
             omega_path = arm_run_dir(args.live_root, arm, mode, seed) / "omega_log.jsonl"
             if not omega_path.exists():
                 continue
-            rep_means = per_rep_mean_compliance(omega_path)
-            for s in SLICE_ORDER:
-                if not np.isnan(rep_means[s]):
-                    per_slice_across_seeds[s].append(rep_means[s])
-        n_seeds_used[arm] = max((len(v) for v in per_slice_across_seeds.values()), default=0)
-        arm_slice_means[arm] = {s: (float(np.mean(v)) * 100 if v else float("nan")) for s, v in per_slice_across_seeds.items()}
-        arm_slice_stds[arm] = {s: (float(np.std(v)) * 100 if v else 0.0) for s, v in per_slice_across_seeds.items()}
+            vals = per_episode_overall_compliance(omega_path)
+            if vals:
+                seeds_seen += 1
+            pooled.extend(vals)
+        arm_episode_vals[arm] = pooled
+        n_seeds_used[arm] = seeds_seen
 
-    fig, ax = plt.subplots()
-    n_arms = len(ARMS)
-    n_slices = len(SLICE_ORDER)
-    bar_width = 0.8 / n_slices
-    x = np.arange(n_arms)
+    fig, (ax_top, ax_bot) = plt.subplots(
+        2, 1, figsize=(3.5, 3.5 * 1.05), gridspec_kw={"height_ratios": [2.0, 1.0]}
+    )
 
-    for i, slice_id in enumerate(SLICE_ORDER):
-        style = SLICE_STYLE[slice_id]
-        means = [arm_slice_means[arm][slice_id] for arm in ARMS]
-        stds = [arm_slice_stds[arm][slice_id] for arm in ARMS]
-        offset = (i - (n_slices - 1) / 2) * bar_width
-        ax.bar(x + offset, means, bar_width, yerr=stds, capsize=2,
-               color=style["color"], hatch=style["hatch"], label=style["label"],
-               edgecolor="white", linewidth=0.3)
+    x = np.arange(len(ARMS))
+    for i, arm in enumerate(ARMS):
+        vals = np.array(arm_episode_vals[arm])
+        if vals.size == 0:
+            continue
+        jitter = deterministic_jitter(len(vals))
+        style = ARM_STYLE[arm]
+        ax_top.scatter(i + jitter, vals, color=style["color"], marker=style["marker"],
+                        s=14, alpha=0.65, linewidths=0.3, edgecolors="white")
 
-    ax.set_xticks(x)
-    ax.set_xticklabels([ARM_STYLE[a]["label"] for a in ARMS], rotation=30, ha="right")
-    ax.set_ylabel("SLA compliance (%)")
-    ax.set_ylim(0, 105)
-    ax.set_title("Per-slice SLA compliance by arm")
-    ax.legend(loc="lower right", frameon=False, ncol=3)
+    ax_top.set_xticks(x)
+    ax_top.set_xticklabels([ARM_STYLE[a]["label"] for a in ARMS], rotation=30, ha="right")
+    ax_top.set_ylabel("Per-episode SLA\ncompliance (%)")
+    ax_top.set_ylim(-5, 105)
+    ax_top.set_title("Per-episode SLA compliance by arm (n=15 episodes/arm, 3 seeds)")
+
+    frac_fully_compliant = []
+    worst_episode = []
+    for arm in ARMS:
+        vals = np.array(arm_episode_vals[arm])
+        if vals.size == 0:
+            frac_fully_compliant.append(float("nan"))
+            worst_episode.append(float("nan"))
+            continue
+        frac_fully_compliant.append(100.0 * float(np.mean(vals >= FULLY_COMPLIANT_THRESHOLD)))
+        worst_episode.append(float(np.min(vals)))
+
+    bar_width = 0.35
+    ax_bot.bar(x - bar_width / 2, frac_fully_compliant, bar_width,
+               color="#2a78d6", label="Episodes fully compliant (%)")
+    ax_bot.bar(x + bar_width / 2, worst_episode, bar_width,
+               color="#e34948", label="Worst episode (%)")
+    ax_bot.set_xticks(x)
+    ax_bot.set_xticklabels([ARM_STYLE[a]["label"] for a in ARMS], rotation=30, ha="right")
+    ax_bot.set_ylabel("%")
+    ax_bot.set_ylim(0, 105)
+    ax_bot.legend(loc="lower left", frameon=False, fontsize=5.5)
+
+    fig.tight_layout()
 
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out_path.with_suffix(".pdf"))
     fig.savefig(out_path.with_suffix(".png"))
-    print(f"[fig2] wrote {out_path}.pdf / .png -- n_seeds per arm: {n_seeds_used}")
+    print(f"[fig2] wrote {out_path}.pdf / .png -- n_seeds per arm: {n_seeds_used}, "
+          f"episodes fully compliant: {dict(zip(ARMS, frac_fully_compliant))}, "
+          f"worst episode: {dict(zip(ARMS, worst_episode))}")
 
 
 if __name__ == "__main__":

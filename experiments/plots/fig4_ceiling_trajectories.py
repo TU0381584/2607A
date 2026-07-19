@@ -25,6 +25,12 @@ ARM_REWARD_MODE = {
 }
 GNB_ID = "gnb-0"
 
+# Calibrated max_ratio_cap per slice, from experiments/configs/saclb_campaign.yaml
+# (organic-demand-derived, see that file's per-slice comments) -- annotated here
+# so the ceiling trajectories are read against the actual ceiling-of-the-ceiling,
+# not just each other.
+SLICE_CAP = {"embb": 12, "urllc": 4, "mmtc": 3}
+
 
 def load_episode_ceilings(omega_path: Path, episode: int, run_id: str = None) -> dict:
     """slice_id -> (steps[], max_ratio[]) for the given episode index.
@@ -86,6 +92,11 @@ def main() -> None:
 
     for ax, slice_id in zip(axes, SLICE_ORDER):
         ax.set_ylabel(f"{SLICE_STYLE[slice_id]['label']}\nmax_ratio")
+        cap = SLICE_CAP[slice_id]
+        ax.axhline(cap, color="black", linewidth=0.7, linestyle=(0, (1, 1)), alpha=0.6)
+        ax.annotate(f"cap={cap}", xy=(1.0, cap), xycoords=("axes fraction", "data"),
+                    xytext=(2, 2), textcoords="offset points", fontsize=6, ha="left", va="bottom")
+        ax.set_ylim(top=cap * 1.25)
     axes[-1].set_xlabel("Step (within representative episode)")
     axes[0].legend(loc="upper right", frameon=False)
     fig.suptitle("Commanded PRB ceiling: baseline vs. best learned arm", fontsize=9)

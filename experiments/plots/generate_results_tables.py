@@ -33,7 +33,14 @@ ARM_REWARD_MODE = {
 
 
 def per_rep_metrics(omega_path: Path) -> dict:
-    """Returns per-(arm,seed) aggregate metrics from one rep's omega log."""
+    """Returns per-(arm,seed) aggregate metrics from one rep's omega log.
+
+    Also retains the raw per-episode compliance and raw per-step margin
+    lists (not just their means) so the aggregation stage can compute
+    true worst-case/percentile statistics (min episode compliance, P5
+    margin) across ALL episodes/steps pooled over seeds, rather than a
+    mean-of-per-rep-means -- see the reliability-figures follow-up in
+    RESULTS_REPORT.md."""
     compliance = {s: [] for s in SLICE_ORDER}   # per-episode compliance fraction
     blocks = {s: [] for s in SLICE_ORDER}       # per-episode block count
     margins = {s: [] for s in SLICE_ORDER}      # per-step margin
@@ -69,6 +76,8 @@ def per_rep_metrics(omega_path: Path) -> dict:
         "mean_episode_reward": float(np.mean(episode_rewards)) if episode_rewards else float("nan"),
         "n_episodes": len(episode_rewards),
         "raw_blocks_per_episode_by_slice": {s: v for s, v in blocks.items()},  # for anomaly adjudication
+        "raw_episode_compliance_by_slice": {s: v for s, v in compliance.items()},  # fractions, for worst-case/percentile stats
+        "raw_step_margin_by_slice": {s: v for s, v in margins.items()},  # for P5 margin
     }
 
 
@@ -114,6 +123,10 @@ def main() -> None:
             block_vals = [reps[sd]["blocks_per_episode"][s] for sd in seeds_present if not np.isnan(reps[sd]["blocks_per_episode"][s])]
             margin_vals = [reps[sd]["mean_margin"][s] for sd in seeds_present if not np.isnan(reps[sd]["mean_margin"][s])]
             mos_vals = [reps[sd]["mean_mos"][s] for sd in seeds_present if not np.isnan(reps[sd]["mean_mos"][s])]
+            # Pooled raw values across ALL episodes/steps/seeds (not means-of-means)
+            # for true worst-case/percentile statistics.
+            pooled_episode_compliance = [v for sd in seeds_present for v in reps[sd]["raw_episode_compliance_by_slice"][s]]
+            pooled_step_margin = [v for sd in seeds_present for v in reps[sd]["raw_step_margin_by_slice"][s]]
             agg[arm][s] = {
                 "compliance_pct_mean": float(np.mean(comp_vals)) if comp_vals else float("nan"),
                 "compliance_pct_std": float(np.std(comp_vals)) if comp_vals else float("nan"),
@@ -124,6 +137,9 @@ def main() -> None:
                 "mean_mos_mean": float(np.mean(mos_vals)) if mos_vals else float("nan"),
                 "mean_mos_std": float(np.std(mos_vals)) if mos_vals else float("nan"),
                 "compliance_pct_per_seed": dict(zip(seeds_present, comp_vals)),
+                "min_episode_compliance_pct": float(np.min(pooled_episode_compliance)) * 100 if pooled_episode_compliance else float("nan"),
+                "n_episodes_pooled": len(pooled_episode_compliance),
+                "p5_margin": float(np.percentile(pooled_step_margin, 5)) if pooled_step_margin else float("nan"),
             }
         reward_vals = [reps[sd]["mean_episode_reward"] for sd in seeds_present if not np.isnan(reps[sd]["mean_episode_reward"])]
         agg[arm]["episode_reward_mean"] = float(np.mean(reward_vals)) if reward_vals else float("nan")
@@ -160,17 +176,18 @@ def main() -> None:
     print(f"[generate_results_tables] wrote {args.out_json}")
 
     # ---- Markdown table ----
-    md_lines = ["| Arm | Slice | SLA compliance % (mean±std) | Blocks/episode (mean±std) | "
-                "Mean backlog margin (mean±std) | Mean inferred MOS (mean±std) | n seeds |",
-                "|---|---|---|---|---|---|---|"]
+    md_lines = ["| Arm | Slice | SLA compliance % (mean±std) | Worst episode (%) | P5 margin | Blocks/episode (mean±std) | "
+                "Mean backlog margin (mean±std) | Mean inferred MOS (mean±std) | n seeds | n episodes pooled |",
+                "|---|---|---|---|---|---|---|---|---|---|"]
     for arm in ARMS:
         for s in SLICE_ORDER:
             d = agg[arm][s]
             md_lines.append(
                 f"| {arm} | {s} | {d['compliance_pct_mean']:.1f}±{d['compliance_pct_std']:.1f} | "
+                f"{d['min_episode_compliance_pct']:.1f} | {d['p5_margin']:.3g} | "
                 f"{d['blocks_per_episode_mean']:.1f}±{d['blocks_per_episode_std']:.1f} | "
                 f"{d['mean_margin_mean']:.3f}±{d['mean_margin_std']:.3f} | "
-                f"{d['mean_mos_mean']:.3f}±{d['mean_mos_std']:.3f} | {agg[arm]['n_seeds']} |"
+                f"{d['mean_mos_mean']:.3f}±{d['mean_mos_std']:.3f} | {agg[arm]['n_seeds']} | {d['n_episodes_pooled']} |"
             )
     md_lines.append("")
     md_lines.append("| Arm | Mean episodic reward (mean±std) | n seeds |")
@@ -195,11 +212,12 @@ def main() -> None:
     tex.append("% experiments/plots/generate_results_tables.py. Do not hand-edit; re-run the script.")
     tex.append("\\begin{table*}[t]")
     tex.append("\\centering")
-    tex.append("\\caption{Per-arm, per-slice results (mean $\\pm$ std across " + str(len(args.seeds)) + " seeds)}")
+    tex.append("\\caption{Per-arm, per-slice results (mean $\\pm$ std across " + str(len(args.seeds)) + " seeds); "
+               "Worst ep. and P5 margin are pooled across all episodes/steps, not means-of-means}")
     tex.append("\\label{tab:results}")
-    tex.append("\\begin{tabular}{@{}llrrrr@{}}")
+    tex.append("\\begin{tabular}{@{}llrrrrrr@{}}")
     tex.append("\\toprule")
-    tex.append("Arm & Slice & SLA compliance (\\%) & Blocks/episode & Backlog margin & Inferred MOS \\\\")
+    tex.append("Arm & Slice & SLA compliance (\\%) & Worst ep. (\\%) & P5 margin & Blocks/episode & Backlog margin & Inferred MOS \\\\")
     tex.append("\\midrule")
     for arm in ARMS:
         label = ARM_STYLE[arm]["label"]
@@ -208,6 +226,7 @@ def main() -> None:
             arm_cell = label if i == 0 else ""
             tex.append(
                 f"{arm_cell} & {s} & {d['compliance_pct_mean']:.1f}$\\pm${d['compliance_pct_std']:.1f} & "
+                f"{d['min_episode_compliance_pct']:.1f} & {d['p5_margin']:.3g} & "
                 f"{d['blocks_per_episode_mean']:.1f}$\\pm${d['blocks_per_episode_std']:.1f} & "
                 f"{d['mean_margin_mean']:.2f}$\\pm${d['mean_margin_std']:.2f} & "
                 f"{d['mean_mos_mean']:.2f}$\\pm${d['mean_mos_std']:.2f} \\\\"
