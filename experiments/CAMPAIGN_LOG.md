@@ -1256,3 +1256,42 @@ differentiation) is now demonstrated end-to-end, zero-training, for all
 frozen as a final campaign config -- reported back to the user with the
 above numbers and the A1/B1-conflation finding before writing a final
 `saclb_admission_v3.yaml` and calling A1 "frozen."
+
+**User: "execute your proposal."** Formalized the A/B merge
+(`experiments/NOTE_admission_objective_merge.md`) into real, reusable,
+script-generated artifacts -- no scratch/`/tmp` code, no in-memory-only
+overrides, matching this project's own "every number script-generated"
+discipline:
+- `experiments/configs/saclb_admission_efficiency_v1.yaml` -- the frozen
+  offline config for the merged "admission efficiency under overload"
+  objective (nominal/floor/cap at tens-of-units, Lmax=1000, existing
+  per-slice priority_weight/violation_penalty asymmetry unchanged; beta
+  left at 0.2 as an explicit placeholder pending a real sweep, documented
+  in-file as not yet decided).
+- `experiments/scripts/admission_efficiency_env.py` -- non-frozen factory
+  (backlog_capacity=1000.0, oversub_of_cap=1.2 x max_ratio_cap, real
+  sd_for_slice wiring) -- the single source of truth for this environment
+  going forward, replacing the session's earlier scratch diagnostics.
+- `experiments/scripts/run_admission_efficiency_baselines.py` -- runs
+  accept_all, reject_all, and the framework's own unmodified
+  `LbOnlyHeuristic` (static-threshold) against the frozen config, writes
+  a Markdown validity report.
+
+**Ran it for real** (3 seeds x 10 episodes, zero training) --
+`experiments/results/admission_efficiency/baseline_validity.md`:
+**PASS.** Real, non-saturated, monotonic compliance differentiation
+(accept_all 16-70% > static_threshold 16-44% > reject_all 10-18%,
+per-slice) AND an inverted reward ordering (reject_all has the best mean
+reward, +0.025, despite the worst compliance, because it never pays the
+cost/congestion penalty; accept_all is worst, -0.382, despite the best
+compliance) -- confirming the merge finding directly: no naive policy
+manages compliance and cost jointly, which is exactly the room a learned
+policy needs to be worth training.
+
+**A1's validity check is now formally PASSED against a real, frozen,
+script-generated config -- not scratch numbers.** `saclb_admission_efficiency_v1.yaml`
+supersedes `saclb_offline_campaign.yaml` for any future admission-control
+training. B1's beta value remains an explicit placeholder (0.2, unswept).
+**Nothing retrained. No rig time used.** Offline retraining (3 seeds x
+300 episodes/arm) against this config, and any eventual live confirmation
+subset, remain separately un-authorized next steps.

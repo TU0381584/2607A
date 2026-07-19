@@ -1,0 +1,121 @@
+# Offline training config for the merged "admission efficiency under
+# overload" objective (see experiments/NOTE_admission_objective_merge.md
+# and CAMPAIGN_LOG.md's 2026-07-20 entries for the full derivation).
+# Supersedes the ORIGINAL saclb_offline_campaign.yaml's calibration for any
+# future admission-control-focused training -- that file's nominal_ratio/
+# max_ratio_cap values (3/2/2) were roughly 20x too small relative to
+# ClosedLoopKpmSource's actual demand/backlog dynamics, and (separately)
+# its embb ceiling was a confirmed no-op due to a now-fixed sd-mapping bug
+# in replay_kpm_source.py (commit c523e02). Neither problem is present
+# here. THIS FILE HAS NOT BEEN USED FOR TRAINING YET -- it is a frozen
+# DESIGN artifact (validated via zero-training scripted-policy diagnostics
+# only), not evidence. Retraining against it is a separate, not-yet-
+# authorized step.
+#
+# CRITICAL INVARIANT (same as saclb_offline_campaign.yaml): slices: order
+# (embb, urllc, mmtc) must match experiments/configs/saclb_campaign.yaml
+# (live eval) -- encode_state()/encode_request_context() iterate cfg.slices
+# in file order.
+#
+# Calibration derivation:
+#   - nominal_ratio/min_ratio_floor/max_ratio_cap are in the papers' own
+#     "% of gNB capacity B=100" convention (tens-of-units), NOT the old
+#     config's 2-3 unit quotas -- verified via the diagnostic in
+#     CAMPAIGN_LOG to actually give admission decisions real leverage over
+#     backlog (previously: <2.5% outcome gap between accept-all and
+#     reject-all; now: real, monotonic per-slice differentiation).
+#   - "sustainable capacity" (A1's own wording) = the ceiling achievable AT
+#     max_ratio_cap. Offered demand for this environment's
+#     ClosedLoopKpmSource must be set to oversub_of_cap=1.2 x max_ratio_cap
+#     when constructing the source (NOT derivable from this YAML file
+#     alone -- see the required non-frozen factory code below).
+#   - Lmax=1000 and ClosedLoopKpmSource(backlog_capacity=1000) (also NOT
+#     YAML-configurable -- ClosedLoopKpmSource.backlog_capacity is a
+#     constructor kwarg) were the validated combination that avoids both
+#     "everyone permanently violating" (Lmax too small) and "everyone
+#     permanently compliant" (Lmax too large) for all 3 slices at once.
+#   - priority_weight/violation_penalty/accept_reward are UNCHANGED from
+#     saclb_offline_campaign.yaml (urllc highest-value, embb moderate,
+#     mmtc lowest) -- already a reasonable per-slice value asymmetry, no
+#     evidence it needed to change.
+#
+# A NEW non-frozen factory (mirroring qoe_oran_framework/scripts/train_offline.py's
+# kpm_source_factory but NOT importing its OVERSUBSCRIPTION_FACTOR=1.25,
+# since that ratio is defined relative to nominal_ratio, not cap, and this
+# design uses cap as the oversubscription base per A1's literal wording)
+# must live under experiments/scripts/ to actually drive training against
+# this config -- not written yet, since no training is authorized.
+name: saclb_admission_efficiency_v1
+random_seed: 256
+paper_variant: paper2
+B: 100
+Lmax: 1000  # validated in-memory; NOT read automatically by ClosedLoopKpmSource's backlog_capacity -- a driver script must also pass backlog_capacity=1000.0 explicitly (see module docstring above)
+
+gnbs:
+  - gnb_id: gnb-0
+    prb_capacity: 100
+
+slices:
+  - slice_id: embb
+    sst: 1
+    sd: 16777215
+    nominal_ratio: 50
+    min_ratio_floor: 10
+    max_ratio_cap: 65
+    latency_budget_ms: 45
+    loss_budget_pct: 2.0
+    priority_weight: 3.5
+    accept_reward: 1.0
+    violation_penalty: 5.0
+  - slice_id: urllc
+    sst: 1
+    sd: 1
+    nominal_ratio: 20
+    min_ratio_floor: 5
+    max_ratio_cap: 30
+    latency_budget_ms: 20
+    loss_budget_pct: 0.5
+    priority_weight: 5.0
+    accept_reward: 1.0
+    violation_penalty: 8.0
+  - slice_id: mmtc
+    sst: 1
+    sd: 2
+    nominal_ratio: 15
+    min_ratio_floor: 5
+    max_ratio_cap: 20
+    latency_budget_ms: 65
+    loss_budget_pct: 3.5
+    priority_weight: 0.3
+    accept_reward: 1.0
+    violation_penalty: 2.5
+
+reward:
+  congestion_coeff: 1.5
+  lb_coeff: 1.0
+
+arrivals:
+  synthetic_arrivals_per_step: 2
+  max_pending_per_step: 8
+  ceiling_step_ratio: 1   # UNCHANGED from saclb_offline_campaign.yaml -- validated as-is; not yet swept against the new, much wider floor/cap spans (see NOTE_admission_objective_merge.md, future work)
+
+episode:
+  step_seconds: 5.0
+  steps_per_episode: 60
+
+qoe:
+  reward:
+    alpha: 1.0
+    beta: 0.2   # UNCHANGED / NOT YET SWEPT -- B1's beta sweep needs fresh training curves under THIS corrected environment; the earlier retroactive sweep (CAMPAIGN_LOG, 2026-07-20) is void (computed against both the scale bug and the sd bug). Treat this value as a placeholder pending that sweep, not a frozen decision.
+    gamma: 0.5
+  lstm_hidden: 32
+  window: 8
+  max_staleness: 20
+  mapper_checkpoint:
+    urllc: qoe_oran_framework/results/qoe_mapper/qoe_mapper_urllc.pt
+    embb: qoe_oran_framework/results/qoe_mapper/qoe_mapper_embb.pt
+    mmtc: qoe_oran_framework/results/qoe_mapper/qoe_mapper_mmtc.pt
+  iqx_coeffs:
+    urllc: {alpha: 5.167748, beta: 9.999999, gamma: 44.904893, delta: 199.999999, epsilon: 0.000000}
+    embb:  {alpha: 3.522951, beta: 0.425081, gamma: 0.000000, delta: 0.000000, epsilon: 199.999999}
+    mmtc:  {alpha: 5.999999, beta: 9.999999, gamma: 0.000000, delta: 7.944624, epsilon: 0.000000}
