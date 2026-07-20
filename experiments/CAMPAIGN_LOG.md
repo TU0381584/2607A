@@ -1534,3 +1534,44 @@ different from the current beta=0.2 placeholder, which this sweep shows
 pushes DQN into negative-reward territory at only 100 episodes of
 training. Confirming this holds at the full 300-episode budget is the
 natural next step before treating beta=0.02 as frozen.
+
+**User: "confirm beta=0.02 at full episode budget."** Extended
+`beta_sweep_training.py` to accept multiple seeds, then trained dqn/a2c
+at beta=0.02 for the full 300 episodes x 3 seeds (256/257/258) --
+matching the main campaign's own rigor exactly, for a fair, apples-to-
+apples comparison against the existing beta=0.2 full-budget results.
+
+**Result -- REVERSES the earlier beta=0.02 recommendation, and this is
+the more informative outcome, not a disappointing one:**
+
+| Algo | beta=0.02 (300ep, 3 seeds) | beta=0.2 (300ep, 3 seeds, from main campaign) |
+|---|---|---|
+| dqn_qoe | 0.0152 ± 0.0004 (cost 0.190) | 0.0143 ± 0.0004 (cost 0.022) |
+| a2c_qoe | 0.0109 ± 0.0003 (cost 0.372) | 0.0186 ± 0.0001 (cost 0.001) |
+
+Convergence-curve comparison (`experiments/plots/out/beta_confirm_300ep.png`)
+makes the mechanism visible directly, not just the endpoint numbers:
+**DQN's two curves converge to nearly the SAME plateau** (beta=0.02
+gets there faster; beta=0.2 catches up by ~episode 150) -- confirming
+the 100-episode sweep's dramatic DQN-goes-negative-at-beta=0.2 result
+WAS mostly the convergence-budget artifact flagged as a caveat, not a
+real ceiling; the residual gap (0.0152 vs 0.0143) is small (~6%).
+**A2C's two curves never converge -- beta=0.2 sits consistently above
+beta=0.02 for the full 300 episodes**, a real, stable ~70% relative gap,
+not a convergence-speed effect.
+
+**Conclusion: there is no single beta value in this test that's better
+for both algorithms.** DQN prefers beta=0.02 by a small, mostly-already-
+recoverable margin; A2C prefers the ORIGINAL beta=0.2 by a large, stable
+margin. Recommending beta=0.02 as a blanket replacement, as this
+session's own earlier (100-episode-budget) sweep suggested, would have
+meaningfully REGRESSED a2c_qoe's performance while only marginally
+helping dqn_qoe -- retracted. **The honest, full-budget-informed
+conclusion is that the original beta=0.2 placeholder was already a
+reasonable choice, at least among the values tested here** -- not the
+outcome expected going in, but the one the full-budget evidence
+actually supports, and reported as such rather than engineered into a
+cleaner-sounding "we found a better beta" story. If a different beta is
+wanted going forward, a genuine per-algorithm choice (or an
+algorithm-robust criterion, not just "pick the single best point")
+would be needed -- not attempted here.

@@ -43,7 +43,7 @@ def main() -> None:
                      default=[0.001, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2])
     ap.add_argument("--algorithms", nargs="+", default=["dqn", "a2c"])
     ap.add_argument("--episodes", type=int, default=100)
-    ap.add_argument("--seed", type=int, default=256)
+    ap.add_argument("--seeds", type=int, nargs="+", default=[256])
     args = ap.parse_args()
 
     for beta in args.betas:
@@ -63,11 +63,12 @@ def main() -> None:
             )
 
         for algo in args.algorithms:
-            out_dir = f"{OUT_ROOT}/beta{beta}/seed{args.seed}"
-            print(f"=== training algo={algo} beta={beta} seed={args.seed} ===", flush=True)
+          for seed in args.seeds:
+            out_dir = f"{OUT_ROOT}/beta{beta}/seed{seed}"
+            print(f"=== training algo={algo} beta={beta} seed={seed} ===", flush=True)
             summaries = run_mc(
                 cfg, algo, kpm_source_factory, n_reps=1,
-                episodes_per_rep=args.episodes, base_seed=args.seed,
+                episodes_per_rep=args.episodes, base_seed=seed,
                 mode="offline_closed_loop", training=True,
                 results_dir=out_dir, reward_mode="qoe",
             )

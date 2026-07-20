@@ -1,0 +1,12 @@
+=== training algo=dqn beta=0.02 seed=256 ===
+  dqn beta=0.02: mean_reward_per_step=0.0149 mean_cost=0.1947 sla_compliance={'embb': 1.0, 'urllc': 1.0, 'mmtc': 1.0}
+=== training algo=dqn beta=0.02 seed=257 ===
+  dqn beta=0.02: mean_reward_per_step=0.0149 mean_cost=0.1918 sla_compliance={'embb': 1.0, 'urllc': 1.0, 'mmtc': 1.0}
+=== training algo=dqn beta=0.02 seed=258 ===
+  dqn beta=0.02: mean_reward_per_step=0.0157 mean_cost=0.1843 sla_compliance={'embb': 1.0, 'urllc': 1.0, 'mmtc': 1.0}
+=== training algo=a2c beta=0.02 seed=256 ===
+  a2c beta=0.02: mean_reward_per_step=0.0113 mean_cost=0.3608 sla_compliance={'embb': 1.0, 'urllc': 1.0, 'mmtc': 1.0}
+=== training algo=a2c beta=0.02 seed=257 ===
+  a2c beta=0.02: mean_reward_per_step=0.0107 mean_cost=0.3773 sla_compliance={'embb': 1.0, 'urllc': 1.0, 'mmtc': 1.0}
+=== training algo=a2c beta=0.02 seed=258 ===
+  a2c beta=0.02: mean_reward_per_step=0.0108 mean_cost=0.3780 sla_compliance={'embb': 1.0, 'urllc': 1.0, 'mmtc': 1.0}
