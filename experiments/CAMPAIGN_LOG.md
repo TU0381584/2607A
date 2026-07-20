@@ -1704,3 +1704,95 @@ session. RAM back to 3.2Gi free / 4.5Gi available post-teardown.
 stand-ups due to the mid-session environment reset, ~6 live episodes
 across 3 arms, teardown). No crashes, no restarts-mid-arm, no health-check
 failures -- the shortest, cleanest live session this campaign has had.
+
+---
+
+## 2026-07-20 -- Live-transferable retraining (offline, zero rig time)
+
+**User: "proceed with the recommended steps stated."** Read as: proceed
+with the more substantive of the two options left open after the live
+session (retrain against real-scale states vs. a disclosed
+distribution-shift test) -- retraining, since it actually resolves the
+open question rather than working around it. Entirely offline/zero-rig-
+time work, same boundary as the rest of this workstream; live-rig time
+for evaluating the new checkpoints is explicitly flagged as a separate,
+not-yet-spent ask.
+
+**New config**: `experiments/configs/saclb_admission_efficiency_live_v1.yaml`.
+Unlike `saclb_admission_efficiency_v1.yaml` (calibrated purely against
+`ClosedLoopKpmSource`'s own synthetic scale, found not to bind against
+real demand), this one copies `saclb_campaign.yaml`'s Lmax=10 and
+cap=12/4/3 EXACTLY -- the values that actually feed the neural network's
+state input (`queue_len_norm = min(2.0, backlog/Lmax)`, itself what
+`encode_state` passes to the policy, not raw backlog) -- so a policy
+trained against this file sees states normalized the same way
+`LiveKpmSource` will produce them, not an incompatible synthetic scale.
+
+**Zero-training validity sweep** (`experiments/scripts/live_scale_diagnostic.py`,
+same accept_all/reject_all/threshold_like methodology as every other
+design step this session): swept `backlog_capacity` in {30,60,100} x
+`oversub_of_cap` in {1.2,1.5}. **Result: `backlog_capacity=30.0,
+oversub_of_cap=1.2` produces a striking match to the ACTUAL live
+measurement from this same session** -- accept_all's offline eMBB
+compliance (22.9%) vs. its measured live compliance (23.3%, same
+session's live baseline run) -- the closest offline-to-live match found
+anywhere in this workstream, and the first config here validated against
+real rig data rather than just internal offline consistency. Ordering
+also matches live exactly: accept_all clearly best, reject_all and
+threshold_like both near-zero compliant, at every swept combination.
+Frozen at bc=30/oversub=1.2.
+
+**Retraining launched**: `experiments/scripts/run_admission_efficiency_live_full_training.sh`
+-- 4 arms x 3 seeds x 300 episodes, same rigor as the original
+admission-efficiency campaign, via the new
+`admission_efficiency_live_env.py`/`train_offline_admission_efficiency_live.py`
+(mirrors the existing non-live scripts' structure exactly). Running in
+background; results to follow.
+
+**Training completed**: 12/12 runs, zero errors, ~13 minutes wall clock
+(same pace as the earlier synthetic-scale campaign). Convergence figure
+(`experiments/plots/out/admission_efficiency_live_fig1_training_convergence.png`):
+DQN/SLA shows real, clean convergence (~-12 -> ~-7.5, plateauing by
+~episode 100); A2C/SLA stays noisy with no clear trend around -7 (same
+noisy-but-flat A2C character seen throughout this campaign); DQN/QoE and
+A2C/QoE are both largely FLAT around -0.49 for the full 300 episodes,
+with periodic recoverable spikes -- much less visible improvement than
+the synthetic-scale QoE-reward arms showed, consistent with this
+tighter, real-scale calibration leaving less room for a policy to
+differentiate itself.
+
+**Held-out comparison** (`experiments/scripts/held_out_admission_comparison_live.py`,
+same fresh seeds 960/961/962 as the earlier comparison, same frozen-weight/
+greedy-evaluation methodology):
+
+| Group | accept_all | reject_all | static_threshold | dqn | a2c |
+|---|---|---|---|---|---|
+| SLA reward | -6.7264 | -15.4308 | -12.4524 | -6.7641 | **-6.7264 (exact tie)** |
+| QoE reward | -0.4986 | -0.4788 | -0.4882 | -0.5008 | -0.4788 (exact tie w/ reject_all) |
+
+**Honest conclusion, different from the earlier synthetic-scale result:
+no learned arm beats accept_all here.** `a2c_sla`'s numbers are BYTE-
+IDENTICAL to accept_all's (28.3%/17.9%/12.2% compliance, reward
+-6.7264) -- it converged to literally "accept everything." `dqn_sla` is
+statistically indistinguishable from accept_all (-6.7641 vs -6.7264).
+On the QoE side, `a2c_qoe` converged to literally "reject everything"
+(byte-identical to reject_all: 0.7%/0.2%/0.7%, reward -0.4788); `dqn_qoe`
+is close to but slightly worse than accept_all. **This does NOT
+contradict the earlier synthetic-scale held-out win (dqn_sla beating
+accept_all there) -- it's a genuinely different environment.** The
+live-transferable config's floor-to-cap span (1->12/1->4/1->3) is much
+narrower than the synthetic config's (10->65/5->30/5->20), leaving far
+less room for a policy to do anything smarter than "always accept" --
+consistent with, and explaining, why the actual LIVE baseline test
+(accept_all decisively beating reject_all/static_threshold, no learned
+arm involved) showed such a stark gap: at this real scale, admission
+policy quality mostly reduces to "accept aggressively or don't," and
+"always accept" is already close to optimal.
+
+**Status: these NEW checkpoints are scale-compatible with live
+evaluation (unlike the original admission-efficiency checkpoints), but
+offline evidence does not yet show them beating the strongest baseline
+-- a live evaluation of them would likely confirm "trained ≈
+accept_all," a real but more modest finding than originally hoped.**
+Not yet evaluated live -- that remains separately un-authorized
+live-rig time, flagged explicitly rather than spent without asking.
