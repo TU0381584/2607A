@@ -46,8 +46,23 @@ def reject_all_decide(pending, cluster_state):
 
 
 def run_policy(decide_fn, seed, n_episodes, needs_cfg=False, cfg=None):
+    """NOTE (2026-07-20 correction): compliance is read from
+    reward_breakdown["per_slice_compliant"] -- the framework's OWN boolean
+    (queue_len_norm <= 1.0, non-strict), matching exactly how
+    mc_runner.py's episode_sla_compliance_by_slice / every other figure
+    and table in this project computes it. An earlier version of this
+    script recomputed compliance as `per_slice_sla_margin > 0` (STRICT),
+    which silently undercounts: margins in this environment sit almost
+    exactly AT the 0.0 boundary the vast majority of the time (confirmed:
+    91-98% of steps in a spot-checked trained-arm episode), so a strict
+    `>0` check disagreed sharply with the framework's own non-strict
+    compliance accounting. See CAMPAIGN_LOG.md's 2026-07-20 correction
+    entry -- this bug was caught by comparing a training run's rollup
+    episode_sla_compliance_by_slice (100%) against this script's own
+    recomputed number (16-70%) on what should have been comparable data."""
     env = make_env(seed=seed, reward_mode="qoe")
     per_slice_margin = {s: [] for s in SLICE_ORDER}
+    per_slice_compliant = {s: [] for s in SLICE_ORDER}
     blocks = {s: 0 for s in SLICE_ORDER}
     total_reqs = {s: 0 for s in SLICE_ORDER}
     rewards = []
@@ -65,7 +80,9 @@ def run_policy(decide_fn, seed, n_episodes, needs_cfg=False, cfg=None):
             rb = result.info.get("reward_breakdown", {})
             for s, m in rb.get("per_slice_sla_margin", {}).items():
                 per_slice_margin[s].append(m)
-    return per_slice_margin, blocks, total_reqs, rewards
+            for s, c in rb.get("per_slice_compliant", {}).items():
+                per_slice_compliant[s].append(bool(c))
+    return per_slice_margin, per_slice_compliant, blocks, total_reqs, rewards
 
 
 def main() -> None:
@@ -82,18 +99,18 @@ def main() -> None:
 
     rows = []
     for name, decide_fn in policies.items():
-        agg_margin = {s: [] for s in SLICE_ORDER}
+        agg_compliant = {s: [] for s in SLICE_ORDER}
         agg_blocks = {s: 0 for s in SLICE_ORDER}
         agg_reqs = {s: 0 for s in SLICE_ORDER}
         agg_reward = []
         for seed in args.seeds:
-            m, b, r, rew = run_policy(decide_fn, seed, args.episodes)
+            _, c, b, r, rew = run_policy(decide_fn, seed, args.episodes)
             for s in SLICE_ORDER:
-                agg_margin[s].extend(m[s])
+                agg_compliant[s].extend(c[s])
                 agg_blocks[s] += b[s]
                 agg_reqs[s] += r[s]
             agg_reward.extend(rew)
-        rows.append((name, agg_margin, agg_blocks, agg_reqs, agg_reward))
+        rows.append((name, agg_compliant, agg_blocks, agg_reqs, agg_reward))
 
     # static_threshold needs the loaded cfg for LbOnlyHeuristic -- build once.
     env0 = make_env(seed=args.seeds[0], reward_mode="qoe")
@@ -102,18 +119,18 @@ def main() -> None:
     def static_threshold_decide(pending, cluster_state):
         return heuristic.decide(pending, cluster_state)
 
-    agg_margin = {s: [] for s in SLICE_ORDER}
+    agg_compliant = {s: [] for s in SLICE_ORDER}
     agg_blocks = {s: 0 for s in SLICE_ORDER}
     agg_reqs = {s: 0 for s in SLICE_ORDER}
     agg_reward = []
     for seed in args.seeds:
-        m, b, r, rew = run_policy(static_threshold_decide, seed, args.episodes)
+        _, c, b, r, rew = run_policy(static_threshold_decide, seed, args.episodes)
         for s in SLICE_ORDER:
-            agg_margin[s].extend(m[s])
+            agg_compliant[s].extend(c[s])
             agg_blocks[s] += b[s]
             agg_reqs[s] += r[s]
         agg_reward.extend(rew)
-    rows.append(("static_threshold", agg_margin, agg_blocks, agg_reqs, agg_reward))
+    rows.append(("static_threshold", agg_compliant, agg_blocks, agg_reqs, agg_reward))
 
     lines = [
         "# Admission-efficiency baseline validity check",
@@ -122,17 +139,22 @@ def main() -> None:
         f"(backlog_capacity=1000.0, oversub_of_cap=1.2 -- see admission_efficiency_env.py)",
         f"Seeds: {args.seeds}, episodes/seed: {args.episodes}",
         "",
-        "| Policy | Slice | Mean margin | Frac compliant | Block rate | n samples |",
-        "|---|---|---|---|---|---|",
+        "Compliance = `reward_breakdown['per_slice_compliant']` (queue_len_norm <= 1.0, "
+        "non-strict) -- the SAME field mc_runner.py's episode_sla_compliance_by_slice uses, "
+        "matching every other figure/table in this project. (Corrected 2026-07-20: an earlier "
+        "version of this script used a strict per_slice_sla_margin>0 check, which "
+        "undercounts -- margins in this environment sit almost exactly at the 0.0 "
+        "boundary most of the time.)",
+        "",
+        "| Policy | Slice | Frac compliant | Block rate | n samples |",
+        "|---|---|---|---|---|",
     ]
-    for name, margin, blocks, reqs, reward in rows:
+    for name, compliant, blocks, reqs, reward in rows:
         for s in SLICE_ORDER:
-            arr = np.array(margin[s])
-            compliant = float(np.mean(arr > 0)) if arr.size else float("nan")
+            arr = np.array(compliant[s])
+            frac = float(np.mean(arr)) if arr.size else float("nan")
             block_rate = blocks[s] / max(1, reqs[s])
-            lines.append(
-                f"| {name} | {s} | {arr.mean():.3f} | {compliant:.3f} | {block_rate:.3f} | {arr.size} |"
-            )
+            lines.append(f"| {name} | {s} | {frac:.3f} | {block_rate:.3f} | {arr.size} |")
     lines.append("")
     lines.append("| Policy | Mean per-step reward |")
     lines.append("|---|---|")
@@ -142,8 +164,8 @@ def main() -> None:
     lines.append("")
     lines.append("## Validity verdict")
     all_compliant = {
-        name: {s: float(np.mean(np.array(margin[s]) > 0)) for s in SLICE_ORDER}
-        for name, margin, _, _, _ in rows
+        name: {s: float(np.mean(compliant[s])) for s in SLICE_ORDER}
+        for name, compliant, _, _, _ in rows
     }
     any_saturated_low = all(
         all(all_compliant[name][s] < 0.02 for name in all_compliant) for s in SLICE_ORDER

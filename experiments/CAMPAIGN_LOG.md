@@ -1344,3 +1344,83 @@ Both results written to `experiments/results/admission_efficiency/`
 yet piped to a file, printed to console only -- console output captured
 here for the record, re-runnable on demand). **Nothing retrained. No rig
 time used.**
+
+**User: "commit first, then retrain. do a 20 min trial, then show me the
+figures and plots."** Committed the above (`12624fd`). Wrote a new
+non-frozen offline training driver
+(`experiments/scripts/train_offline_admission_efficiency.py`, mirrors
+`qoe_oran_framework/scripts/train_offline.py`'s CLI/output layout but
+uses `admission_efficiency_env.py`'s validated environment construction
+instead of that script's own nominal-relative oversubscription/default
+backlog_capacity). Timing calibration: ~0.74s/episode for both DQN and
+A2C -- far faster than expected (pure synthetic simulation, no rig
+involved) -- so ran the FULL 300-episode target (matching the original
+campaign's own convergence standard) for all 4 arms at a single seed
+(256), not a truncated smoke test. Completed in ~4.5 minutes, zero
+errors, all 4 omega logs written.
+
+**Training convergence (fig1-style, `experiments/plots/out/trial_fig1_training_convergence.png`):
+real, healthy learning curves for all 4 arms** -- DQN/SLA and DQN/QoE
+both show clean, monotonic-looking convergence (SLA: ~1.5->3.7-4.0
+plateauing ~ep150; QoE: ~-0.18->0.02 plateauing ~ep150-200); A2C/SLA is
+noisy throughout with no clear trend (consistent with A2C's established
+fast-then-flat behavior from the original S1 campaign); A2C/QoE
+converges within ~10-20 episodes to a stable plateau with periodic sharp
+recoverable dips. **This is a categorical improvement over the OLD,
+broken offline environment**, which showed flat, non-improving,
+permanently-saturated curves regardless of training (see this same log's
+earlier entries) -- direct visual confirmation the recalibration produces
+a genuinely learnable environment, not just a differentiable one for
+scripted policies.
+
+**MAJOR CORRECTION, self-caught:** a first look at final-episode
+per-arm summaries showed all 4 trained arms reaching 100% SLA compliance
+on all 3 slices -- starkly higher than ANY scripted baseline in the
+earlier "PASS" validity check (accept_all 16-70%, static_threshold
+16-44%, reject_all 10-18%), including arms whose learned behavior (by
+accepted-count/cost) looked essentially IDENTICAL to accept_all or
+reject_all. That gap was too large to be incidental and was chased down
+rather than reported uncritically:
+
+Root cause, confirmed directly (not inferred): `run_admission_efficiency_baselines.py`
+and `tune_static_threshold.py` (this session's own new scripts) computed
+compliance as `per_slice_sla_margin > 0` (STRICT). But
+`mc_runner.py`'s `episode_sla_compliance_by_slice` -- the field EVERY
+OTHER figure/table in this entire project reads, including the original
+S1 campaign's fig2/generate_results_tables.py -- is built from
+`per_slice_compliant`, a boolean using `queue_len_norm <= 1.0`
+(NON-STRICT). Spot-checked directly on a trained arm's last episode:
+margins sit almost EXACTLY at the 0.0 boundary 91-98% of the time in
+this environment (min=0.0000, mean~0.0001-0.0002, only 1.7-8.3% strictly
+>0) -- so the strict check this session's new scripts used silently
+throws away the vast majority of genuinely-compliant steps that the
+framework's own (correct, established) definition counts as compliant.
+This was a bug in this session's OWN new analysis code, not in any
+frozen source or in the environment design itself.
+
+**Fixed** `run_admission_efficiency_baselines.py` to read
+`per_slice_compliant` directly (matching every other script in the
+project) and re-ran the validity check. **Corrected result: ALL THREE
+scripted baselines (accept_all, reject_all, static_threshold) show
+100.0% compliance on every slice.** The earlier "PASS -- real,
+non-saturated, monotonic differentiation" verdict is WRONG and
+retracted -- the honest verdict, with the correct compliance field, is
+**FAIL** on the ORIGINAL A1 criterion (does compliance differentiate
+policies). `tune_static_threshold.py` has the identical bug in its
+displayed "compliance" column (not yet re-run) -- its WINNER SELECTION
+is unaffected (chosen by mean reward, which was always computed
+correctly), but the reported compliance percentages for the sweep and
+the winner in `static_threshold_tuning.md` should be treated as
+unreliable pending a re-run.
+
+**This does not undermine the admission-efficiency merge finding --
+it reinforces it, more starkly than before.** Compliance was never the
+real differentiator in this environment: every tested policy, scripted
+or trained, achieves it. The ONLY axis that cleanly, honestly
+differentiates policies is reward/cost (accept_all -0.382, static_threshold
+-0.147, reject_all +0.025 on the scripted side; real spread across the 4
+trained arms too). The objective's headline metric going forward should
+be reward (or a cost-normalized efficiency metric), not raw compliance --
+compliance is necessary-but-uninteresting at this load level, exactly
+matching `NOTE_admission_objective_merge.md`'s original thesis, now on
+firmer, corrected ground.

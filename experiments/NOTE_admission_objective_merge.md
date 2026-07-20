@@ -85,21 +85,28 @@ diagnostics):
   reject_all, and the framework's own `LbOnlyHeuristic` (static-threshold, unmodified)
   against the frozen config and writes a validity report.
 
-**Validity check: PASS** (`experiments/results/admission_efficiency/baseline_validity.md`,
-3 seeds x 10 episodes, zero training):
+**Validity check: CORRECTED 2026-07-20 (see CAMPAIGN_LOG for the full trace).**
+The original run below used a strict `per_slice_sla_margin > 0` compliance check,
+which undercounts -- margins in this environment sit almost exactly at the 0.0
+boundary the vast majority of the time. Using the framework's own correct
+definition (`per_slice_compliant`, non-strict `queue_len_norm <= 1.0` -- the same
+field every other figure/table in this project reads), **all three baselines
+show 100.0% compliance on every slice.** The table below is retained for the
+record with its error stated plainly, not silently edited away:
 
-| Policy | eMBB compliant | URLLC compliant | mMTC compliant | Mean reward |
+| Policy | eMBB compliant (WRONG, strict check) | URLLC (WRONG) | mMTC (WRONG) | Mean reward (unaffected, correct) |
 |---|---|---|---|---|
 | accept_all | 16.1% | 51.2% | 70.3% | -0.382 |
 | static_threshold | 15.7% | 21.4% | 44.4% | -0.147 |
 | reject_all | 9.5% | 9.8% | 18.0% | +0.025 |
 
-Real, non-saturated, monotonic differentiation on compliance (accept_all >
-static_threshold > reject_all on every slice) AND on reward (the ordering flips --
-reject_all has the best reward despite the worst compliance, because it never pays
-the cost/congestion penalty) -- exactly the rich tradeoff space this objective needs:
-a learned policy has genuine room to beat all three by managing compliance AND cost
-jointly, which no naive policy here does.
+**Corrected reading: compliance does NOT differentiate any policy here -- everyone
+achieves it. Reward is the ONLY axis that honestly differentiates.** This
+strengthens rather than weakens this note's core thesis: the interesting tradeoff
+in this environment was never "does the policy protect compliance," it's purely
+"how much reward/cost efficiency does the policy achieve while compliance takes
+care of itself." The objective's headline metric should be reward (or a
+cost-normalized efficiency metric), not raw compliance.
 
 ## Remaining ask
 
