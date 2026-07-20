@@ -1295,3 +1295,52 @@ training. B1's beta value remains an explicit placeholder (0.2, unswept).
 **Nothing retrained. No rig time used.** Offline retraining (3 seeds x
 300 episodes/arm) against this config, and any eventual live confirmation
 subset, remain separately un-authorized next steps.
+
+**User: "keep going with your pathway."** Continued strictly within the
+same zero-training/zero-rig-time boundary -- two further design-only
+increments, both real script-generated evidence, no scratch code:
+
+1. **`experiments/scripts/tune_static_threshold.py`** -- A2's explicit
+   "give the baseline its best shot" requirement: swept `LbOnlyHeuristic`'s
+   two parameters (utilization_threshold x capacity_margin, 4x4=16 grid
+   points) on a HELD-OUT seed (950, disjoint from the validity check's
+   256/257/258), selected the winner by mean reward (the right criterion
+   -- a learned arm will also be trained to maximize reward, not raw
+   compliance, so the comparator needs to be strong on the SAME axis), then
+   reported that winner's honest performance on the eval seeds it was
+   NOT tuned on. **Result, and a real finding along the way:** the
+   reward-optimal threshold (utilization_threshold=0.7, capacity_margin=0.7)
+   scores only 9.9-25.8% compliant per slice on eval seeds -- markedly
+   WORSE on raw compliance than looser thresholds in the same sweep (up
+   to 44.8% compliant at the loosest setting tested), because at the
+   current beta=0.2 placeholder, minimizing accepted-count (and therefore
+   cost) dominates reward more than maximizing compliance does, for a
+   heuristic with no way to trade the two off intelligently.
+2. **`experiments/scripts/beta_sensitivity_probe.py`** -- groundwork for
+   B1, explicitly caveated in its own docstring as NOT a substitute for
+   real training curves (it recomputes eq.9 under candidate betas from a
+   FIXED scripted policy's already-observed behavior, same limitation
+   as the earlier retroactive sweep -- but this time against the
+   corrected, bug-fixed, properly-recalibrated environment, not the void
+   old data). Pooled per-step components, 3 seeds x 10 episodes:
+   accept_all's mean cost=2.100 dwarfs its mean mos_norm=0.038 at ANY
+   beta>=0.05 tested (0.05 through 1.0); reject_all's cost is always
+   exactly 0 (it never accepts anything) and its sla_viol severity is
+   also ~0 in aggregate for both policies. **Conclusion: no beta in the
+   0.05-1.0 range changes the qualitative ordering (reject_all beats
+   accept_all on reward regardless of beta's exact value) -- the cost
+   term's absolute scale (~2.1 for an always-accept policy) is simply
+   too large relative to the mos/sla_viol terms (~0.02-0.25) for beta's
+   VALUE, in any remotely reasonable range, to be the lever that creates
+   a genuine accept/reject tradeoff.** This is a more useful, concrete
+   finding than "pick a beta": it suggests the eventual real B1 sweep
+   should test beta values well below 0.05, or reconsider the cost
+   term's normalization, rather than sweeping the plan's originally
+   envisioned 0.2-5.0 range (which, per this evidence, would only ever
+   push further in the same already-dominant direction).
+
+Both results written to `experiments/results/admission_efficiency/`
+(`static_threshold_tuning.md`; `beta_sensitivity_probe.py`'s output not
+yet piped to a file, printed to console only -- console output captured
+here for the record, re-runnable on demand). **Nothing retrained. No rig
+time used.**
