@@ -1457,3 +1457,38 @@ checkpoints against the tuned static baselines on the same evaluation
 protocol; no live confirmation (zero rig time used in this entire
 admission-efficiency workstream to date); beta remains an unswept
 placeholder.
+
+**User: "held-out baseline comparison, then a real beta sweep."** Wrote
+`experiments/scripts/held_out_admission_comparison.py`: evaluates all 7
+arms (accept_all, reject_all, static_threshold-tuned, and all 4 learned
+checkpoints with FROZEN weights, `select_action(training=False)`) on
+seeds 960/961/962 -- fresh, distinct from the 256/257/258 training seeds
+AND from seed 950 (used to tune static_threshold), so nothing in the
+comparison has seen these seeds in any capacity. Reuses the frozen
+`mc_runner.run_mc`/`run_single` harness for the learned arms and
+static_threshold (via a `policy_factory` that loads each checkpoint
+instead of building fresh weights) -- same evaluation code path the
+original S1 campaign used, not a bespoke script. accept_all/reject_all
+stay as lightweight scripted loops. Split into SLA-reward and QoE-reward
+groups (different reward scales, same convention as fig1).
+
+**Result** (`experiments/results/admission_efficiency/held_out_comparison.md`,
+3 seeds x 20 episodes, all compliance 100% across the board as expected
+by now):
+
+| Group | accept_all | reject_all | static_threshold | dqn | a2c |
+|---|---|---|---|---|---|
+| SLA reward | 3.0008 | 0.0000 | 1.5995 | **3.8999** | 3.0008 |
+| QoE reward | -0.3894 | 0.0215 | -0.0770 | 0.0215 | **0.0227** |
+
+**A genuine, held-out win: `dqn_sla` (3.8999) beats every baseline,
+including the strongest one (accept_all, 3.0008), by a clear margin on
+seeds it never saw during training.** `a2c_sla` ties accept_all exactly
+(3.0008) -- consistent with the earlier finding that it converged to
+essentially "accept everything." On the QoE side, `dqn_qoe` ties
+reject_all exactly (0.0215, both converged to essentially "reject
+everything," consistent with cost dominating at beta=0.2); `a2c_qoe`
+finds a marginally better operating point (0.0227). No naive or tuned
+static policy beats the best learned arm in either group -- the first
+genuine "the learned arm was worth it" result in this workstream, on a
+genuinely held-out protocol, not a training-seed replay.
