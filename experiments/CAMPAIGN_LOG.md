@@ -1690,3 +1690,17 @@ excluded -- would need retraining against real-scale states first, per
 the earlier stop). A clean, decisive DIRECTIONAL signal, not a
 publication-grade live campaign. Stack, traffic, and Docker core left
 running.
+
+**Torn down cleanly** (user: "tear down now" -- today's live goal met,
+trained-checkpoint live evaluation is separate, larger, not-yet-scoped
+work): traffic generators stopped, gNB+3UEs killed (tmux confirmed
+empty, `pgrep` confirmed no RAN processes), Docker core brought down
+(`docker compose down`, 0 containers remain, Mongo subscriber-record
+volume `docker_open5gs_mongodbdata` preserved for next session). dmesg
+clean throughout -- no crash signatures at any point in this live
+session. RAM back to 3.2Gi free / 4.5Gi available post-teardown.
+
+**Session total live-rig time: well under the 2h budget** (two stack
+stand-ups due to the mid-session environment reset, ~6 live episodes
+across 3 arms, teardown). No crashes, no restarts-mid-arm, no health-check
+failures -- the shortest, cleanest live session this campaign has had.
