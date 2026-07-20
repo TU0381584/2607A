@@ -1575,3 +1575,63 @@ cleaner-sounding "we found a better beta" story. If a different beta is
 wanted going forward, a genuine per-algorithm choice (or an
 algorithm-robust criterion, not just "pick the single best point")
 would be needed -- not attempted here.
+
+---
+
+## 2026-07-20 -- Live testing attempt (budgeted 2h): stopped at the precondition check, real finding
+
+**User: "proceed with live testing. try 2 hours first."** First live-rig
+activity in the entire admission-efficiency workstream (everything above
+this point was offline simulation).
+
+**Stack stand-up, clean on first attempt:** Docker core
+(`docker compose -f 5g-sa-deploy-slicing.yaml up -d`, all 17 containers,
+Mongo subscriber records for all 3 IMSIs survived the volume) ->
+`experiments/scripts/restart_ran_stack.sh` (gNB + all 3 UEs, all attached
+and reachable on the first try) -> `iperf3-target` container restarted +
+per-slice servers relaunched -> `experiments/traffic/run_traffic_profiles.sh start`
+(all 3 profiles running). RAM tight but stable (195Mi free / 1.6Gi
+available with everything up), dmesg clean, no crash signatures.
+
+**Before running any live episode, ran the established precondition
+check** (`probe_e2_preconditions.py --polls 60`) -- per this project's
+own repeated, hard-won discipline ("always poll real demand before
+setting ratio caps," PROJECT_HANDOFF_SUMMARY finding #4, and the exact
+reasoning behind Phase 1's original contention gate). E2 wire protocol
+confirmed healthy (P2 PASS). **Real per-UE demand measured: embb
+16.73 PRB mean (max 30), urllc 5.00 PRB mean, mmtc 5.02 PRB mean.**
+
+**Finding: `saclb_admission_efficiency_v1.yaml`'s cap values (embb=65,
+urllc=30, mmtc=20) are 3.9-6.0x real measured demand on this rig.** The
+ceiling would never bind under real traffic -- every policy, scripted or
+trained, would trivially satisfy all traffic with zero differentiation,
+reproducing exactly the failure mode this entire day's design work was
+about diagnosing and fixing, just transplanted to the live rig. Root
+cause: these cap values were derived entirely against the SYNTHETIC
+`ClosedLoopKpmSource`'s own abstract demand/backlog dynamics (see the
+"Recalibration #1" entries above) and were never validated against real
+RF demand -- a real, previously-undiscovered gap in this workstream's
+design, caught before wasting rig time on a live evaluation that would
+have produced meaningless (non-differentiating) numbers.
+
+**Deeper problem, not just a cap-value fix:** the trained checkpoints
+(dqn_sla/a2c_sla/dqn_qoe/a2c_qoe) learned their state representation
+(`queue_len_norm = backlog/Lmax`, Lmax=1000) against the synthetic
+source's backlog scale, which has no defined relationship to what real
+`dl_mac_buffer_occupation` values look like on this rig. Simply lowering
+the cap values to real-demand-appropriate levels (e.g. ~12-15/4-6/4-6,
+matching S1's own original live calibration) would create genuine real
+contention, but would evaluate the trained policies WAY outside the
+state distribution they were trained on -- not a fair test of "does the
+offline result carry over," but a test of generalization under severe
+distribution shift, which would need to be reported as such, not
+presented as a clean confirmation.
+
+**Stopped here rather than run a live evaluation whose numbers would
+be uninterpretable either way** (ceiling-never-binds trivial pass, or
+distribution-shifted trained-policy evaluation). Rig, traffic, and
+Docker core left running (not torn down) in case the next step is to
+proceed with a disclosed distribution-shift test or a live-appropriate
+recalibration -- reported back to the user with both options rather
+than picking one unilaterally, given the live-rig-time cost of getting
+this wrong twice.
