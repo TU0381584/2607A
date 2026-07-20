@@ -1492,3 +1492,45 @@ finds a marginally better operating point (0.0227). No naive or tuned
 static policy beats the best learned arm in either group -- the first
 genuine "the learned arm was worth it" result in this workstream, on a
 genuinely held-out protocol, not a training-seed replay.
+
+**Real beta sweep** (`experiments/scripts/beta_sweep_training.py`):
+unlike `beta_sensitivity_probe.py` (a retroactive recompute on FIXED
+scripted-policy rollouts), this trains dqn and a2c under reward_mode="qoe"
+for real, 100 episodes x seed 256, at 7 candidate betas (0.001 through
+0.2, spanning the range the retroactive probe suggested was too high
+throughout). beta only appears in eq.9, so this is QoE-mode only.
+
+**Result** (`experiments/plots/out/beta_sweep.png`, full log in
+`experiments/results/admission_efficiency_beta_sweep/sweep_driver.log`):
+compliance stayed 100% at every beta tested, for both algorithms --
+the "without destabilizing compliance" half of B1's criterion is
+trivially satisfied across this whole range, confirming (with real
+training this time, not a proxy) that compliance genuinely isn't
+sensitive to beta at this load level. Cost IS visible and RESPONSIVE
+to beta with real training (unlike the retroactive probe on fixed
+policies): mean cost drops monotonically as beta rises for both
+algorithms (DQN: 0.92->0.36; A2C: 0.88->0.009). But the two algorithms
+diverge sharply above beta~0.02: **A2C's reward stays flat/recovers
+(0.0182->0.0123->0.0184) by aggressively cutting cost as beta rises;
+DQN's reward degrades monotonically and goes NEGATIVE by beta=0.1**
+(0.0183 -> -0.0525 at beta=0.2), while its cost plateaus around 0.36
+from beta=0.05 onward rather than continuing to drop.
+
+**Caveat, stated plainly rather than glossed over**: this used a
+100-episode training budget per sweep point, not the full 300 used
+elsewhere in this workstream. DQN's own convergence curves (fig1)
+typically need ~150-200 episodes to plateau -- so DQN's apparent
+"degradation" at higher beta may partly be an artifact of an
+insufficient convergence budget for a harder optimization landscape,
+not necessarily a genuine ceiling on what DQN could achieve at those
+beta values given more episodes. Not yet re-tested at 300 episodes.
+
+**Recommendation** (not yet frozen as a final campaign choice --
+proposed, pending confirmation at full episode budget): **beta=0.02**.
+At this point, cost drops ~57% from the near-zero-beta baseline for
+BOTH algorithms (a real, working cost-consciousness) while reward stays
+clearly positive for both (DQN 0.0115, A2C 0.0123) -- meaningfully
+different from the current beta=0.2 placeholder, which this sweep shows
+pushes DQN into negative-reward territory at only 100 episodes of
+training. Confirming this holds at the full 300-episode budget is the
+natural next step before treating beta=0.02 as frozen.

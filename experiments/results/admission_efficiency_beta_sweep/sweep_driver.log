@@ -1,0 +1,28 @@
+=== training algo=dqn beta=0.001 seed=256 ===
+  dqn beta=0.001: mean_reward_per_step=0.0183 mean_cost=0.9188 sla_compliance={'embb': 1.0, 'urllc': 1.0, 'mmtc': 1.0}
+=== training algo=a2c beta=0.001 seed=256 ===
+  a2c beta=0.001: mean_reward_per_step=0.0182 mean_cost=0.8828 sla_compliance={'embb': 1.0, 'urllc': 1.0, 'mmtc': 1.0}
+=== training algo=dqn beta=0.005 seed=256 ===
+  dqn beta=0.005: mean_reward_per_step=0.0157 mean_cost=0.6820 sla_compliance={'embb': 1.0, 'urllc': 1.0, 'mmtc': 1.0}
+=== training algo=a2c beta=0.005 seed=256 ===
+  a2c beta=0.005: mean_reward_per_step=0.0155 mean_cost=0.7333 sla_compliance={'embb': 1.0, 'urllc': 1.0, 'mmtc': 1.0}
+=== training algo=dqn beta=0.01 seed=256 ===
+  dqn beta=0.01: mean_reward_per_step=0.0140 mean_cost=0.5169 sla_compliance={'embb': 1.0, 'urllc': 1.0, 'mmtc': 1.0}
+=== training algo=a2c beta=0.01 seed=256 ===
+  a2c beta=0.01: mean_reward_per_step=0.0134 mean_cost=0.5862 sla_compliance={'embb': 1.0, 'urllc': 1.0, 'mmtc': 1.0}
+=== training algo=dqn beta=0.02 seed=256 ===
+  dqn beta=0.02: mean_reward_per_step=0.0115 mean_cost=0.3932 sla_compliance={'embb': 1.0, 'urllc': 1.0, 'mmtc': 1.0}
+=== training algo=a2c beta=0.02 seed=256 ===
+  a2c beta=0.02: mean_reward_per_step=0.0123 mean_cost=0.3584 sla_compliance={'embb': 1.0, 'urllc': 1.0, 'mmtc': 1.0}
+=== training algo=dqn beta=0.05 seed=256 ===
+  dqn beta=0.05: mean_reward_per_step=0.0014 mean_cost=0.3599 sla_compliance={'embb': 1.0, 'urllc': 1.0, 'mmtc': 1.0}
+=== training algo=a2c beta=0.05 seed=256 ===
+  a2c beta=0.05: mean_reward_per_step=0.0144 mean_cost=0.1122 sla_compliance={'embb': 1.0, 'urllc': 1.0, 'mmtc': 1.0}
+=== training algo=dqn beta=0.1 seed=256 ===
+  dqn beta=0.1: mean_reward_per_step=-0.0165 mean_cost=0.3592 sla_compliance={'embb': 1.0, 'urllc': 1.0, 'mmtc': 1.0}
+=== training algo=a2c beta=0.1 seed=256 ===
+  a2c beta=0.1: mean_reward_per_step=0.0167 mean_cost=0.0342 sla_compliance={'embb': 1.0, 'urllc': 1.0, 'mmtc': 1.0}
+=== training algo=dqn beta=0.2 seed=256 ===
+  dqn beta=0.2: mean_reward_per_step=-0.0525 mean_cost=0.3592 sla_compliance={'embb': 1.0, 'urllc': 1.0, 'mmtc': 1.0}
+=== training algo=a2c beta=0.2 seed=256 ===
+  a2c beta=0.2: mean_reward_per_step=0.0184 mean_cost=0.0088 sla_compliance={'embb': 1.0, 'urllc': 1.0, 'mmtc': 1.0}
