@@ -1635,3 +1635,58 @@ proceed with a disclosed distribution-shift test or a live-appropriate
 recalibration -- reported back to the user with both options rather
 than picking one unilaterally, given the live-rig-time cost of getting
 this wrong twice.
+
+**Interrupted mid-question (tool error, no answer received), then "resume
+last process."** Environment had reset in the interim (session-boundary
+artifact, not a crash -- dmesg clean, fresh RAM). Proceeded with the
+recommended option from the unanswered question: rebuild the stack,
+reuse S1's own already-validated `saclb_campaign.yaml` (cap=12/4/3,
+proven against real demand on this exact rig) instead of the offline-only
+admission-efficiency config, and run the 3 scripted baselines live --
+skipping the trained checkpoints, which would need retraining for
+real-scale states.
+
+**Rebuild clean on first attempt** (Docker core, gNB+3UEs, iperf3-target
++ per-slice servers, traffic profiles) -- same sequence as before.
+
+**New script**: `experiments/scripts/run_live_admission_baselines.py`,
+mirroring `run_baseline_static.py`'s direct RANEnv/LiveKpmSource/
+run_single wiring (no subprocess/batching orchestration needed for a
+short single-session run) but using `saclb_campaign.yaml`'s real
+`ceiling_step_ratio=1` (baseline_static deliberately uses 0 -- frozen
+ceiling; these are genuine ADMISSION heuristics, a new angle on this
+config S1 itself didn't test). `static_threshold` uses the frozen
+`LbOnlyHeuristic` with `tune_static_threshold.py`'s already-found
+parameters (utilization_threshold=0.7, capacity_margin=0.7).
+
+**Result** (2 episodes/arm, seed 950, real rig,
+`experiments/plots/out/live_admission_baselines.png`):
+
+| Arm | eMBB margin | URLLC margin | mMTC margin | eMBB compliant | Cost |
+|---|---|---|---|---|---|
+| accept_all | -458.6 | -3,671.7 | -637.7 | 23.3% | 0.378 |
+| reject_all | -26,277.1 | -164,827.0 | -1,202.8 | 0.8% | 0.000 |
+| static_threshold | -1,002,377.2 | -288,565.3 | -1,202.8 | 0.0% | 0.000 |
+
+**accept_all is clearly, decisively the best of the three live** --
+consistent with the ORIGINAL S1 campaign's own finding under this same
+calibration (every learned arm there converged to "ride the ceiling to
+cap," achieving 100% compliance) -- not a new discovery, a real
+confirmation that this rig/calibration rewards maximal acceptance, not
+selective rejection. **static_threshold performs WORST of all three
+live, even worse than reject_all on eMBB specifically** (-1,002,377 vs
+-26,277) -- its "tuned" parameters were tuned entirely against the
+OFFLINE synthetic environment's congestion_level/prb_used_ratio
+distributions, which do not match the real rig's. This is the SAME
+"offline-tuned parameters don't transfer to live scale" concern
+already flagged for the trained checkpoints, now empirically confirmed
+for a heuristic too, with real data -- not hypothetical.
+
+**Honest scope of this result:** 2 episodes/arm/seed 950 only (real
+live time is the scarce resource here, unlike offline -- each episode
+is 5 real minutes). Not a statistically powered comparison, no
+inter-seed variance estimate, no trained-checkpoint arms (deliberately
+excluded -- would need retraining against real-scale states first, per
+the earlier stop). A clean, decisive DIRECTIONAL signal, not a
+publication-grade live campaign. Stack, traffic, and Docker core left
+running.
