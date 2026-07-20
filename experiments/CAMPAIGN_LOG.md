@@ -1424,3 +1424,36 @@ be reward (or a cost-normalized efficiency metric), not raw compliance --
 compliance is necessary-but-uninteresting at this load level, exactly
 matching `NOTE_admission_objective_merge.md`'s original thesis, now on
 firmer, corrected ground.
+
+**User: "proceed with full training."** Committed the trial batch
+(`b693e8c`), then launched the full 3-seed x 4-arm x 300-episode
+offline training campaign (`experiments/scripts/run_admission_efficiency_full_training.sh`)
+in the background. All 12 runs completed in ~13 minutes, zero errors.
+
+**Results** (`experiments/results/admission_efficiency_offline/results_summary.md`,
+full detail there):
+- All 4 arms show real, healthy, tight-inter-seed-band convergence
+  (`experiments/plots/out/admission_efficiency_fig1_training_convergence.png`).
+- **Compliance is saturated at 100% for every arm on every slice** --
+  consistent with the corrected scripted-baseline finding above, not a
+  new anomaly. Confirms compliance is not this environment's
+  differentiator at this load level, for trained arms same as scripted
+  ones.
+- Reward/cost differentiates cleanly and sensibly: dqn_sla beats a2c_sla
+  on reward (3.7694 vs 3.0415) while paying LESS cost (1.35 vs 2.09) --
+  genuine learned selectivity, not just "accept more." Both QoE-reward
+  arms converge toward heavy rejection (cost 0.02/0.001), consistent
+  with the beta-sensitivity probe's finding that cost dominates at the
+  current beta=0.2 placeholder.
+- Inter-seed CV: 0.64% (a2c_qoe) to 2.92% (dqn_qoe) -- 2 of 4 arms meet
+  the original campaign's ~1.5% benchmark, 2 run somewhat over it,
+  stated plainly rather than smoothed over. Curves are visibly plateaued
+  by ep~150-200 in all 4 cases, so this reads as seed-noise around a
+  shared plateau, not non-convergence -- not further investigated.
+
+**Explicitly NOT yet done**, stated in `results_summary.md` so it isn't
+mistaken for more than it is: no held-out comparison of trained
+checkpoints against the tuned static baselines on the same evaluation
+protocol; no live confirmation (zero rig time used in this entire
+admission-efficiency workstream to date); beta remains an unswept
+placeholder.
