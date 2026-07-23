@@ -14705,7 +14705,12 @@
         },
         "min_episode_compliance_pct": 0.0,
         "n_episodes_pooled": 15,
-        "p5_margin": -1002377.5
+        "n_episodes_fully_compliant": 11,
+        "p5_margin": -1002377.5,
+        "compliance_pct_ci95": [
+          53.44444444444444,
+          93.44444444444444
+        ]
       },
       "urllc": {
         "compliance_pct_mean": 73.44444444444444,
@@ -14723,7 +14728,12 @@
         },
         "min_episode_compliance_pct": 0.0,
         "n_episodes_pooled": 15,
-        "p5_margin": -1022888.3
+        "n_episodes_fully_compliant": 11,
+        "p5_margin": -1022888.3,
+        "compliance_pct_ci95": [
+          53.333333333333336,
+          93.33333333333333
+        ]
       },
       "mmtc": {
         "compliance_pct_mean": 73.77777777777777,
@@ -14741,7 +14751,12 @@
         },
         "min_episode_compliance_pct": 0.0,
         "n_episodes_pooled": 15,
-        "p5_margin": -810.1
+        "n_episodes_fully_compliant": 11,
+        "p5_margin": -810.1,
+        "compliance_pct_ci95": [
+          53.44444444444444,
+          93.44444444444444
+        ]
       },
       "episode_reward_mean": 1.4663444444444445,
       "episode_reward_std": 2.982811676966368
@@ -14769,7 +14784,12 @@
         },
         "min_episode_compliance_pct": 100.0,
         "n_episodes_pooled": 15,
-        "p5_margin": 0.9999999870744571
+        "n_episodes_fully_compliant": 15,
+        "p5_margin": 0.9999999870744571,
+        "compliance_pct_ci95": [
+          100.0,
+          100.0
+        ]
       },
       "urllc": {
         "compliance_pct_mean": 100.0,
@@ -14787,7 +14807,12 @@
         },
         "min_episode_compliance_pct": 100.0,
         "n_episodes_pooled": 15,
-        "p5_margin": 0.7
+        "n_episodes_fully_compliant": 15,
+        "p5_margin": 0.7,
+        "compliance_pct_ci95": [
+          100.0,
+          100.0
+        ]
       },
       "mmtc": {
         "compliance_pct_mean": 100.0,
@@ -14805,7 +14830,12 @@
         },
         "min_episode_compliance_pct": 100.0,
         "n_episodes_pooled": 15,
-        "p5_margin": 0.7
+        "n_episodes_fully_compliant": 15,
+        "p5_margin": 0.7,
+        "compliance_pct_ci95": [
+          100.0,
+          100.0
+        ]
       },
       "episode_reward_mean": 5.647277777777778,
       "episode_reward_std": 0.20047837850230557
@@ -14833,7 +14863,12 @@
         },
         "min_episode_compliance_pct": 100.0,
         "n_episodes_pooled": 15,
-        "p5_margin": 0.9999999678699485
+        "n_episodes_fully_compliant": 15,
+        "p5_margin": 0.9999999678699485,
+        "compliance_pct_ci95": [
+          100.0,
+          100.0
+        ]
       },
       "urllc": {
         "compliance_pct_mean": 100.0,
@@ -14851,7 +14886,12 @@
         },
         "min_episode_compliance_pct": 100.0,
         "n_episodes_pooled": 15,
-        "p5_margin": 0.7
+        "n_episodes_fully_compliant": 15,
+        "p5_margin": 0.7,
+        "compliance_pct_ci95": [
+          100.0,
+          100.0
+        ]
       },
       "mmtc": {
         "compliance_pct_mean": 100.0,
@@ -14869,7 +14909,12 @@
         },
         "min_episode_compliance_pct": 100.0,
         "n_episodes_pooled": 15,
-        "p5_margin": 0.7
+        "n_episodes_fully_compliant": 15,
+        "p5_margin": 0.7,
+        "compliance_pct_ci95": [
+          100.0,
+          100.0
+        ]
       },
       "episode_reward_mean": 5.647277777777778,
       "episode_reward_std": 0.20047837850230557
@@ -14897,7 +14942,12 @@
         },
         "min_episode_compliance_pct": 100.0,
         "n_episodes_pooled": 15,
-        "p5_margin": 0.9999999803700348
+        "n_episodes_fully_compliant": 15,
+        "p5_margin": 0.9999999803700348,
+        "compliance_pct_ci95": [
+          100.0,
+          100.0
+        ]
       },
       "urllc": {
         "compliance_pct_mean": 100.0,
@@ -14915,7 +14965,12 @@
         },
         "min_episode_compliance_pct": 100.0,
         "n_episodes_pooled": 15,
-        "p5_margin": 0.7
+        "n_episodes_fully_compliant": 15,
+        "p5_margin": 0.7,
+        "compliance_pct_ci95": [
+          100.0,
+          100.0
+        ]
       },
       "mmtc": {
         "compliance_pct_mean": 100.0,
@@ -14933,7 +14988,12 @@
         },
         "min_episode_compliance_pct": 100.0,
         "n_episodes_pooled": 15,
-        "p5_margin": 0.7
+        "n_episodes_fully_compliant": 15,
+        "p5_margin": 0.7,
+        "compliance_pct_ci95": [
+          100.0,
+          100.0
+        ]
       },
       "episode_reward_mean": 0.3184296937470083,
       "episode_reward_std": 0.004868908501203255
@@ -14961,7 +15021,12 @@
         },
         "min_episode_compliance_pct": 100.0,
         "n_episodes_pooled": 15,
-        "p5_margin": 0.7
+        "n_episodes_fully_compliant": 15,
+        "p5_margin": 0.7,
+        "compliance_pct_ci95": [
+          100.0,
+          100.0
+        ]
       },
       "urllc": {
         "compliance_pct_mean": 100.0,
@@ -14979,7 +15044,12 @@
         },
         "min_episode_compliance_pct": 100.0,
         "n_episodes_pooled": 15,
-        "p5_margin": 0.7
+        "n_episodes_fully_compliant": 15,
+        "p5_margin": 0.7,
+        "compliance_pct_ci95": [
+          100.0,
+          100.0
+        ]
       },
       "mmtc": {
         "compliance_pct_mean": 100.0,
@@ -14997,7 +15067,12 @@
         },
         "min_episode_compliance_pct": 100.0,
         "n_episodes_pooled": 15,
-        "p5_margin": 0.7
+        "n_episodes_fully_compliant": 15,
+        "p5_margin": 0.7,
+        "compliance_pct_ci95": [
+          100.0,
+          100.0
+        ]
       },
       "episode_reward_mean": 0.38766289581855135,
       "episode_reward_std": 0.0049176471717720886
@@ -15008,40 +15083,156 @@
       "wins": 6,
       "losses": 0,
       "ties": 3,
-      "cohens_d_compliance": {
-        "embb": 1.632949554320579,
-        "urllc": 1.632950281071477,
-        "mmtc": 1.6328172717378766
+      "wilcoxon_compliance": {
+        "embb": {
+          "n_pairs": 15,
+          "p_value": 0.06559969214707187,
+          "statistic": 0.0,
+          "all_tied": false
+        },
+        "urllc": {
+          "n_pairs": 15,
+          "p_value": 0.05878172135535886,
+          "statistic": 0.0,
+          "all_tied": false
+        },
+        "mmtc": {
+          "n_pairs": 15,
+          "p_value": 0.06559969214707187,
+          "statistic": 0.0,
+          "all_tied": false
+        }
+      },
+      "fully_compliant_episodes": {
+        "embb": {
+          "arm": "15/15",
+          "baseline": "11/15"
+        },
+        "urllc": {
+          "arm": "15/15",
+          "baseline": "11/15"
+        },
+        "mmtc": {
+          "arm": "15/15",
+          "baseline": "11/15"
+        }
       }
     },
     "a2c_sla": {
       "wins": 6,
       "losses": 0,
       "ties": 3,
-      "cohens_d_compliance": {
-        "embb": 1.632949554320579,
-        "urllc": 1.632950281071477,
-        "mmtc": 1.6328172717378766
+      "wilcoxon_compliance": {
+        "embb": {
+          "n_pairs": 15,
+          "p_value": 0.06559969214707187,
+          "statistic": 0.0,
+          "all_tied": false
+        },
+        "urllc": {
+          "n_pairs": 15,
+          "p_value": 0.05878172135535886,
+          "statistic": 0.0,
+          "all_tied": false
+        },
+        "mmtc": {
+          "n_pairs": 15,
+          "p_value": 0.06559969214707187,
+          "statistic": 0.0,
+          "all_tied": false
+        }
+      },
+      "fully_compliant_episodes": {
+        "embb": {
+          "arm": "15/15",
+          "baseline": "11/15"
+        },
+        "urllc": {
+          "arm": "15/15",
+          "baseline": "11/15"
+        },
+        "mmtc": {
+          "arm": "15/15",
+          "baseline": "11/15"
+        }
       }
     },
     "dqn_qoe": {
       "wins": 6,
       "losses": 0,
       "ties": 3,
-      "cohens_d_compliance": {
-        "embb": 1.632949554320579,
-        "urllc": 1.632950281071477,
-        "mmtc": 1.6328172717378766
+      "wilcoxon_compliance": {
+        "embb": {
+          "n_pairs": 15,
+          "p_value": 0.06559969214707187,
+          "statistic": 0.0,
+          "all_tied": false
+        },
+        "urllc": {
+          "n_pairs": 15,
+          "p_value": 0.05878172135535886,
+          "statistic": 0.0,
+          "all_tied": false
+        },
+        "mmtc": {
+          "n_pairs": 15,
+          "p_value": 0.06559969214707187,
+          "statistic": 0.0,
+          "all_tied": false
+        }
+      },
+      "fully_compliant_episodes": {
+        "embb": {
+          "arm": "15/15",
+          "baseline": "11/15"
+        },
+        "urllc": {
+          "arm": "15/15",
+          "baseline": "11/15"
+        },
+        "mmtc": {
+          "arm": "15/15",
+          "baseline": "11/15"
+        }
       }
     },
     "a2c_qoe": {
       "wins": 6,
       "losses": 0,
       "ties": 3,
-      "cohens_d_compliance": {
-        "embb": 1.632949554320579,
-        "urllc": 1.632950281071477,
-        "mmtc": 1.6328172717378766
+      "wilcoxon_compliance": {
+        "embb": {
+          "n_pairs": 15,
+          "p_value": 0.06559969214707187,
+          "statistic": 0.0,
+          "all_tied": false
+        },
+        "urllc": {
+          "n_pairs": 15,
+          "p_value": 0.05878172135535886,
+          "statistic": 0.0,
+          "all_tied": false
+        },
+        "mmtc": {
+          "n_pairs": 15,
+          "p_value": 0.06559969214707187,
+          "statistic": 0.0,
+          "all_tied": false
+        }
+      },
+      "fully_compliant_episodes": {
+        "embb": {
+          "arm": "15/15",
+          "baseline": "11/15"
+        },
+        "urllc": {
+          "arm": "15/15",
+          "baseline": "11/15"
+        },
+        "mmtc": {
+          "arm": "15/15",
+          "baseline": "11/15"
+        }
       }
     }
   }

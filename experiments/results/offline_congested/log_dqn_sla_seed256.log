@@ -1,0 +1,14 @@
+[train_congested] dqn/sla seed=256 ep=1/300 mean_reward(last25)=-6.9494 congestion_mult(this_ep)={'embb': 1.92, 'urllc': 1.93, 'mmtc': 1.25} elapsed=0s
+[train_congested] dqn/sla seed=256 ep=25/300 mean_reward(last25)=-12.1575 congestion_mult(this_ep)={'embb': 1.16, 'urllc': 2.09, 'mmtc': 1.35} elapsed=4s
+[train_congested] dqn/sla seed=256 ep=50/300 mean_reward(last25)=-12.6327 congestion_mult(this_ep)={'embb': 1.95, 'urllc': 2.11, 'mmtc': 1.54} elapsed=7s
+[train_congested] dqn/sla seed=256 ep=75/300 mean_reward(last25)=-12.4746 congestion_mult(this_ep)={'embb': 1.48, 'urllc': 2.14, 'mmtc': 1.78} elapsed=11s
+[train_congested] dqn/sla seed=256 ep=100/300 mean_reward(last25)=-12.6212 congestion_mult(this_ep)={'embb': 1.12, 'urllc': 1.88, 'mmtc': 1.51} elapsed=15s
+[train_congested] dqn/sla seed=256 ep=125/300 mean_reward(last25)=-12.5026 congestion_mult(this_ep)={'embb': 1.13, 'urllc': 1.58, 'mmtc': 1.18} elapsed=20s
+[train_congested] dqn/sla seed=256 ep=150/300 mean_reward(last25)=-12.3534 congestion_mult(this_ep)={'embb': 2.12, 'urllc': 1.41, 'mmtc': 1.43} elapsed=25s
+[train_congested] dqn/sla seed=256 ep=175/300 mean_reward(last25)=-12.2119 congestion_mult(this_ep)={'embb': 2.13, 'urllc': 1.43, 'mmtc': 1.34} elapsed=30s
+[train_congested] dqn/sla seed=256 ep=200/300 mean_reward(last25)=-12.5039 congestion_mult(this_ep)={'embb': 1.1, 'urllc': 1.74, 'mmtc': 1.67} elapsed=36s
+[train_congested] dqn/sla seed=256 ep=225/300 mean_reward(last25)=-12.5195 congestion_mult(this_ep)={'embb': 1.11, 'urllc': 1.27, 'mmtc': 2.05} elapsed=41s
+[train_congested] dqn/sla seed=256 ep=250/300 mean_reward(last25)=-12.3245 congestion_mult(this_ep)={'embb': 1.22, 'urllc': 1.44, 'mmtc': 2.07} elapsed=45s
+[train_congested] dqn/sla seed=256 ep=275/300 mean_reward(last25)=-12.5382 congestion_mult(this_ep)={'embb': 1.77, 'urllc': 1.72, 'mmtc': 1.29} elapsed=50s
+[train_congested] dqn/sla seed=256 ep=300/300 mean_reward(last25)=-12.5440 congestion_mult(this_ep)={'embb': 1.41, 'urllc': 1.3, 'mmtc': 2.03} elapsed=55s
+[train_congested] dqn/sla seed=256: wrote /home/kmanojp/oranslice_rig/experiments/results/offline_congested/sla/seed256/dqn/checkpoint.pt, final mean_reward(last25)=-12.5440, total_time=55s

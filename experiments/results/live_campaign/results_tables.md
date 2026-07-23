@@ -25,9 +25,25 @@
 | a2c_qoe | 0.3877±0.0049 | 3 |
 
 ### Paired-seed win/loss (SLA compliance, vs. baseline, summed across 3 slices x n seeds)
-| Arm | Wins | Losses | Ties | Cohen's d (compliance, per slice) |
-|---|---|---|---|---|
-| dqn_sla | 6 | 0 | 3 | embb=1.63, urllc=1.63, mmtc=1.63 |
-| a2c_sla | 6 | 0 | 3 | embb=1.63, urllc=1.63, mmtc=1.63 |
-| dqn_qoe | 6 | 0 | 3 | embb=1.63, urllc=1.63, mmtc=1.63 |
-| a2c_qoe | 6 | 0 | 3 | embb=1.63, urllc=1.63, mmtc=1.63 |
+| Arm | Wins | Losses | Ties |
+|---|---|---|---|
+| dqn_sla | 6 | 0 | 3 |
+| a2c_sla | 6 | 0 | 3 |
+| dqn_qoe | 6 | 0 | 3 |
+| a2c_qoe | 6 | 0 | 3 |
+
+### Wilcoxon signed-rank on per-episode SLA compliance (paired by seed+episode index), vs. baseline
+| Arm | Slice | n pairs | Fully-compliant episodes (arm) | Fully-compliant episodes (baseline) | p-value |
+|---|---|---|---|---|---|
+| dqn_sla | embb | 15 | 15/15 | 11/15 | 0.0656 |
+| dqn_sla | urllc | 15 | 15/15 | 11/15 | 0.05878 |
+| dqn_sla | mmtc | 15 | 15/15 | 11/15 | 0.0656 |
+| a2c_sla | embb | 15 | 15/15 | 11/15 | 0.0656 |
+| a2c_sla | urllc | 15 | 15/15 | 11/15 | 0.05878 |
+| a2c_sla | mmtc | 15 | 15/15 | 11/15 | 0.0656 |
+| dqn_qoe | embb | 15 | 15/15 | 11/15 | 0.0656 |
+| dqn_qoe | urllc | 15 | 15/15 | 11/15 | 0.05878 |
+| dqn_qoe | mmtc | 15 | 15/15 | 11/15 | 0.0656 |
+| a2c_qoe | embb | 15 | 15/15 | 11/15 | 0.0656 |
+| a2c_qoe | urllc | 15 | 15/15 | 11/15 | 0.05878 |
+| a2c_qoe | mmtc | 15 | 15/15 | 11/15 | 0.0656 |

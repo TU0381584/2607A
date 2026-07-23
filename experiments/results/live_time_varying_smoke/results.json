@@ -1,0 +1,2444 @@
+{
+  "dqn_sla": {
+    "summary": {
+      "low": {
+        "embb": 40.0,
+        "urllc": 2.5,
+        "mmtc": 2.5
+      },
+      "high": {
+        "embb": 25.0,
+        "urllc": 0.0,
+        "mmtc": 0.0
+      },
+      "medium": {
+        "embb": 42.5,
+        "urllc": 0.0,
+        "mmtc": 0.0
+      }
+    },
+    "step_log": [
+      {
+        "episode": 1,
+        "step": 1,
+        "phase": "low",
+        "compliant": {
+          "embb": true,
+          "urllc": true,
+          "mmtc": true
+        }
+      },
+      {
+        "episode": 1,
+        "step": 2,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 3,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 4,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 5,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 6,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 7,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 8,
+        "phase": "low",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 9,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 10,
+        "phase": "low",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 11,
+        "phase": "low",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 12,
+        "phase": "low",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 13,
+        "phase": "low",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 14,
+        "phase": "low",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 15,
+        "phase": "low",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 16,
+        "phase": "low",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 17,
+        "phase": "low",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 18,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 19,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 20,
+        "phase": "low",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 21,
+        "phase": "high",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 22,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 23,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 24,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 25,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 26,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 27,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 28,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 29,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 30,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 31,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 32,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 33,
+        "phase": "high",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 34,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 35,
+        "phase": "high",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 36,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 37,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 38,
+        "phase": "high",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 39,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 40,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 41,
+        "phase": "medium",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 42,
+        "phase": "medium",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 43,
+        "phase": "medium",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 44,
+        "phase": "medium",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 45,
+        "phase": "medium",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 46,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 47,
+        "phase": "medium",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 48,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 49,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 50,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 51,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 52,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 53,
+        "phase": "medium",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 54,
+        "phase": "medium",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 55,
+        "phase": "medium",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 56,
+        "phase": "medium",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 57,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 58,
+        "phase": "medium",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 59,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 60,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 1,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 2,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 3,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 4,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 5,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 6,
+        "phase": "low",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 7,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 8,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 9,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 10,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 11,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 12,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 13,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 14,
+        "phase": "low",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 15,
+        "phase": "low",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 16,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 17,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 18,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 19,
+        "phase": "low",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 20,
+        "phase": "low",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 21,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 22,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 23,
+        "phase": "high",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 24,
+        "phase": "high",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 25,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 26,
+        "phase": "high",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 27,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 28,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 29,
+        "phase": "high",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 30,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 31,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 32,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 33,
+        "phase": "high",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 34,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 35,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 36,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 37,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 38,
+        "phase": "high",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 39,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 40,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 41,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 42,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 43,
+        "phase": "medium",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 44,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 45,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 46,
+        "phase": "medium",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 47,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 48,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 49,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 50,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 51,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 52,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 53,
+        "phase": "medium",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 54,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 55,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 56,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 57,
+        "phase": "medium",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 58,
+        "phase": "medium",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 59,
+        "phase": "medium",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 60,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      }
+    ]
+  },
+  "a2c_qoe": {
+    "summary": {
+      "low": {
+        "embb": 2.5,
+        "urllc": 0.0,
+        "mmtc": 0.0
+      },
+      "high": {
+        "embb": 0.0,
+        "urllc": 0.0,
+        "mmtc": 0.0
+      },
+      "medium": {
+        "embb": 0.0,
+        "urllc": 0.0,
+        "mmtc": 0.0
+      }
+    },
+    "step_log": [
+      {
+        "episode": 1,
+        "step": 1,
+        "phase": "low",
+        "compliant": {
+          "embb": true,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 2,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 3,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 4,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 5,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 6,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 7,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 8,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 9,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 10,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 11,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 12,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 13,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 14,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 15,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 16,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 17,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 18,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 19,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 20,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 21,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 22,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 23,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 24,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 25,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 26,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 27,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 28,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 29,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 30,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 31,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 32,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 33,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 34,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 35,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 36,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 37,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 38,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 39,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 40,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 41,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 42,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 43,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 44,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 45,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 46,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 47,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 48,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 49,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 50,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 51,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 52,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 53,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 54,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 55,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 56,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 57,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 58,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 59,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 1,
+        "step": 60,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 1,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 2,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 3,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 4,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 5,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 6,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 7,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 8,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 9,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 10,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 11,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 12,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 13,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 14,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 15,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 16,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 17,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 18,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 19,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 20,
+        "phase": "low",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 21,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 22,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 23,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 24,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 25,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 26,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 27,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 28,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 29,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 30,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 31,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 32,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 33,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 34,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 35,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 36,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 37,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 38,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 39,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 40,
+        "phase": "high",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 41,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 42,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 43,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 44,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 45,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 46,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 47,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 48,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 49,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 50,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 51,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 52,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 53,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 54,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 55,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 56,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 57,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 58,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 59,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      },
+      {
+        "episode": 2,
+        "step": 60,
+        "phase": "medium",
+        "compliant": {
+          "embb": false,
+          "urllc": false,
+          "mmtc": false
+        }
+      }
+    ]
+  }
+}

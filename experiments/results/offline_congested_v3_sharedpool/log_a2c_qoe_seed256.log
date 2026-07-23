@@ -1,0 +1,14 @@
+[train_congested] a2c/qoe seed=256 ep=1/300 mean_reward(last25)=-0.0782 congestion_mult(this_ep)={'embb': 1.07, 'urllc': 1.08, 'mmtc': 0.53} elapsed=0s
+[train_congested] a2c/qoe seed=256 ep=25/300 mean_reward(last25)=-0.1447 congestion_mult(this_ep)={'embb': 0.45, 'urllc': 1.21, 'mmtc': 0.6} elapsed=6s
+[train_congested] a2c/qoe seed=256 ep=50/300 mean_reward(last25)=-0.1635 congestion_mult(this_ep)={'embb': 1.1, 'urllc': 1.23, 'mmtc': 0.76} elapsed=11s
+[train_congested] a2c/qoe seed=256 ep=75/300 mean_reward(last25)=-0.1517 congestion_mult(this_ep)={'embb': 0.71, 'urllc': 1.25, 'mmtc': 0.96} elapsed=17s
+[train_congested] a2c/qoe seed=256 ep=100/300 mean_reward(last25)=-0.1437 congestion_mult(this_ep)={'embb': 0.41, 'urllc': 1.03, 'mmtc': 0.74} elapsed=23s
+[train_congested] a2c/qoe seed=256 ep=125/300 mean_reward(last25)=-0.1348 congestion_mult(this_ep)={'embb': 0.42, 'urllc': 0.79, 'mmtc': 0.47} elapsed=28s
+[train_congested] a2c/qoe seed=256 ep=150/300 mean_reward(last25)=-0.1444 congestion_mult(this_ep)={'embb': 1.23, 'urllc': 0.65, 'mmtc': 0.67} elapsed=34s
+[train_congested] a2c/qoe seed=256 ep=175/300 mean_reward(last25)=-0.1524 congestion_mult(this_ep)={'embb': 1.24, 'urllc': 0.67, 'mmtc': 0.59} elapsed=41s
+[train_congested] a2c/qoe seed=256 ep=200/300 mean_reward(last25)=-0.1572 congestion_mult(this_ep)={'embb': 0.4, 'urllc': 0.92, 'mmtc': 0.87} elapsed=46s
+[train_congested] a2c/qoe seed=256 ep=225/300 mean_reward(last25)=-0.1565 congestion_mult(this_ep)={'embb': 0.4, 'urllc': 0.54, 'mmtc': 1.18} elapsed=52s
+[train_congested] a2c/qoe seed=256 ep=250/300 mean_reward(last25)=-0.1373 congestion_mult(this_ep)={'embb': 0.5, 'urllc': 0.68, 'mmtc': 1.19} elapsed=57s
+[train_congested] a2c/qoe seed=256 ep=275/300 mean_reward(last25)=-0.1533 congestion_mult(this_ep)={'embb': 0.95, 'urllc': 0.91, 'mmtc': 0.56} elapsed=63s
+[train_congested] a2c/qoe seed=256 ep=300/300 mean_reward(last25)=-0.1356 congestion_mult(this_ep)={'embb': 0.65, 'urllc': 0.57, 'mmtc': 1.16} elapsed=69s
+[train_congested] a2c/qoe seed=256: wrote /home/kmanojp/oranslice_rig/experiments/results/offline_congested_v3_sharedpool/qoe/seed256/a2c/checkpoint.pt, final mean_reward(last25)=-0.1356, total_time=69s

@@ -68,8 +68,8 @@ def main() -> None:
 
     ax.set_xticks(range(1, len(ARMS) + 1))
     ax.set_xticklabels(labels, rotation=30, ha="right")
-    ax.set_ylabel("URLLC blocks / episode")
-    ax.set_title("URLLC blocking per episode by arm")
+    ax.set_ylabel("URLLC agent-issued rejections / episode")
+    ax.set_title("URLLC agent-issued rejections per episode by arm")
 
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)

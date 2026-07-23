@@ -3,11 +3,11 @@
 % trace at experiments/logs/phase1/embb_final_20260716_204703.jsonl.
 \begin{table}[t]
 \centering
-\caption{Contention gate: eMBB backlog (mean \texttt{dl\_mac\_buffer\_occupation}) under ceiling manipulation}
+\caption{Contention gate: eMBB backlog (mean \texttt{dl\_mac\_buffer\_occupation}, bytes) under ceiling manipulation}
 \label{tab:contention}
 \begin{tabular}{@{}lrr@{}}
 \toprule
-Phase & Ceiling (min,max) & Mean backlog \\
+Phase & Ceiling (min,max) & Mean backlog (bytes) \\
 \midrule
 Baseline (wide open) & (0, 100) & 411.3 \\
 Pinned (starved) & (1, 1) & 6{,}601{,}079.0 \\

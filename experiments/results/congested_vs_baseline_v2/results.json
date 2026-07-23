@@ -1,0 +1,112 @@
+{
+  "baseline": {
+    "compliance_pct": {
+      "urllc": 20.703703703703706,
+      "embb": 39.370370370370374,
+      "mmtc": 21.555555555555557
+    },
+    "mean_margin": {
+      "urllc": -0.2528513650724714,
+      "embb": -0.012617783608800897,
+      "mmtc": -0.2269285983686877
+    },
+    "mean_rejections_per_episode": {
+      "urllc": 0.0,
+      "embb": 0.0,
+      "mmtc": 0.0
+    },
+    "n_steps_pooled": {
+      "urllc": 2700,
+      "embb": 2700,
+      "mmtc": 2700
+    }
+  },
+  "dqn_sla": {
+    "compliance_pct": {
+      "urllc": 44.148148148148145,
+      "embb": 83.03703703703704,
+      "mmtc": 34.333333333333336
+    },
+    "mean_margin": {
+      "urllc": 0.07575904209611307,
+      "embb": 0.6805607362243272,
+      "mmtc": -0.07110664564071911
+    },
+    "mean_rejections_per_episode": {
+      "urllc": 0.0,
+      "embb": 0.0,
+      "mmtc": 0.0
+    },
+    "n_steps_pooled": {
+      "urllc": 2700,
+      "embb": 2700,
+      "mmtc": 2700
+    }
+  },
+  "a2c_sla": {
+    "compliance_pct": {
+      "urllc": 44.148148148148145,
+      "embb": 83.03703703703704,
+      "mmtc": 34.333333333333336
+    },
+    "mean_margin": {
+      "urllc": 0.07575904209611307,
+      "embb": 0.6805607362243272,
+      "mmtc": -0.07110664564071911
+    },
+    "mean_rejections_per_episode": {
+      "urllc": 0.0,
+      "embb": 0.0,
+      "mmtc": 0.0
+    },
+    "n_steps_pooled": {
+      "urllc": 2700,
+      "embb": 2700,
+      "mmtc": 2700
+    }
+  },
+  "dqn_qoe": {
+    "compliance_pct": {
+      "urllc": 39.62962962962963,
+      "embb": 75.40740740740742,
+      "mmtc": 33.0
+    },
+    "mean_margin": {
+      "urllc": 0.009143950661625395,
+      "embb": 0.5627936145735063,
+      "mmtc": -0.09338329649081563
+    },
+    "mean_rejections_per_episode": {
+      "urllc": 6.955555555555556,
+      "embb": 8.688888888888888,
+      "mmtc": 4.044444444444444
+    },
+    "n_steps_pooled": {
+      "urllc": 2700,
+      "embb": 2700,
+      "mmtc": 2700
+    }
+  },
+  "a2c_qoe": {
+    "compliance_pct": {
+      "urllc": 14.888888888888888,
+      "embb": 19.444444444444446,
+      "mmtc": 17.666666666666668
+    },
+    "mean_margin": {
+      "urllc": -0.2919145664434297,
+      "embb": -0.2186194926841511,
+      "mmtc": -0.25232392339532717
+    },
+    "mean_rejections_per_episode": {
+      "urllc": 37.355555555555554,
+      "embb": 32.93333333333333,
+      "mmtc": 35.333333333333336
+    },
+    "n_steps_pooled": {
+      "urllc": 2700,
+      "embb": 2700,
+      "mmtc": 2700
+    }
+  }
+}

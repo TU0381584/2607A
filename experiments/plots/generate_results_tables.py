@@ -22,6 +22,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
+from scipy.stats import wilcoxon
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import ARM_STYLE, ARMS, SLICE_ORDER, arm_run_dir, read_omega_log  # noqa: E402
@@ -81,15 +82,44 @@ def per_rep_metrics(omega_path: Path) -> dict:
     }
 
 
-def cohens_d(a: list, b: list) -> float:
-    a, b = np.array(a), np.array(b)
-    n1, n2 = len(a), len(b)
-    if n1 < 2 or n2 < 2:
-        return float("nan")
-    pooled_std = np.sqrt(((n1 - 1) * a.var(ddof=1) + (n2 - 1) * b.var(ddof=1)) / (n1 + n2 - 2))
-    if pooled_std == 0:
-        return float("nan")
-    return float((a.mean() - b.mean()) / pooled_std)
+def bootstrap_ci(values: list, n_resamples: int = 10000, ci: float = 0.95, seed: int = 0) -> tuple:
+    """Percentile bootstrap CI on the mean. Returns (lo, hi); (nan, nan) if
+    fewer than 2 values (a CI on a single point is not meaningful)."""
+    arr = np.array(values, dtype=float)
+    if len(arr) < 2:
+        return float("nan"), float("nan")
+    rng = np.random.default_rng(seed)
+    means = rng.choice(arr, size=(n_resamples, len(arr)), replace=True).mean(axis=1)
+    alpha = (1.0 - ci) / 2.0
+    return float(np.percentile(means, 100 * alpha)), float(np.percentile(means, 100 * (1 - alpha)))
+
+
+def paired_episode_wilcoxon(arm_vals: list, base_vals: list) -> dict:
+    """Wilcoxon signed-rank test on episodes paired by (seed, episode index)
+    -- arm_vals/base_vals must already be pooled in matching seed/episode
+    order (see raw_episode_compliance_by_slice's construction: episodes are
+    appended in the log's own step=-1 order per seed, and seeds are iterated
+    in the same fixed order for both arm and baseline, so position i in each
+    pooled list corresponds to the same (seed, episode) for both).
+
+    Not undefined the way Cohen's d against a zero-variance group is, but
+    still reported honestly: wilcoxon errors if every paired difference is
+    exactly zero (ties out completely), which is reported as such rather
+    than silently producing p=nan."""
+    a, b = np.array(arm_vals), np.array(base_vals)
+    n = min(len(a), len(b))
+    if n < 1:
+        return {"n_pairs": 0, "p_value": float("nan"), "statistic": float("nan"), "all_tied": True}
+    a, b = a[:n], b[:n]
+    diff = a - b
+    if np.all(diff == 0):
+        return {"n_pairs": n, "p_value": float("nan"), "statistic": float("nan"), "all_tied": True}
+    try:
+        stat, p = wilcoxon(a, b)
+    except ValueError:
+        # e.g. after dropping exact zero-diff pairs internally, none remain
+        return {"n_pairs": n, "p_value": float("nan"), "statistic": float("nan"), "all_tied": True}
+    return {"n_pairs": n, "p_value": float(p), "statistic": float(stat), "all_tied": False}
 
 
 def main() -> None:
@@ -139,19 +169,30 @@ def main() -> None:
                 "compliance_pct_per_seed": dict(zip(seeds_present, comp_vals)),
                 "min_episode_compliance_pct": float(np.min(pooled_episode_compliance)) * 100 if pooled_episode_compliance else float("nan"),
                 "n_episodes_pooled": len(pooled_episode_compliance),
+                "n_episodes_fully_compliant": int(sum(1 for v in pooled_episode_compliance if v >= 1.0)),
                 "p5_margin": float(np.percentile(pooled_step_margin, 5)) if pooled_step_margin else float("nan"),
+                "compliance_pct_ci95": bootstrap_ci([v * 100 for v in pooled_episode_compliance]),
             }
         reward_vals = [reps[sd]["mean_episode_reward"] for sd in seeds_present if not np.isnan(reps[sd]["mean_episode_reward"])]
         agg[arm]["episode_reward_mean"] = float(np.mean(reward_vals)) if reward_vals else float("nan")
         agg[arm]["episode_reward_std"] = float(np.std(reward_vals)) if reward_vals else float("nan")
 
-    # paired-seed win/loss counts + Cohen's d: baseline vs each learned arm, per slice, on compliance
+    # paired-seed win/loss counts (per-seed mean compliance) + Wilcoxon
+    # signed-rank on EPISODE-level (not seed-mean) compliance, paired by
+    # (seed, episode index) -- baseline vs each learned arm, per slice.
+    # Replaces the previous Cohen's d: every learned arm's per-seed
+    # compliance is 100.0 +/- 0.0 (zero variance), so a pooled-variance
+    # effect size was being driven entirely by baseline's spread alone --
+    # not undefined outright, but not a meaningful effect size either.
+    # Wilcoxon on the higher-resolution per-episode series, plus an
+    # explicit fully-compliant-episode count, is the honest replacement.
     comparisons = {}
     for arm in ARMS:
         if arm == "baseline":
             continue
         wins = losses = ties = 0
-        per_slice_d = {}
+        per_slice_wilcoxon = {}
+        per_slice_fully_compliant = {}
         for s in SLICE_ORDER:
             base_per_seed = agg["baseline"][s]["compliance_pct_per_seed"]
             arm_per_seed = agg[arm][s]["compliance_pct_per_seed"]
@@ -163,10 +204,22 @@ def main() -> None:
                     losses += 1
                 else:
                     ties += 1
-            base_vals = [base_per_seed[sd] for sd in common_seeds]
-            arm_vals = [arm_per_seed[sd] for sd in common_seeds]
-            per_slice_d[s] = cohens_d(arm_vals, base_vals)
-        comparisons[arm] = {"wins": wins, "losses": losses, "ties": ties, "cohens_d_compliance": per_slice_d}
+            base_episode_vals = [
+                v for sd in sorted(per_rep["baseline"]) for v in per_rep["baseline"][sd]["raw_episode_compliance_by_slice"][s]
+            ]
+            arm_episode_vals = [
+                v for sd in sorted(per_rep[arm]) for v in per_rep[arm][sd]["raw_episode_compliance_by_slice"][s]
+            ]
+            per_slice_wilcoxon[s] = paired_episode_wilcoxon(arm_episode_vals, base_episode_vals)
+            per_slice_fully_compliant[s] = {
+                "arm": f"{agg[arm][s]['n_episodes_fully_compliant']}/{agg[arm][s]['n_episodes_pooled']}",
+                "baseline": f"{agg['baseline'][s]['n_episodes_fully_compliant']}/{agg['baseline'][s]['n_episodes_pooled']}",
+            }
+        comparisons[arm] = {
+            "wins": wins, "losses": losses, "ties": ties,
+            "wilcoxon_compliance": per_slice_wilcoxon,
+            "fully_compliant_episodes": per_slice_fully_compliant,
+        }
 
     # ---- write JSON (raw, for anomaly adjudication prose) ----
     Path(args.out_json).parent.mkdir(parents=True, exist_ok=True)
@@ -196,11 +249,20 @@ def main() -> None:
         md_lines.append(f"| {arm} | {agg[arm]['episode_reward_mean']:.4f}±{agg[arm]['episode_reward_std']:.4f} | {agg[arm]['n_seeds']} |")
     md_lines.append("")
     md_lines.append("### Paired-seed win/loss (SLA compliance, vs. baseline, summed across 3 slices x n seeds)")
-    md_lines.append("| Arm | Wins | Losses | Ties | Cohen's d (compliance, per slice) |")
-    md_lines.append("|---|---|---|---|---|")
+    md_lines.append("| Arm | Wins | Losses | Ties |")
+    md_lines.append("|---|---|---|---|")
     for arm, c in comparisons.items():
-        d_str = ", ".join(f"{s}={c['cohens_d_compliance'][s]:.2f}" for s in SLICE_ORDER)
-        md_lines.append(f"| {arm} | {c['wins']} | {c['losses']} | {c['ties']} | {d_str} |")
+        md_lines.append(f"| {arm} | {c['wins']} | {c['losses']} | {c['ties']} |")
+    md_lines.append("")
+    md_lines.append("### Wilcoxon signed-rank on per-episode SLA compliance (paired by seed+episode index), vs. baseline")
+    md_lines.append("| Arm | Slice | n pairs | Fully-compliant episodes (arm) | Fully-compliant episodes (baseline) | p-value |")
+    md_lines.append("|---|---|---|---|---|---|")
+    for arm, c in comparisons.items():
+        for s in SLICE_ORDER:
+            w = c["wilcoxon_compliance"][s]
+            fc = c["fully_compliant_episodes"][s]
+            p_str = "all pairs tied (n/a)" if w["all_tied"] else f"{w['p_value']:.4g}"
+            md_lines.append(f"| {arm} | {s} | {w['n_pairs']} | {fc['arm']} | {fc['baseline']} | {p_str} |")
 
     Path(args.out_md).parent.mkdir(parents=True, exist_ok=True)
     Path(args.out_md).write_text("\n".join(md_lines) + "\n")
@@ -213,11 +275,13 @@ def main() -> None:
     tex.append("\\begin{table*}[t]")
     tex.append("\\centering")
     tex.append("\\caption{Per-arm, per-slice results (mean $\\pm$ std across " + str(len(args.seeds)) + " seeds); "
-               "Worst ep. and P5 margin are pooled across all episodes/steps, not means-of-means}")
+               "Worst ep. and P5 margin are pooled across all episodes/steps, not means-of-means. "
+               "``Agent-issued rej.'' is an internal admission-gate reject-decision count, not a measured "
+               "dropped PDU (no per-flow accept/reject hook exists on this rig; see Sec.~III-B).}")
     tex.append("\\label{tab:results}")
     tex.append("\\begin{tabular}{@{}llrrrrrr@{}}")
     tex.append("\\toprule")
-    tex.append("Arm & Slice & SLA compliance (\\%) & Worst ep. (\\%) & P5 margin & Blocks/episode & Backlog margin & Inferred MOS \\\\")
+    tex.append("Arm & Slice & SLA compliance (\\%) & Worst ep. (\\%) & P5 margin & Agent-issued rej./ep. & Backlog margin & Inferred MOS \\\\")
     tex.append("\\midrule")
     for arm in ARMS:
         label = ARM_STYLE[arm]["label"]

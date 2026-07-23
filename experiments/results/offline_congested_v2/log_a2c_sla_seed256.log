@@ -1,0 +1,14 @@
+[train_congested] a2c/sla seed=256 ep=1/300 mean_reward(last25)=-6.4175 congestion_mult(this_ep)={'embb': 1.07, 'urllc': 1.08, 'mmtc': 0.53} elapsed=0s
+[train_congested] a2c/sla seed=256 ep=25/300 mean_reward(last25)=-1.5310 congestion_mult(this_ep)={'embb': 0.45, 'urllc': 1.21, 'mmtc': 0.6} elapsed=7s
+[train_congested] a2c/sla seed=256 ep=50/300 mean_reward(last25)=-1.5342 congestion_mult(this_ep)={'embb': 1.1, 'urllc': 1.23, 'mmtc': 0.76} elapsed=14s
+[train_congested] a2c/sla seed=256 ep=75/300 mean_reward(last25)=-1.9560 congestion_mult(this_ep)={'embb': 0.71, 'urllc': 1.25, 'mmtc': 0.96} elapsed=21s
+[train_congested] a2c/sla seed=256 ep=100/300 mean_reward(last25)=-1.2603 congestion_mult(this_ep)={'embb': 0.41, 'urllc': 1.03, 'mmtc': 0.74} elapsed=27s
+[train_congested] a2c/sla seed=256 ep=125/300 mean_reward(last25)=-1.5039 congestion_mult(this_ep)={'embb': 0.42, 'urllc': 0.79, 'mmtc': 0.47} elapsed=33s
+[train_congested] a2c/sla seed=256 ep=150/300 mean_reward(last25)=-1.7701 congestion_mult(this_ep)={'embb': 1.23, 'urllc': 0.65, 'mmtc': 0.67} elapsed=39s
+[train_congested] a2c/sla seed=256 ep=175/300 mean_reward(last25)=-1.3722 congestion_mult(this_ep)={'embb': 1.24, 'urllc': 0.67, 'mmtc': 0.59} elapsed=46s
+[train_congested] a2c/sla seed=256 ep=200/300 mean_reward(last25)=-1.2423 congestion_mult(this_ep)={'embb': 0.4, 'urllc': 0.92, 'mmtc': 0.87} elapsed=53s
+[train_congested] a2c/sla seed=256 ep=225/300 mean_reward(last25)=-0.8112 congestion_mult(this_ep)={'embb': 0.4, 'urllc': 0.54, 'mmtc': 1.18} elapsed=60s
+[train_congested] a2c/sla seed=256 ep=250/300 mean_reward(last25)=-1.1290 congestion_mult(this_ep)={'embb': 0.5, 'urllc': 0.68, 'mmtc': 1.19} elapsed=66s
+[train_congested] a2c/sla seed=256 ep=275/300 mean_reward(last25)=-1.9648 congestion_mult(this_ep)={'embb': 0.95, 'urllc': 0.91, 'mmtc': 0.56} elapsed=72s
+[train_congested] a2c/sla seed=256 ep=300/300 mean_reward(last25)=-1.4786 congestion_mult(this_ep)={'embb': 0.65, 'urllc': 0.57, 'mmtc': 1.16} elapsed=77s
+[train_congested] a2c/sla seed=256: wrote /home/kmanojp/oranslice_rig/experiments/results/offline_congested_v2/sla/seed256/a2c/checkpoint.pt, final mean_reward(last25)=-1.4786, total_time=77s
