@@ -22,7 +22,7 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import ARM_STYLE  # noqa: E402
 
-ARMS = ["baseline", "dqn_sla", "a2c_sla", "dqn_qoe", "a2c_qoe"]
+ARMS = ["baseline", "dqn_sla", "dqn_qoe"]
 SLICE_ORDER = ["urllc", "embb", "mmtc"]
 SLICE_LABEL = {"urllc": "URLLC (priority-protected)", "embb": "eMBB", "mmtc": "mMTC"}
 

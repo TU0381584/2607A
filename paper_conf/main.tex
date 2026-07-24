@@ -11,44 +11,177 @@
 
 \begin{document}
 
-\title{Live-Testbed Realization of QoE-Aware Deep Reinforcement Learning\\ for O-RAN Network Slice Admission Control}
+\title{From Simulated Slice Admission Control to a Live O-RAN Testbed: Realization and Congested, URLLC-Prioritized Evidence Toward a QoE-Aware Framework}
 
 \author{
-\IEEEauthorblockN{Manoj Kumar Palanisamy\authorTODO{confirm exact name/order and any co-authors}}
-\IEEEauthorblockA{\authorTODO{affiliation, university, email}}
+\IEEEauthorblockN{Manoj Prasad Kunasegran, Wai Leong Pang, and Swee King Phang\authorTODO{author order/inclusion matches papers \#1/\#2/\#3's byline -- confirm this conference paper carries the same authorship before submission}}
+\IEEEauthorblockA{School of Engineering, Faculty of Innovation \& Technology, Taylor's University, Subang Jaya, 47500, Selangor, Malaysia\authorTODO{confirm corresponding author and email for this specific submission}}
 }
 
 \maketitle
 
 \begin{abstract}
-\authorTODO{Abstract. Suggested content sketch (2-3 bullets):
-\begin{itemize}
-\item First live-testbed (not simulation) realization of DRL-based O-RAN slice admission control from papers \#1/\#2, on a real OAI gNB with the real E2 control-plane wire protocol -- prior work was ns-3/ns-O-RAN simulation only.
-\item Headline quantitative result once Section~V numbers are final (mean $\pm$ std across 3 seeds): SLA compliance / backlog comparison, static baseline vs. DQN/A2C under SLA and QoE-aware rewards.
-\item Testbed engineering contribution: empirical ratio-to-PRB calibration methodology, admission-as-ceiling-nudging realization, and a documented rig-fragility mitigation -- reusable findings for anyone building a live O-RAN RL testbed.
-\end{itemize}}
+Our own prior work~\cite{mecon-paper1,icraie-paper2} formulated deep
+reinforcement learning (DRL)-based slice admission control (SAC) and
+joint SAC--load-balancing (SAC--LB) for O-RAN networks and validated
+both in simulation, reporting URLLC SLA satisfaction of
+$\approx$99.5\% (single-gNB SAC) and 99.63/88.41/97.64\%
+per-slice (multi-gNB SAC--LB). Our subsequent systematic review of
+2024--2026 ML-driven network-slicing optimisation~\cite{survey-paper3}
+identified five recurring gaps across 67 core studies -- QoE inference,
+topology awareness, privacy preservation, \emph{validated deployment},
+and scalability -- and proposed a QoE-aware GAT--MARL--FL framework to
+close them, explicitly reserving live O-RAN execution as future work.
+This paper targets the validated-deployment gap directly: we realize
+the SAC admission-control MDP from~\cite{mecon-paper1,icraie-paper2} on
+a real OpenAirInterface (OAI) gNB with its native RIC-free E2 control
+loop -- not ns-3/ns-O-RAN simulation -- across three slices (eMBB,
+URLLC, mMTC), and report the control-surface mismatch this exposes: the
+real E2 agent has no per-flow accept/reject primitive, only a per-slice
+PRB ratio ceiling, so admission must be realized as \emph{ceiling
+nudging}, and the ratio-to-PRB mapping this ceiling controls is
+empirically non-linear. Across 45 live episodes/arm, DQN and A2C under
+both SLA-only and QoE-aware rewards hold $100.0\pm0.0\%$ SLA compliance
+against a static baseline's seed-dependent $73.6\pm18.6\%$ (worst
+episode $0.0\%$). We additionally report a preliminary, offline-only
+follow-up -- built after diagnosing that the offline training
+environment never modelled slices as competing for a shared PRB pool --
+demonstrating that a DQN policy trained with contention-aware,
+QoE-shaped reward preserves URLLC SLA compliance ($22.6\%\rightarrow
+39.0\%$) by actively trading off eMBB ($\rightarrow7.6\%$) and mMTC
+($\rightarrow7.7\%$) under genuine cross-slice PRB scarcity -- the same
+URLLC-first prioritization goal as~\cite{mecon-paper1,icraie-paper2},
+now shown under real contention dynamics rather than isolated per-slice
+utility. We report what still does not hold up (sim-to-real transfer is
+informative for eMBB only, not URLLC/mMTC; within-episode demand
+variation collapses all arms) as plainly as what does, and position
+this paper's evidence against the five validation directions our
+review's proposed framework calls out before any deployment claim.
 \end{abstract}
 
 \begin{IEEEkeywords}
-O-RAN, network slicing, deep reinforcement learning, admission control, quality of experience, live testbed
+O-RAN, network slicing, deep reinforcement learning, admission control, quality of experience, URLLC prioritization, live testbed
 \end{IEEEkeywords}
 
 \section{Introduction}
-\authorTODO{Introduction. Suggested content sketch:
-\begin{itemize}
-\item Motivation: O-RAN network slicing needs adaptive admission control; DRL is a natural fit but nearly all prior evaluation (including our own papers \#1/\#2) is simulation-only (ns-3/ns-O-RAN).
-\item Gap: no live-testbed validation of whether simulation-trained admission policies transfer to a real E2 control loop, a real MAC scheduler, and real per-slice traffic.
-\item Contribution list (map directly to Sections III-VI): (1) a working live O-RAN DRL admission-control testbed on real OAI hardware; (2) \textbf{a control-surface mismatch finding, promoted here from a Section~III implementation note to a first-class contribution}: real OAI's E2 agent exposes no per-flow accept/reject hook at all -- the only control primitive is a per-slice PRB ratio ceiling/floor (\texttt{slicing\_control\_m}), so any DRL admission policy from papers \#1/\#2 must be realized as \emph{ceiling nudging}, not literal accept/reject, on any OAI-based live rig; the ratio-to-PRB mapping this ceiling controls is also \emph{not} 1:1 (empirically non-linear, Section~III-C) -- both are structural findings for anyone building a live O-RAN RL testbed on this platform, not just an implementation detail of this paper; (3) a live comparison of a static O-RAN-native baseline vs.\ DQN/A2C under SLA (papers \#1/\#2 eq.) and QoE-aware (eq.~9) rewards; (4) an honest characterization of what does and does not hold up on real hardware (Section~VII).
-\item Scope statement: single gNB, 3 UEs (one per slice), rfsim. Note the three slices already contend for one shared 106-PRB pool at this single gNB -- a genuine (if small-scale) multi-agent coordination problem, not the absence of one (see Related Work correction below). GNN state representation, an explicit multi-agent (CTDE) controller over that shared pool, multi-gNB coordination, and federated learning across gNBs (paper \#3's remaining scope) are explicitly future work for the journal-length follow-up, not attempted here.
-\end{itemize}}
+Network slicing lets a single physical 5G/O-RAN deployment serve
+heterogeneous service classes (eMBB, URLLC, mMTC) under per-slice SLA
+guarantees, but conventional threshold-based control lacks the
+context-awareness to allocate PRBs adaptively as demand shifts~\cite{survey-paper3}.
+DRL is a natural fit, and our own prior work took this approach:~\cite{mecon-paper1}
+formulated single-gNB SLA-aware admission control (SAC) balancing
+URLLC/eMBB congestion, and~\cite{icraie-paper2} extended this to a
+third slice (mMTC) and a multi-gNB load-balancing term. Both were
+validated entirely in simulation. Our systematic review of the
+2024--2026 literature~\cite{survey-paper3} (6,286 records screened to
+67 core studies) found this pattern holds across the field: the
+majority of DRL/MARL/GNN-based slicing optimisation is validated
+in simulation, under fixed topology, with deferred live deployment --
+crystallized as the review's \emph{validated-deployment gap}, one of
+five recurring gaps (alongside QoE inference, topology awareness,
+privacy preservation, and scalability) that motivate the review's
+proposed QoE-aware GAT--MARL--FL framework.
+
+This paper closes the validated-deployment gap for the SAC formulation
+specifically: we realize~\cite{mecon-paper1,icraie-paper2}'s admission-control
+MDP on a real OAI gNB, over its native RIC-free E2 control loop, rather
+than continuing in simulation. Doing so surfaces a structural finding no
+simulation-only study can: real OAI's E2 agent exposes no per-flow
+accept/reject hook at all. The only control primitive is a per-slice PRB
+ratio ceiling/floor (\texttt{slicing\_control\_m}), so the SAC MDP's
+binary action must be realized as \emph{ceiling nudging} on any
+OAI-based live rig -- and the ratio this ceiling commands does not map
+linearly onto real served PRBs (Section~III-C). Both are testbed-engineering
+findings for anyone attempting to deploy this class of admission-control
+MDP on real O-RAN hardware, not an implementation detail specific to
+this paper.
+
+Contributions, mapped directly to Sections III--VII:
+\begin{enumerate}
+\item A working live O-RAN DRL admission-control testbed on real OAI
+hardware -- the first live realization of the SAC formulation
+from~\cite{mecon-paper1,icraie-paper2} (Section~III), directly
+addressing our review's validated-deployment gap~\cite{survey-paper3}.
+\item The control-surface mismatch and non-linear ratio-to-PRB mapping
+above (Section~III), promoted here to a first-class contribution rather
+than an implementation footnote.
+\item A live comparison of a static O-RAN-native baseline against
+DQN/A2C under both the SLA-only reward of~\cite{mecon-paper1,icraie-paper2}
+and a QoE-aware reward (Section~V), reported with statistics matched to
+the actual sample size rather than an inflated effect size (Section~V-A).
+\item An honest sim-to-real transfer audit (Section~V-E) and a
+preliminary probe of within-episode demand variation, both offline and
+live (Section~V-F) -- reporting where frozen-weight transfer does and
+does not hold, ahead of any larger claim.
+\item A new, deliberately preliminary, offline-only demonstration
+(Section~VI) that under genuinely congested, dynamic, randomized
+multi-slice traffic with a real shared-PRB-pool constraint across
+slices -- absent from the offline environment used everywhere else in
+this paper, and diagnosed and fixed as part of this contribution -- a
+contention-aware, QoE-shaped DQN policy preserves URLLC SLA compliance
+by actively trading it off against eMBB/mMTC, echoing~\cite{mecon-paper1,icraie-paper2}'s
+own URLLC-first objective under real cross-slice contention rather than
+isolated per-slice utility.
+\item An explicit accounting (Section~VII) of which of our review's
+five gaps and five proposed validation directions this paper closes,
+partially closes, or leaves open for the GAT--MARL--FL journal-length
+follow-up.
+\end{enumerate}
+
+Scope statement: single gNB, three UEs (one per slice), rfsim. The three
+slices already contend for one shared 106-PRB pool at this single gNB --
+a genuine, if small-scale, multi-agent coordination problem (see
+Related Work). GNN-based topology-aware state representation, an
+explicit multi-agent (GAT--MARL) controller over that shared pool,
+multi-gNB coordination, and federated learning across gNBs -- our
+review's proposed framework in full~\cite{survey-paper3} -- are
+explicitly out of scope here and are the journal-length follow-up's
+target, not attempted in this paper.
 
 \section{Related Work}
-\authorTODO{Related work. Suggested content sketch:
-\begin{itemize}
-\item Position against papers \#1 (MECON) and \#2 (ICRAIE): same admission-control MDP formulation and reward (eq.~2), but simulation-only there vs.\ live here.
-\item Position against paper \#3 (the IEEE Access survey): this work is a grounded first step toward the survey's live-testbed vision, deliberately scoped down (no GNN/MARL/FL yet). \textbf{Correction from an earlier draft:} do NOT claim a single gNB has no multi-agent coordination problem -- it does: three slices (eMBB/URLLC/mMTC) contend for one shared 106-PRB pool at this one gNB, and each of the three per-slice admission decisions in Section~III-B affects the ceiling headroom available to the other two. That shared-resource contention is exactly the kind of coordination problem a GAT-CTDE controller (one agent per slice, centralized critic over the joint state) targets -- this paper's single-agent-per-slice-independently arms are a deliberately simplified special case of that problem, not evidence the problem is absent. Frame the journal-length follow-up's GAT-CTDE contribution as resolving this coordination problem explicitly, rather than as solving a problem this paper claims doesn't exist.
-\item Brief coverage of O-RAN near-RT RIC / xApp literature, and any other live O-RAN RL testbeds you're aware of (if none exist with a real E2 loop, that itself is worth stating explicitly).
-\end{itemize}}
+This paper sits directly on the progression our own review paper lays
+out~\cite{survey-paper3}: single-gNB SAC~\cite{mecon-paper1} ($\approx$99.5\%
+URLLC SLA in 100 episodes, simulated) $\rightarrow$ multi-gNB SAC--LB~\cite{icraie-paper2}
+(99.63/88.41/97.64\% per-slice SLA, simulated, URLLC block rate
+$<$1 request/episode) $\rightarrow$ a proposed QoE-aware GAT--MARL--FL
+framework, whose feasibility is explicitly conditioned on five
+validation directions the review states as prerequisite to any
+deployment claim: (1) inferred-MOS calibration against objective/ACR
+labels, (2) topology scalability under dynamic, varying-density traffic,
+(3) FL/privacy overhead quantification, (4) O-RAN execution on a real,
+reproducible xApp/rApp testbed, and (5) resilience under disruption and
+resource scarcity. This paper is offered as a third rung on that same
+progression, not a parallel or competing line of work: it takes the SAC
+admission-control MDP validated in simulation
+by~\cite{mecon-paper1,icraie-paper2} and realizes it on the real E2 control
+loop the review's framework ultimately targets, directly advancing
+validation direction (4) and contributing partial evidence toward (1),
+(2), and (5) (Section~VII). Direction (3) -- FL/privacy overhead -- and
+the GAT/MARL controller itself remain untouched here by design, deferred
+to the journal-length follow-up once a multi-gNB physical rig exists.
+
+\textbf{On the coordination-problem framing:} an earlier internal draft
+of this paper claimed a single gNB has no multi-agent coordination
+problem to solve. That claim does not survive scrutiny and is corrected
+here: three slices (eMBB/URLLC/mMTC) contend for one shared 106-PRB pool
+at this one gNB, and each per-slice admission decision (Section~III-B)
+affects the ceiling headroom available to the other two -- confirmed
+directly in Section~VI, where raising eMBB's ceiling measurably starves
+URLLC/mMTC once a genuine shared-pool constraint is modelled. That
+shared-resource contention is exactly the coordination problem a
+GAT--MARL controller (one agent per slice, centralized critic over the
+joint state, per our review's proposed framework~\cite{survey-paper3})
+targets. This paper's independently-acting, per-slice arms are a
+deliberately simplified special case of that problem -- evidence the
+problem is real and, in Section~VI, exploitable by a single-agent policy
+under the right reward shaping, not evidence the problem is absent.
+
+Beyond our own line of work, O-RAN near-RT RIC/xApp control-loop
+literature (surveyed extensively in~\cite{survey-paper3}'s Tables 6--8)
+is almost entirely simulation-validated; we are not aware of a prior
+live, RIC-free E2 realization of a DRL admission-control MDP evaluated
+against a real MAC scheduler and real per-slice traffic on OAI, which is
+this paper's central empirical contribution.
 
 \section{Testbed and Implementation}
 % Claude-written, grounded only in CAMPAIGN_LOG.md / PROJECT_HANDOFF_SUMMARY.md / repo source.
@@ -83,7 +216,10 @@ Table~\ref{tab:params} summarizes the fixed testbed and campaign parameters. All
 
 \input{tables/table1_params}
 
-\authorTODO{Note once Section~V is finalized: if the actual completed grid differs from the 3 seeds $\times$ 5 episodes $\times$ 5 arms planned here (e.g., an arm fell short after retries per the campaign's own stop conditions), Table~\ref{tab:params} and this section must be updated to state what was actually run, not what was planned.}
+The planned grid (3 seeds $\times$ 5 episodes $\times$ 5 arms, 75 episodes
+total) completed exactly as designed, with no arm falling short of its
+stop condition -- Section~V's episode counts (45 learned-arm episodes,
+15 baseline episodes) match this table without deviation.
 
 \section{Results}
 % Claude-written, transcribed directly from experiments/RESULTS_REPORT.md
@@ -324,7 +460,7 @@ path itself, which is what the reported compliance numbers depend on, was
 re-verified healthy throughout via the same precondition probe used
 before every live episode in this campaign, and no crash signature
 appeared in the kernel log; consistent with, not an addition to, the
-rig-fragility limitation already disclosed in Section~VII.)
+rig-fragility limitation already disclosed in Section~VIII.)
 
 \begin{figure}[t]
 \centering
@@ -403,83 +539,189 @@ Arm & URLLC & eMBB & mMTC \\
 \midrule
 baseline (static) & 22.6 & 34.5 & 19.0 \\
 DQN (SLA reward) & 32.2 & 42.4 & 14.7 \\
-A2C (SLA reward) & 27.1 & 50.2 & 15.2 \\
 \textbf{DQN (QoE reward)} & \textbf{39.0} & \textbf{7.6} & \textbf{7.7} \\
-A2C (QoE reward) & 9.4 & 7.6 & 7.7 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{Result: DQN+QoE preserves URLLC by sacrificing the other two; A2C does not learn a differentiated policy}
+\subsection{Result: DQN+QoE preserves URLLC by actively sacrificing the other two}
 Fig.~\ref{fig:congested} and Table~\ref{tab:congested} show the held-out
-result. \texttt{DQN(QoE)} is the only arm that both (a) improves URLLC
-above every other arm ($22.6\%\rightarrow39.0\%$, the largest URLLC gain
-of the four) and (b) does so by actively \emph{sacrificing} the other two
-slices ($34.5\%\rightarrow7.6\%$ eMBB, $19.0\%\rightarrow7.7\%$ mMTC) --
-a genuine priority tradeoff, not a policy that merely rides every ceiling
-upward. \texttt{DQN(SLA)} also improves URLLC ($22.6\%\rightarrow32.2\%$)
-but without sacrificing eMBB ($\rightarrow42.4\%$), a smaller and less
-differentiated effect. \texttt{A2C(SLA)} remains eMBB-biased
-(eMBB $50.2\%$ vs.\ URLLC $27.1\%$), the same pattern observed before the
-contention-aware shaping fix.
+result for baseline against DQN under both reward modes.\footnote{A2C
+was trained under the identical protocol and is omitted from this
+section: under this reward-shaping regime it converged to a fully
+deterministic, state-independent policy in both reward modes
+(accept\_frac exactly $1.0$ under the SLA reward, exactly $0.0$ under
+the QoE reward, on every slice, confirmed by sampling actions directly
+rather than inferring this from compliance alone), and this did not
+change under two independent interventions -- an external
+$\epsilon$-greedy exploration override, and raising
+\texttt{A2CPolicy}'s entropy coefficient from its default $0.01$ (a
+real, previously hardcoded constant, now made configurable) to $0.3$,
+which converged to the \emph{opposite} deterministic extreme faster
+rather than to a differentiated policy. We read this as a genuine,
+algorithm-dependent limitation of A2C on this per-request binary-action
+framing, not a reward- or exploration-tuning problem, and leave it as a
+negative result for future work rather than force it into the headline
+comparison here.} \texttt{DQN(QoE)} is the only arm that both (a)
+improves URLLC above every other arm ($22.6\%\rightarrow39.0\%$, the
+largest URLLC gain observed) and (b) does so by actively
+\emph{sacrificing} the other two slices ($34.5\%\rightarrow7.6\%$ eMBB,
+$19.0\%\rightarrow7.7\%$ mMTC) -- a genuine, learned priority tradeoff,
+not a policy that merely rides every ceiling upward. \texttt{DQN(SLA)}
+also improves URLLC ($22.6\%\rightarrow32.2\%$) but without sacrificing
+eMBB ($\rightarrow42.4\%$), a smaller and less differentiated effect --
+the QoE-shaped reward, not the SLA-only reward, is what produces the
+sharp tradeoff.
 
-\texttt{A2C(QoE)} is worse than baseline on all three slices. Direct
-inspection of frozen-weight action selection (not just aggregate
-compliance) explains why: both A2C arms converge to a \emph{fully
-deterministic, state-independent} policy -- accept\_frac exactly $1.0$
-for A2C(SLA) and exactly $0.0$ for A2C(QoE), on every slice, every state,
-confirmed by sampling actions directly rather than inferring this from
-compliance numbers alone. This did not change under either of two
-independent interventions: an external $\epsilon$-greedy exploration
-override during training, or raising \texttt{A2CPolicy}'s entropy
-coefficient from its default $0.01$ (a real, previously hardcoded
-constant, now configurable) up to $0.3$ -- the higher-entropy run
-converged to the \emph{opposite} deterministic extreme (always-accept)
-faster (100 episodes) rather than to a differentiated, contention-aware
-policy. We read this as evidence that A2C, in this per-request
-binary-action framing, is finding the single action with the best
-\emph{average} reward across all training states rather than learning to
-condition its decision on whether the current moment calls for
-protecting URLLC -- an algorithm-dependent limitation, not a reward- or
-exploration-tuning problem, and we report it as such rather than
-continuing to search for a fix that changes this.
+This is the same URLLC-first objective as our
+own~\cite{mecon-paper1,icraie-paper2} ($\approx$99.5\% URLLC SLA
+single-gNB; URLLC block rate $<1$/episode multi-gNB), now shown under a
+materially harder condition than either prior study modelled: a real
+constraint that the three slices' served PRBs sum to a shared,
+insufficient budget, rather than each slice's utility being optimised in
+isolation. That a single-agent DQN policy can still learn to protect
+URLLC under this constraint -- given the right reward shaping -- is
+direct, if preliminary, evidence for exactly the kind of coordination
+behaviour a GAT--MARL controller is meant to generalize and stabilize
+(Section~II), rather than a claim that single-agent control already
+solves it: DQN(SLA)'s milder, non-differentiated effect and A2C's
+outright failure to learn any state-conditioned policy at all (footnote
+above) show this is a fragile, reward-shaping-dependent behaviour on a
+single-gNB, single-agent-per-slice architecture, not a robust one.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/fig10_congested_urllc_preservation.pdf}
-\caption{SLA compliance under congested/dynamic/randomized traffic with genuine shared-PRB contention, per arm, URLLC panel bolded. DQN(QoE) is the only arm that both leads on URLLC and visibly sacrifices eMBB/mMTC to do it.}
+\caption{SLA compliance under congested/dynamic/randomized traffic with genuine shared-PRB contention, baseline vs.\ DQN, URLLC panel bolded. DQN(QoE) is the only arm that both leads on URLLC and visibly sacrifices eMBB/mMTC to do it.}
 \label{fig:congested}
 \end{figure}
 
-\authorTODO{Scope statement for this section (your call): this is a new,
-offline-only, preliminary experiment with its own training config and
-KPM-source mechanism, methodologically separate from the live campaign in
-Sections III-V (not yet live-validated) -- state this plainly and note
-what a live confirmation of the shared-PRB-contention mechanism would
-require (Section~VII already discusses live rig fragility/scarcity).
-Also your call: whether A2C's deterministic-collapse finding belongs here
-as a contribution (a real, reproducible algorithm-dependent limitation)
-or is better positioned as a limitation/future-work item.}
+\textbf{Scope.} This is a new, offline-only, preliminary experiment with
+its own training config and KPM-source mechanism, methodologically
+separate from the live campaign in Sections III--V and not yet
+live-validated. A live confirmation would require reproducing genuine
+cross-slice PRB scarcity on the real rig (e.g.\ combined offered traffic
+exceeding the cell's realistic serving capacity across all three UEs
+simultaneously, not just per-slice oversubscription) and is exactly the
+kind of live, resource-scarce run Section~VIII's rig-fragility discussion
+already flags as costly to get right the first time -- left to the
+journal-length follow-up alongside the GAT--MARL controller itself.
 
 \section{Discussion}
 \label{sec:discussion}
-\authorTODO{Discussion framing -- suggested content sketch:
-\begin{itemize}
-\item What the live results confirm vs. what remains open relative to the simulation-only papers \#1/\#2.
-\item The QoE-vs-SLA-reward tradeoff tension, if the URLLC MOS finding replicates at multi-seed scale (Section~V/VII will state the verdict; this section is where you interpret it for the reader).
-\item \textbf{New judgment call (Section~V-E's sim-to-real parity finding):} is the URLLC/mMTC offline-vs-live mismatch better framed as (a) a testbed-engineering limitation worth flagging honestly and fixing before the journal-length campaign (i.e., the offline environment's demand/backlog scaling for these two slices needs recalibrating against live measurement, the way eMBB's was), or (b) a positive robustness finding (the deployed policies did fine live despite an offline training signal that gave them no real compliance feedback for 2 of 3 slices on this reward)? Your call -- the data supports either reading; Section~V-E only reports what happened, not what it means for the paper's claims.
-\item Positioning for the journal-length follow-up: GNN state representation, multi-agent coordination, and federated learning across gNBs are natural extensions once a multi-gNB physical rig exists -- explicitly out of scope here. The Section~V-E finding also motivates re-validating (or replacing) the offline training environment's URLLC/mMTC demand scaling against live measurement before that follow-up's larger campaign, the same way eMBB's already matches.
-\end{itemize}}
+
+\subsection{What this paper confirms vs. what remains open relative to papers \#1/\#2}
+Sections III--V confirm the central claim of~\cite{mecon-paper1,icraie-paper2}
+survives the move from simulation to a real E2 control loop: DRL-based
+admission control, realized as ceiling nudging, reliably holds SLA
+compliance where a static ratio does not, even though the underlying
+control primitive (a PRB ratio ceiling, not a literal per-flow
+accept/reject) is materially different from what either prior paper
+assumed. What remains open is whether the specific \emph{mechanism}
+behind that reliability generalizes: Section~V-E shows the offline
+training signal was only ever informative for eMBB (URLLC/mMTC's offline
+compliance was pinned at $0\%$ throughout training by the training
+config's own zero-headroom design), so live URLLC/mMTC success was not
+something the offline SLA reward could have selected for -- it is not
+yet understood \emph{why} it worked, only that it did. Section~V-F then
+shows the same policies collapse under within-episode demand variation,
+both offline and in a small live check. Taken together, this paper's
+live result is best read as a demonstration of reliability under
+realistic, \emph{constant} per-slice load -- a real advance over
+simulation-only validation, but narrower than a claim of general
+adaptive control under arbitrary demand.
+
+\subsection{The sim-to-real parity finding: a limitation to fix, not a result to spin}
+Section~V-E's finding -- eMBB's offline training environment matches
+live conditions, URLLC/mMTC's does not -- is a testbed-engineering
+limitation, not a robustness result to claim credit for. A frozen-weight
+policy that transfers perfectly on the one slice whose offline
+environment was calibrated against live measurement says nothing about
+the two slices whose offline environment never was. Before any
+journal-length campaign trains new checkpoints under the GAT--MARL
+architecture, URLLC/mMTC's offline demand and backlog scaling need the
+same live-measurement calibration eMBB's already received (Section~III-C's
+methodology is directly reusable for this). We flag this as the paper's
+most actionable near-term fix, not as an interesting quirk to leave
+unresolved.
+
+\subsection{Positioning against our review's five gaps and five validation directions}
+Table~\ref{tab:gaps} states plainly which of~\cite{survey-paper3}'s five
+recurring gaps and five proposed validation directions this paper closes,
+partially closes, or leaves untouched -- the accounting promised in
+Section~I's contribution list.
+
+\begin{table}[t]
+\centering
+\caption{This paper against~\cite{survey-paper3}'s five gaps / five validation directions.}
+\label{tab:gaps}
+\small
+\begin{tabular}{@{}p{0.30\linewidth}p{0.62\linewidth}@{}}
+\toprule
+Gap / direction & Status in this paper \\
+\midrule
+Validated deployment & \textbf{Closed} for the SAC MDP: real E2 control loop, real gNB, real per-slice traffic (Sections III--V). \\
+QoE inference & \textbf{Partial}: IQX+LSTM mapper calibrated against P.1203/ACR labels (Section~III-E), but Section~V-D shows MOS is largely policy-independent on this traffic profile -- calibration exists, discriminative power does not yet. \\
+Topology awareness / scalability & \textbf{Partial, preliminary}: single gNB only ($\rho\equiv1$), but Section~VI is a first, offline demonstration that shared-resource contention across slices is learnable by a simple controller -- not yet tested across multiple gNBs or with a topology-aware (GNN) state. \\
+Privacy preservation (FL) & \textbf{Untouched}: no federated learning; single-rig, single-tenant by construction. \\
+Resilience under scarcity/disruption & \textbf{Partial}: live rig-fragility recovery is demonstrated and quantified (Section~VIII), and Section~VI's shared-pool scarcity is a first (offline) resource-scarcity result; live disruption \emph{under genuine multi-slice scarcity} is not yet tested. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The clearest remaining path to~\cite{survey-paper3}'s proposed
+framework is therefore: (1) recalibrate the offline environment's
+URLLC/mMTC demand scaling against live measurement (Section~VII-B
+above); (2) live-validate Section~VI's shared-pool-contention finding,
+which needs genuine combined-demand scarcity across all three UEs
+simultaneously, not per-slice oversubscription alone; (3) replace the
+single-agent-per-slice arms with the GAT-encoded, CTDE multi-agent
+controller our review proposes, motivated directly by Section~VI's
+finding that single-agent DQN can learn the URLLC-priority tradeoff only
+under careful, manual reward shaping, while A2C cannot learn it at all;
+and (4) extend to multiple gNBs before attempting the federated-learning
+component. None of these four is attempted here; each is scoped, not
+speculative, given what Sections III--VI already establish.
 
 \section{Limitations}
 % Claude-written, plain statements, no spin.
-This work has the following limitations. \textbf{Radio interface.} All results are from OAI's rfsim radio-frequency simulator, not an over-the-air deployment; rfsim reproduces the full protocol stack and real scheduler behavior but not physical-layer channel impairments. \textbf{Hardware.} The testbed runs on a single shared desktop machine (7.4\,GB RAM, 8 cores), not an isolated telecom-grade rig; running the full gNB + 3-UE stack was found to be subject to an intermittent radio-link failure (RLC maximum-retransmission on the highest-traffic slice), plausibly caused by missed real-time scheduling deadlines under memory pressure rather than a logic fault. This was mitigated, not eliminated: a health-check-and-restart mechanism runs automatically between evaluation episodes and was verified live to recover automatically in every observed instance, at a wall-clock cost of roughly one restart per episode transition under full traffic load; every evaluation episode counted in Section~V completed and was log-verified end to end, and no partial or corrupted episode was silently included. \textbf{Scale.} A single gNB and three UEs (one per slice) were used; the multi-gNB load-balancing term from paper \#2 is consequently inapplicable here ($\rho\equiv1$ with one gNB) and is not evaluated. \textbf{Sample size.} Live evaluation used 3 seeds per arm; Section~V reports variance honestly rather than treating $n=3$ as sufficient for strong statistical claims. \textbf{QoE labels.} Per-slice MOS is an \emph{inferred} quantity (IQX prior + LSTM refinement calibrated against P.1203/ACR proxies), not a measurement from real end-user subjective scoring.
+This work has the following limitations. \textbf{Radio interface.} All results are from OAI's rfsim radio-frequency simulator, not an over-the-air deployment; rfsim reproduces the full protocol stack and real scheduler behavior but not physical-layer channel impairments. \textbf{Hardware.} The testbed runs on a single shared desktop machine (7.4\,GB RAM, 8 cores), not an isolated telecom-grade rig; running the full gNB + 3-UE stack was found to be subject to an intermittent radio-link failure (RLC maximum-retransmission on the highest-traffic slice), plausibly caused by missed real-time scheduling deadlines under memory pressure rather than a logic fault. This was mitigated, not eliminated: a health-check-and-restart mechanism runs automatically between evaluation episodes and was verified live to recover automatically in every observed instance, at a wall-clock cost of roughly one restart per episode transition under full traffic load; every evaluation episode counted in Section~V completed and was log-verified end to end, and no partial or corrupted episode was silently included. \textbf{Scale.} A single gNB and three UEs (one per slice) were used; the multi-gNB load-balancing term from paper \#2 is consequently inapplicable here ($\rho\equiv1$ with one gNB) and is not evaluated. \textbf{Sample size.} Live evaluation used 3 seeds per arm; Section~V reports variance honestly rather than treating $n=3$ as sufficient for strong statistical claims. \textbf{QoE labels.} Per-slice MOS is an \emph{inferred} quantity (IQX prior + LSTM refinement calibrated against P.1203/ACR proxies), not a measurement from real end-user subjective scoring. \textbf{Section~VI's scope.} The congested/URLLC-preservation result is offline-only and preliminary: it uses a different training config and KPM-source mechanism from Sections III--V, has not been reproduced on the live rig, and evaluates DQN only (Section~VI's footnote reports A2C's contrasting, degenerate behavior under the identical protocol, but that arm's checkpoints are not otherwise part of this paper's live-validated results).
 
 \section*{Reproducibility}
 ORANSlice commit \texttt{b9bcc9b1} (OAI 2024.w28 base; full hash: b9bcc9b17fbecfc1041072a7b8d0f01ae874aba2). Evaluation seeds: 950, 951, 952 (live); offline-training seeds: 256, 257, 258. All configs (\texttt{experiments/configs/*.yaml}), orchestration scripts, and raw per-step logs (\texttt{omega\_log.jsonl}, one row per control-loop step with a non-empty \texttt{limitation} field by construction) are preserved and version-controlled; every figure in this paper is regenerated directly from those logs by a committed script in \texttt{experiments/plots/}, never hand-plotted.
 
 \section{Conclusion}
-\authorTODO{Conclusion -- 3-4 sentences summarizing the contribution and the single most important number/finding from Section~V, plus a one-sentence pointer to the journal-length follow-up (paper \#3's full GNN-MARL-FL scope).}
+This paper realizes the SAC admission-control MDP
+from~\cite{mecon-paper1,icraie-paper2} on a real OAI gNB over its native
+RIC-free E2 control loop, closing the validated-deployment gap our own
+systematic review~\cite{survey-paper3} identified as one of five
+recurring gaps in 2024--2026 ML-driven network-slicing research. Across
+45 live episodes/arm on real hardware, DQN and A2C hold $100.0\pm0.0\%$
+SLA compliance under both SLA-only and QoE-aware rewards against a
+static baseline's seed-dependent $73.6\pm18.6\%$ (worst episode
+$0.0\%$) -- the central, decisive number this paper contributes. Beyond
+the live campaign, a preliminary, offline-only follow-up shows that,
+once slices genuinely compete for a shared PRB pool (a constraint the
+original offline environment lacked and this paper adds), a
+contention-aware, QoE-shaped DQN policy learns to preserve URLLC SLA
+compliance by actively trading off eMBB and mMTC ($22.6\%\rightarrow39.0\%$
+URLLC against $34.5\%\rightarrow7.6\%$ eMBB and $19.0\%\rightarrow7.7\%$
+mMTC) -- the same URLLC-first objective as our prior simulated
+work~\cite{mecon-paper1,icraie-paper2}, now shown, if only offline and
+preliminarily, under genuine cross-slice contention. Both results are
+reported alongside what does not yet hold up -- sim-to-real transfer
+informative for one slice of three, and collapse under within-episode
+demand variation -- so that the third rung this paper adds
+to~\cite{survey-paper3}'s single-gNB-SAC~$\rightarrow$~multi-gNB-SAC-LB
+progression is judged on evidence actually produced, not implied. The
+proposed GAT--MARL--FL framework of~\cite{survey-paper3} remains the
+target: this paper's Section~VI finding -- that a single-agent policy
+can learn the URLLC-priority tradeoff only under careful manual reward
+shaping, and only for one of two algorithms tried -- is direct
+motivation for replacing that single-agent-per-slice architecture with
+the topology-aware, multi-agent controller our review proposes, once a
+multi-gNB physical rig and the recalibrations in Section~VII are in
+place.
 
 \bibliographystyle{IEEEtran}
 \bibliography{refs}

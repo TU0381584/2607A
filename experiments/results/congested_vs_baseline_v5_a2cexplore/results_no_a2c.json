@@ -1,0 +1,68 @@
+{
+  "baseline": {
+    "compliance_pct": {
+      "urllc": 22.62962962962963,
+      "embb": 34.51851851851852,
+      "mmtc": 19.037037037037038
+    },
+    "mean_margin": {
+      "urllc": -0.22045889232950733,
+      "embb": -0.07596037554876744,
+      "mmtc": -0.2621854767929897
+    },
+    "mean_rejections_per_episode": {
+      "urllc": 0.0,
+      "embb": 0.0,
+      "mmtc": 0.0
+    },
+    "n_steps_pooled": {
+      "urllc": 2700,
+      "embb": 2700,
+      "mmtc": 2700
+    }
+  },
+  "dqn_sla": {
+    "compliance_pct": {
+      "urllc": 32.22222222222222,
+      "embb": 42.407407407407405,
+      "mmtc": 14.703703703703704
+    },
+    "mean_margin": {
+      "urllc": -0.08334062257062659,
+      "embb": 0.03199159001998035,
+      "mmtc": -0.3081145804492733
+    },
+    "mean_rejections_per_episode": {
+      "urllc": 0.0,
+      "embb": 12.155555555555555,
+      "mmtc": 11.666666666666666
+    },
+    "n_steps_pooled": {
+      "urllc": 2700,
+      "embb": 2700,
+      "mmtc": 2700
+    }
+  },
+  "dqn_qoe": {
+    "compliance_pct": {
+      "urllc": 39.03703703703704,
+      "embb": 7.555555555555555,
+      "mmtc": 7.740740740740741
+    },
+    "mean_margin": {
+      "urllc": -0.02883750804039419,
+      "embb": -0.37990078276307976,
+      "mmtc": -0.373487867387309
+    },
+    "mean_rejections_per_episode": {
+      "urllc": 11.266666666666667,
+      "embb": 38.55555555555556,
+      "mmtc": 43.666666666666664
+    },
+    "n_steps_pooled": {
+      "urllc": 2700,
+      "embb": 2700,
+      "mmtc": 2700
+    }
+  }
+}
