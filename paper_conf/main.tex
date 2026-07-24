@@ -37,11 +37,14 @@ DQN holds $100.0\pm0.0\%$ SLA compliance against the baseline's
 seed-dependent $73.6\pm18.6\%$ (worst episode $0.0\%$) across 45
 episodes. A held-out, offline-only experiment under genuinely congested,
 dynamic, randomized multi-slice traffic with real shared-PRB contention
-shows the QoE-aware DQN policy preserves URLLC SLA compliance
-($22.6\%\rightarrow39.0\%$) by deliberately trading off eMBB
-($\rightarrow7.6\%$) and mMTC ($\rightarrow7.7\%$) -- the URLLC-first
-outcome our prior simulated work targeted, now shown under real
-cross-slice scarcity. We also report where offline-to-live transfer does
+shows DQN, once trained with a correctly decaying exploration schedule,
+preserves URLLC SLA compliance under either reward
+($22.6\%\rightarrow30.9\%$ SLA-only, $\rightarrow27.0\%$ QoE-aware) by
+trading off eMBB ($\rightarrow7.9\%$/$8.2\%$) and mMTC
+($\rightarrow9.2\%$/$10.8\%$) -- the URLLC-first outcome our prior
+simulated work targeted, now shown under real cross-slice scarcity, and
+a property of the trained policy rather than the specific reward
+formulation. We also report where offline-to-live transfer does
 and does not hold, and position this evidence against the five
 validation directions our review's proposed QoE-aware GAT-MARL-FL
 framework calls out.
@@ -84,8 +87,9 @@ of~\cite{mecon-paper1,icraie-paper2} on the same live hardware.
 for the same frozen policies, showing where simulation-to-real transfer
 holds and where it does not. \textbf{(4)} We build a genuinely congested,
 dynamic, randomized multi-slice scenario with real shared-PRB contention
-across slices and show a QoE-aware DQN policy learns to preserve URLLC
-at the deliberate expense of eMBB/mMTC -- the same URLLC-first objective
+across slices and show a properly-trained DQN policy, under either
+reward, learns to preserve URLLC at the deliberate expense of eMBB/mMTC
+-- the same URLLC-first objective
 as~\cite{mecon-paper1,icraie-paper2}, now under real cross-slice
 scarcity rather than isolated per-slice utility.
 
@@ -280,39 +284,56 @@ remains dynamic within-episode.
 Arm & URLLC & eMBB & mMTC \\
 \midrule
 baseline (static) & 22.6 & 34.5 & 19.0 \\
-DQN (SLA reward) & 32.2 & 42.4 & 14.7 \\
-\textbf{DQN (QoE reward)} & \textbf{39.0} & \textbf{7.6} & \textbf{7.7} \\
+\textbf{DQN (SLA reward)} & \textbf{30.9} & \textbf{7.9} & \textbf{9.2} \\
+DQN (QoE reward) & 27.0 & 8.2 & 10.8 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 Table~\ref{tab:congested} and Fig.~\ref{fig:congested} show the held-out
-result.\footnote{A2C~\cite{a2c} was also trained under this protocol and converged
-to a fully deterministic, state-independent policy under both reward
-modes regardless of exploration or entropy-regularization interventions
--- a genuine algorithm-dependent limitation, not a tuning problem, and
-omitted from the headline comparison here.} \texttt{DQN(QoE)} is the
-only arm that both improves URLLC above every other arm
-($22.6\%\rightarrow39.0\%$) and does so by actively \emph{sacrificing}
-the other two slices ($34.5\%\rightarrow7.6\%$ eMBB,
-$19.0\%\rightarrow7.7\%$ mMTC) -- a genuine, learned priority tradeoff,
-not a policy that merely rides every ceiling upward. \texttt{DQN(SLA)}
-also improves URLLC ($\rightarrow32.2\%$) but without sacrificing eMBB
-($\rightarrow42.4\%$), a smaller, less differentiated effect: the
-QoE-shaped reward, not the SLA-only reward, produces the sharp tradeoff.
-This is the same URLLC-first objective
-as~\cite{mecon-paper1,icraie-paper2}, now shown under a materially
-harder condition than either prior study modelled -- a real constraint
-that the three slices' served PRBs sum to a shared, insufficient budget,
-rather than each slice's utility optimised in isolation. This offline,
-preliminary result is not yet live-validated (Section~\ref{sec:limitations});
-reproducing genuine cross-slice scarcity on the real rig is the clearest
-next experimental step.
+result, trained with a corrected exploration schedule: an earlier version
+of this experiment left \texttt{DQNAdmissionPolicy}'s per-episode epsilon
+decay uncalled, so training-time action selection was uniform-random
+throughout (confirmed via checkpoint inspection, $\epsilon=1.0$ after
+$\sim$18{,}000 gradient steps) rather than the intended decay from full
+exploration to near-greedy; Q-learning is off-policy and still learns
+from the randomly-collected, reward-labeled transitions, but this is not
+the schedule Table~\ref{tab:params} intends, so we fixed it and retrained
+both arms before reporting final numbers.\footnote{A2C~\cite{a2c} was
+also trained under this protocol (unaffected by the epsilon-schedule
+issue above -- it has no $\epsilon$-greedy step) and converged to a
+fully deterministic, state-independent policy under both reward modes
+regardless of exploration or entropy-regularization interventions -- a
+genuine algorithm-dependent limitation, not a tuning problem, and
+omitted from the headline comparison here.} With the fix, both DQN arms
+improve URLLC above baseline ($22.6\%\rightarrow30.9\%$ SLA-only,
+$\rightarrow27.0\%$ QoE-aware) by actively \emph{sacrificing} the other
+two slices ($34.5\%\rightarrow7.9\%$/$8.2\%$ eMBB,
+$19.0\%\rightarrow9.2\%$/$10.8\%$ mMTC) -- a genuine, learned priority
+tradeoff, not a policy that merely rides every ceiling upward.
+Critically, this is no longer reward-mode-specific: an earlier,
+since-corrected run (uniform-random training-time exploration) had shown
+only the QoE-shaped reward producing this tradeoff, with the SLA-only
+reward instead improving eMBB without sacrificing it; with exploration
+correctly decaying, \texttt{DQN(SLA)} shows the same tradeoff as
+\texttt{DQN(QoE)}, and if anything a marginally larger URLLC gain. We
+read this as evidence that the URLLC-priority tradeoff is a property of
+a properly-trained DQN policy under this reward priority structure
+(Table~\ref{tab:params}'s priority\_weight/violation\_penalty), not a
+QoE-reward-specific effect -- a more robust but less differentiated
+finding than we initially reported. This is the same URLLC-first
+objective as~\cite{mecon-paper1,icraie-paper2}, now shown under a
+materially harder condition than either prior study modelled -- a real
+constraint that the three slices' served PRBs sum to a shared,
+insufficient budget, rather than each slice's utility optimised in
+isolation. This offline, preliminary result is not yet live-validated
+(Section~\ref{sec:limitations}); reproducing genuine cross-slice
+scarcity on the real rig is the clearest next experimental step.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/fig10_congested_urllc_preservation.pdf}
-\caption{SLA compliance under congested/dynamic/randomized traffic with genuine shared-PRB contention, baseline vs.\ DQN, URLLC panel bolded. DQN(QoE) is the only arm that both leads on URLLC and visibly sacrifices eMBB/mMTC to do it.}
+\caption{SLA compliance under congested/dynamic/randomized traffic with genuine shared-PRB contention, baseline vs.\ DQN under both reward modes, URLLC panel bolded. Both DQN arms lead on URLLC and visibly sacrifice eMBB/mMTC to do it -- not a QoE-reward-specific effect.}
 \label{fig:congested}
 \end{figure}
 
@@ -405,11 +426,15 @@ offline-simulated and live results side by side shows transfer holds
 exactly for eMBB but not for URLLC/mMTC, a diagnosed, fixable limitation
 of the offline training environment rather than a robustness result. A
 preliminary, offline-only follow-up under genuine cross-slice PRB
-contention shows a QoE-shaped DQN policy learns to preserve URLLC SLA
-compliance ($22.6\%\rightarrow39.0\%$) by actively trading off eMBB
-($\rightarrow7.6\%$) and mMTC ($\rightarrow7.7\%$) -- the same
-URLLC-first objective as our prior simulated
-work~\cite{mecon-paper1,icraie-paper2}, now shown under real contention.
+contention shows a properly-trained DQN policy learns to preserve URLLC
+SLA compliance under either reward ($22.6\%\rightarrow30.9\%$ SLA-only,
+$\rightarrow27.0\%$ QoE-aware) by actively trading off eMBB
+($\rightarrow7.9\%$/$8.2\%$) and mMTC ($\rightarrow9.2\%$/$10.8\%$) --
+the same URLLC-first objective as our prior simulated
+work~\cite{mecon-paper1,icraie-paper2}, now shown under real contention
+and, once a training-time exploration-schedule bug we found and fixed
+was corrected, a property of the trained policy rather than of the
+QoE-shaped reward specifically.
 The proposed GAT-MARL-FL framework of~\cite{survey-paper3} remains the
 target of the journal-length follow-up, motivated directly by this
 paper's finding that single-agent control achieves the URLLC-priority

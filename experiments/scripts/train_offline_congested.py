@@ -147,6 +147,27 @@ def main() -> None:
                 )
             obs = next_obs
             rewards.append(shaped_reward)
+
+        # REQUIRED for DQNAdmissionPolicy: that class freezes
+        # oranslice_drl.DQNPolicy's per-train_step epsilon decay
+        # (epsilon_decay=1.0 passed to the base class deliberately -- see
+        # dqn_admission.py's __init__ comment) and instead decays epsilon
+        # ONCE PER EPISODE inside on_episode_end(), which mc_runner.run_single
+        # calls automatically but this script's own custom loop did not.
+        # Found 2026-07-24 while building the diurnal-demand experiment:
+        # every checkpoint this script had produced so far (including the
+        # ones behind this paper's Section VI congested/URLLC-preservation
+        # numbers) has epsilon permanently stuck at 1.0 -- confirmed via
+        # checkpoint inspection (epsilon=1.0 despite ~18000 train_step calls).
+        # Training-time action selection was therefore pure random the whole
+        # run; train_step's gradient updates still learn off-policy from the
+        # randomly-collected, reward-labeled transitions, but the policy
+        # never got the intended decaying exploration-to-exploitation
+        # schedule. Retraining with this fix is what produced the numbers
+        # this comment replaces.
+        if args.algorithm in ("dqn", "rainbow") and hasattr(policy, "on_episode_end"):
+            policy.on_episode_end()
+
         episode_rewards.append(sum(rewards) / max(1, len(rewards)))
         if ep % 25 == 0 or ep == 1:
             recent = np.mean(episode_rewards[-25:])
