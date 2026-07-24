@@ -14,7 +14,7 @@
 gNB / E2 primitive & OAI rfsim, 106 PRB, $\mu{=}1$; \texttt{slicing\_control\_m} ratio ceiling \\
 Slices & eMBB (4 Mbps), URLLC (300 kbps), mMTC (50 kbps bursty, 2\,s/6\,s) \\
 Ceilings (eMBB/URLLC/mMTC) & 12 / 4 / 3 (below each slice's measured organic demand) \\
-QoE weights $\alpha,\beta,\gamma$ & 1.0, 0.2, 0.5 (Eq.~\ref{eq:qoe}) \\
+QoE weights $\alpha,\beta,\xi$ & 1.0, 0.2, 0.5 (Eq.~\ref{eq:qoe}) \\
 Arms & baseline (static), DQN$_{\text{SLA}}$, DQN$_{\text{QoE}}$ \\
 Live episodes & 3 seeds $\times$ 5 ep./arm = 45 learned + 15 baseline \\
 Offline training & 300 ep. $\times$ 3 seeds/arm; frozen weights at live deployment \\

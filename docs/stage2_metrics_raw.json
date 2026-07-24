@@ -1,0 +1,381 @@
+{
+  "live_campaign": {
+    "baseline": {
+      "compliance_pct": {
+        "embb": 73.66666666666667,
+        "urllc": 73.44444444444444,
+        "mmtc": 73.77777777777777
+      },
+      "u_priority_weight": 73.54419191919192,
+      "u_violation_penalty": 73.56989247311827,
+      "severity": {
+        "embb": {
+          "median": 0.7,
+          "iqr": 1002377.8999999999,
+          "p90": 0.7,
+          "n": 900
+        },
+        "urllc": {
+          "median": 0.7,
+          "iqr": 150783.2,
+          "p90": 0.7,
+          "n": 900
+        },
+        "mmtc": {
+          "median": 0.7,
+          "iqr": 99.0,
+          "p90": 0.7,
+          "n": 900
+        }
+      },
+      "episodes_fully_compliant": 11,
+      "episodes_total": 15
+    },
+    "dqn_sla": {
+      "compliance_pct": {
+        "embb": 100.0,
+        "urllc": 100.0,
+        "mmtc": 100.0
+      },
+      "u_priority_weight": 99.99999999999999,
+      "u_violation_penalty": 100.0,
+      "severity": {
+        "embb": {
+          "median": 1.0,
+          "iqr": 9.811040868612508e-13,
+          "p90": 1.0,
+          "n": 900
+        },
+        "urllc": {
+          "median": 0.7,
+          "iqr": 0.0,
+          "p90": 0.9949936936609447,
+          "n": 900
+        },
+        "mmtc": {
+          "median": 0.7,
+          "iqr": 0.0,
+          "p90": 0.9999988433241275,
+          "n": 900
+        }
+      },
+      "episodes_fully_compliant": 15,
+      "episodes_total": 15,
+      "fisher_vs_baseline": {
+        "table": [
+          [
+            15,
+            0
+          ],
+          [
+            11,
+            4
+          ]
+        ],
+        "odds_ratio": Infinity,
+        "p_value": 0.09961685823754789
+      }
+    },
+    "dqn_qoe": {
+      "compliance_pct": {
+        "embb": 100.0,
+        "urllc": 100.0,
+        "mmtc": 100.0
+      },
+      "u_priority_weight": 99.99999999999999,
+      "u_violation_penalty": 100.0,
+      "severity": {
+        "embb": {
+          "median": 1.0,
+          "iqr": 2.042810365310288e-14,
+          "p90": 1.0,
+          "n": 900
+        },
+        "urllc": {
+          "median": 0.7,
+          "iqr": 0.0,
+          "p90": 0.99635040294379,
+          "n": 900
+        },
+        "mmtc": {
+          "median": 0.7,
+          "iqr": 0.0,
+          "p90": 0.9999217450385913,
+          "n": 900
+        }
+      },
+      "episodes_fully_compliant": 15,
+      "episodes_total": 15,
+      "fisher_vs_baseline": {
+        "table": [
+          [
+            15,
+            0
+          ],
+          [
+            11,
+            4
+          ]
+        ],
+        "odds_ratio": Infinity,
+        "p_value": 0.09961685823754789
+      }
+    }
+  },
+  "congested": {
+    "baseline": {
+      "compliance_pct": {
+        "embb": 34.51851851851852,
+        "urllc": 22.62962962962963,
+        "mmtc": 19.037037037037038
+      },
+      "u_priority_weight": 27.23569023569023,
+      "u_violation_penalty": 24.464646464646467,
+      "severity": {
+        "embb": {
+          "median": -0.5,
+          "iqr": 0.8576266852223726,
+          "p90": 0.976,
+          "n": 2700
+        },
+        "urllc": {
+          "median": -0.5,
+          "iqr": 0.4238315022991532,
+          "p90": 0.5928064254092338,
+          "n": 2700
+        },
+        "mmtc": {
+          "median": -0.5,
+          "iqr": 0.33078977304527596,
+          "p90": 0.44655441544920893,
+          "n": 2700
+        }
+      },
+      "episodes_fully_compliant": 0,
+      "episodes_total": 45,
+      "episodes_slice_compliant": {
+        "embb": 0,
+        "urllc": 0,
+        "mmtc": 0
+      },
+      "compliant_steps": {
+        "embb": 932,
+        "urllc": 611,
+        "mmtc": 514
+      },
+      "total_steps": {
+        "embb": 2700,
+        "urllc": 2700,
+        "mmtc": 2700
+      }
+    },
+    "dqn_sla": {
+      "compliance_pct": {
+        "embb": 7.925925925925926,
+        "urllc": 30.925925925925927,
+        "mmtc": 9.185185185185185
+      },
+      "u_priority_weight": 21.037037037037038,
+      "u_violation_penalty": 24.76767676767677,
+      "severity": {
+        "embb": {
+          "median": -0.5,
+          "iqr": 0.17324091711942224,
+          "p90": -0.059201288338612615,
+          "n": 2700
+        },
+        "urllc": {
+          "median": -0.5,
+          "iqr": 0.8503607328365875,
+          "p90": 0.96,
+          "n": 2700
+        },
+        "mmtc": {
+          "median": -0.5,
+          "iqr": 0.19496390284609422,
+          "p90": -0.024272171497501903,
+          "n": 2700
+        }
+      },
+      "episodes_fully_compliant": 0,
+      "episodes_total": 45,
+      "episodes_slice_compliant": {
+        "embb": 0,
+        "urllc": 0,
+        "mmtc": 0
+      },
+      "compliant_steps": {
+        "embb": 214,
+        "urllc": 835,
+        "mmtc": 248
+      },
+      "total_steps": {
+        "embb": 2700,
+        "urllc": 2700,
+        "mmtc": 2700
+      },
+      "fisher_vs_baseline_degenerate": {
+        "table": [
+          [
+            0,
+            45
+          ],
+          [
+            0,
+            45
+          ]
+        ],
+        "odds_ratio": NaN,
+        "p_value": 1.0
+      },
+      "chi2_step_level_vs_baseline": {
+        "embb": {
+          "table": [
+            [
+              214,
+              2486
+            ],
+            [
+              932,
+              1768
+            ]
+          ],
+          "chi2": 569.4426188348755,
+          "p_value": 7.422704490770967e-126
+        },
+        "urllc": {
+          "table": [
+            [
+              835,
+              1865
+            ],
+            [
+              611,
+              2089
+            ]
+          ],
+          "chi2": 46.96761722463937,
+          "p_value": 7.216933901251263e-12
+        },
+        "mmtc": {
+          "table": [
+            [
+              248,
+              2452
+            ],
+            [
+              514,
+              2186
+            ]
+          ],
+          "chi2": 107.30001731672287,
+          "p_value": 3.8263104730206603e-25
+        }
+      }
+    },
+    "dqn_qoe": {
+      "compliance_pct": {
+        "embb": 8.185185185185185,
+        "urllc": 27.0,
+        "mmtc": 10.777777777777779
+      },
+      "u_priority_weight": 18.963804713804713,
+      "u_violation_penalty": 22.104377104377104,
+      "severity": {
+        "embb": {
+          "median": -0.5,
+          "iqr": 0.17368745317305878,
+          "p90": -0.05582515977767031,
+          "n": 2700
+        },
+        "urllc": {
+          "median": -0.5,
+          "iqr": 0.6114616902336588,
+          "p90": 0.939925088539886,
+          "n": 2700
+        },
+        "mmtc": {
+          "median": -0.5,
+          "iqr": 0.19999999999999996,
+          "p90": 0.025134773009462985,
+          "n": 2700
+        }
+      },
+      "episodes_fully_compliant": 0,
+      "episodes_total": 45,
+      "episodes_slice_compliant": {
+        "embb": 0,
+        "urllc": 0,
+        "mmtc": 0
+      },
+      "compliant_steps": {
+        "embb": 221,
+        "urllc": 729,
+        "mmtc": 291
+      },
+      "total_steps": {
+        "embb": 2700,
+        "urllc": 2700,
+        "mmtc": 2700
+      },
+      "fisher_vs_baseline_degenerate": {
+        "table": [
+          [
+            0,
+            45
+          ],
+          [
+            0,
+            45
+          ]
+        ],
+        "odds_ratio": NaN,
+        "p_value": 1.0
+      },
+      "chi2_step_level_vs_baseline": {
+        "embb": {
+          "table": [
+            [
+              221,
+              2479
+            ],
+            [
+              932,
+              1768
+            ]
+          ],
+          "chi2": 555.9028351424433,
+          "p_value": 6.544793819388151e-123
+        },
+        "urllc": {
+          "table": [
+            [
+              729,
+              1971
+            ],
+            [
+              611,
+              2089
+            ]
+          ],
+          "chi2": 13.587346518638336,
+          "p_value": 0.00022771528791862554
+        },
+        "mmtc": {
+          "table": [
+            [
+              291,
+              2409
+            ],
+            [
+              514,
+              2186
+            ]
+          ],
+          "chi2": 71.94793152157015,
+          "p_value": 2.209512598866918e-17
+        }
+      }
+    }
+  }
+}
