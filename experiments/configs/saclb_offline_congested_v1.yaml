@@ -49,7 +49,18 @@ slices:
     loss_budget_pct: 0.5
     priority_weight: 5.0      # highest -- URLLC preserved first, by reward design
     accept_reward: 1.0
-    violation_penalty: 8.0   # highest -- URLLC violations cost the most
+    # Raised 8.0 -> 20.0 (2026-07-24, congested/URLLC-preservation follow-up):
+    # at 8.0, eMBB's larger cap (12 vs URLLC's 4) let it rack up enough
+    # service_term reward from sheer accept-volume to outweigh occasional
+    # URLLC violations under real shared-pool contention -- see
+    # experiments/results/congested_vs_baseline_v3_sharedpool/results.json
+    # (DRL made URLLC WORSE than baseline in 2 of 4 arms). This value is
+    # not tuned to force a desired result; it directly counteracts the
+    # diagnosed mechanism (a flat per-violation charge too small relative
+    # to eMBB's raw accept-volume reward), and is combined with the
+    # contention-aware shaping term in train_offline_congested.py, not a
+    # substitute for it.
+    violation_penalty: 20.0
   - slice_id: mmtc
     sst: 1
     sd: 2

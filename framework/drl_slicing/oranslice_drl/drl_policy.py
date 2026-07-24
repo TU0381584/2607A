@@ -345,6 +345,7 @@ class A2CPolicy(RLPolicy):
         learning_rate: float = 1e-3,
         gamma: float = 0.99,
         device: str = "cpu",
+        entropy_coef: float = 0.01,
     ):
         self.state_dim = state_dim
         self.action_dim = action_dim
@@ -352,6 +353,18 @@ class A2CPolicy(RLPolicy):
         self.learning_rate = learning_rate
         self.gamma = gamma
         self.device = torch.device(device)
+        # Default (0.01) is unchanged from before this parameter existed --
+        # every existing caller that doesn't pass entropy_coef gets
+        # identical behavior. Added 2026-07-24: with reward-shaping terms
+        # of magnitude ~15 (see experiments/scripts/train_offline_congested.py's
+        # contention-aware bonus), the previously-hardcoded 0.01*entropy
+        # term is negligible next to the actor/critic loss scale and does
+        # not meaningfully resist the policy collapsing to a deterministic
+        # action -- observed directly (accept_frac exactly 1.0 or exactly
+        # 0.0 at eval time, every state, both A2C reward modes). Raising
+        # this coefficient for that experiment specifically is the fix;
+        # the default here stays 0.01 so nothing else in the project changes.
+        self.entropy_coef = entropy_coef
 
         self.network = ActorCriticNetwork(state_dim, action_dim, hidden_dim, self.n_branches).to(self.device)
         self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
@@ -417,7 +430,7 @@ class A2CPolicy(RLPolicy):
 
         # Total loss with entropy regularization for exploration
         entropy = action_dist.entropy().mean()
-        total_loss = actor_loss + 0.5 * critic_loss - 0.01 * entropy
+        total_loss = actor_loss + 0.5 * critic_loss - self.entropy_coef * entropy
 
         self.optimizer.zero_grad()
         total_loss.backward()

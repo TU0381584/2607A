@@ -333,6 +333,134 @@ rig-fragility limitation already disclosed in Section~VII.)
 \label{fig:demand-probe}
 \end{figure}
 
+\section{Congested Multi-Slice Admission with URLLC Prioritization}
+\label{sec:congested}
+Sections~III--V evaluate all arms under one constant, per-slice demand
+level for the whole episode (Section~V-F's own preliminary probe already
+shows this doesn't generalize to within-episode demand variation). This
+section reports a separate, deliberately preliminary, offline-only
+follow-up targeting a different, specific question: under genuinely
+congested, dynamic, and randomized multi-slice traffic, do the learned
+arms preserve URLLC's SLA compliance ahead of eMBB/mMTC, consistent with
+URLLC already carrying this campaign's highest reward priority
+(priority\_weight=5.0, violation\_penalty=8.0, both highest of the three
+slices, Table~\ref{tab:params})? This required diagnosing and fixing two
+structural gaps in the existing offline training setup, not just a new
+evaluation script.
+
+\subsection{Two structural gaps, fixed}
+First, the offline training config (\texttt{saclb\_offline\_campaign.yaml})
+pins every slice's ceiling at its own \texttt{nominal\_ratio} with zero
+elastic headroom (Section~V-E), while the live-evaluation config has real
+headroom (12/4/3). A new training config,
+\texttt{saclb\_offline\_congested\_v1.yaml}, matches the live config's cap
+values exactly, closing this train/eval mismatch. Second, and more
+consequentially: the offline synthetic KPM source
+(\texttt{ClosedLoopKpmSource}) computes each slice's served PRBs
+independently -- there is no constraint that the three slices' served
+PRBs sum to a shared budget, so raising one slice's ceiling never
+actually took capacity away from another in any offline result reported
+so far. A new \texttt{SharedPoolCongestedKpmSource} adds this directly:
+each slice's ceiling-limited request is computed as before, and if the
+three slices' combined request exceeds a shared pool (calibrated to 8
+PRB -- deliberately smaller than the three ceilings' combined maximum of
+19 PRB, so maxing out every ceiling simultaneously creates genuine
+scarcity), every slice's actual served amount is scaled down
+proportionally to its own request share. This is a neutral, non-priority
+physical rationing rule -- URLLC gets no special treatment in the
+physics itself, so any preferential protection observed downstream comes
+from the policy's own reward-driven behavior, not from the simulator.
+Per-episode demand is additionally randomized (each slice independently
+samples an oversubscription multiplier in $[0.4\times, 1.3\times]$ its
+configured mean at the start of every episode) and remains dynamic within
+the episode via the KPM source's existing mean-reverting random walk.
+
+\subsection{Contention-aware reward shaping}
+Training against the shared-pool mechanism directly (600 episodes, 3
+seeds, otherwise identical protocol to Section~III-E) surfaced a real
+failure mode before any fix: eMBB's larger ceiling cap let it accumulate
+enough service-term reward from raw accept-volume to outweigh URLLC's
+higher per-violation penalty, so the learned policy improved eMBB while
+leaving URLLC no better (and in two of four arms, worse) than baseline.
+Two changes address this directly: URLLC's \texttt{violation\_penalty} was
+raised from 8.0 to 20.0, and an additional shaping term subtracts
+$15 \times \text{contention\_ratio}$ from the step reward whenever URLLC
+is in violation, where \texttt{contention\_ratio} $\in[0,1]$ is how
+saturated the shared pool is \emph{at that step} -- zero effect when the
+pool has slack, largest effect exactly when URLLC is failing under real
+scarcity. Both changes are documented in
+\texttt{saclb\_offline\_congested\_v1.yaml} and
+\texttt{train\_offline\_congested.py} respectively, with the failure mode
+that motivated them.
+
+\begin{table}[t]
+\centering
+\caption{SLA compliance (\%) under congested/dynamic/randomized traffic with genuine shared-PRB contention; held out seeds (950/951/952) $\times$ 15 episodes/arm, frozen weights.}
+\label{tab:congested}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Arm & URLLC & eMBB & mMTC \\
+\midrule
+baseline (static) & 22.6 & 34.5 & 19.0 \\
+DQN (SLA reward) & 32.2 & 42.4 & 14.7 \\
+A2C (SLA reward) & 27.1 & 50.2 & 15.2 \\
+\textbf{DQN (QoE reward)} & \textbf{39.0} & \textbf{7.6} & \textbf{7.7} \\
+A2C (QoE reward) & 9.4 & 7.6 & 7.7 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Result: DQN+QoE preserves URLLC by sacrificing the other two; A2C does not learn a differentiated policy}
+Fig.~\ref{fig:congested} and Table~\ref{tab:congested} show the held-out
+result. \texttt{DQN(QoE)} is the only arm that both (a) improves URLLC
+above every other arm ($22.6\%\rightarrow39.0\%$, the largest URLLC gain
+of the four) and (b) does so by actively \emph{sacrificing} the other two
+slices ($34.5\%\rightarrow7.6\%$ eMBB, $19.0\%\rightarrow7.7\%$ mMTC) --
+a genuine priority tradeoff, not a policy that merely rides every ceiling
+upward. \texttt{DQN(SLA)} also improves URLLC ($22.6\%\rightarrow32.2\%$)
+but without sacrificing eMBB ($\rightarrow42.4\%$), a smaller and less
+differentiated effect. \texttt{A2C(SLA)} remains eMBB-biased
+(eMBB $50.2\%$ vs.\ URLLC $27.1\%$), the same pattern observed before the
+contention-aware shaping fix.
+
+\texttt{A2C(QoE)} is worse than baseline on all three slices. Direct
+inspection of frozen-weight action selection (not just aggregate
+compliance) explains why: both A2C arms converge to a \emph{fully
+deterministic, state-independent} policy -- accept\_frac exactly $1.0$
+for A2C(SLA) and exactly $0.0$ for A2C(QoE), on every slice, every state,
+confirmed by sampling actions directly rather than inferring this from
+compliance numbers alone. This did not change under either of two
+independent interventions: an external $\epsilon$-greedy exploration
+override during training, or raising \texttt{A2CPolicy}'s entropy
+coefficient from its default $0.01$ (a real, previously hardcoded
+constant, now configurable) up to $0.3$ -- the higher-entropy run
+converged to the \emph{opposite} deterministic extreme (always-accept)
+faster (100 episodes) rather than to a differentiated, contention-aware
+policy. We read this as evidence that A2C, in this per-request
+binary-action framing, is finding the single action with the best
+\emph{average} reward across all training states rather than learning to
+condition its decision on whether the current moment calls for
+protecting URLLC -- an algorithm-dependent limitation, not a reward- or
+exploration-tuning problem, and we report it as such rather than
+continuing to search for a fix that changes this.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/fig10_congested_urllc_preservation.pdf}
+\caption{SLA compliance under congested/dynamic/randomized traffic with genuine shared-PRB contention, per arm, URLLC panel bolded. DQN(QoE) is the only arm that both leads on URLLC and visibly sacrifices eMBB/mMTC to do it.}
+\label{fig:congested}
+\end{figure}
+
+\authorTODO{Scope statement for this section (your call): this is a new,
+offline-only, preliminary experiment with its own training config and
+KPM-source mechanism, methodologically separate from the live campaign in
+Sections III-V (not yet live-validated) -- state this plainly and note
+what a live confirmation of the shared-PRB-contention mechanism would
+require (Section~VII already discusses live rig fragility/scarcity).
+Also your call: whether A2C's deterministic-collapse finding belongs here
+as a contribution (a real, reproducible algorithm-dependent limitation)
+or is better positioned as a limitation/future-work item.}
+
 \section{Discussion}
 \label{sec:discussion}
 \authorTODO{Discussion framing -- suggested content sketch:

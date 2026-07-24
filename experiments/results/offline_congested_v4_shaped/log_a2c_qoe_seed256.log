@@ -1,0 +1,26 @@
+[train_congested] a2c/qoe seed=256 ep=1/600 mean_reward(last25)=-7.0183 congestion_mult(this_ep)={'embb': 1.07, 'urllc': 1.08, 'mmtc': 0.53} elapsed=0s
+[train_congested] a2c/qoe seed=256 ep=25/600 mean_reward(last25)=-5.5508 congestion_mult(this_ep)={'embb': 0.45, 'urllc': 1.21, 'mmtc': 0.6} elapsed=5s
+[train_congested] a2c/qoe seed=256 ep=50/600 mean_reward(last25)=-5.6066 congestion_mult(this_ep)={'embb': 1.1, 'urllc': 1.23, 'mmtc': 0.76} elapsed=11s
+[train_congested] a2c/qoe seed=256 ep=75/600 mean_reward(last25)=-5.4274 congestion_mult(this_ep)={'embb': 0.71, 'urllc': 1.25, 'mmtc': 0.96} elapsed=17s
+[train_congested] a2c/qoe seed=256 ep=100/600 mean_reward(last25)=-5.5181 congestion_mult(this_ep)={'embb': 0.41, 'urllc': 1.03, 'mmtc': 0.74} elapsed=24s
+[train_congested] a2c/qoe seed=256 ep=125/600 mean_reward(last25)=-5.4519 congestion_mult(this_ep)={'embb': 0.42, 'urllc': 0.79, 'mmtc': 0.47} elapsed=30s
+[train_congested] a2c/qoe seed=256 ep=150/600 mean_reward(last25)=-5.1172 congestion_mult(this_ep)={'embb': 1.23, 'urllc': 0.65, 'mmtc': 0.67} elapsed=36s
+[train_congested] a2c/qoe seed=256 ep=175/600 mean_reward(last25)=-5.4917 congestion_mult(this_ep)={'embb': 1.24, 'urllc': 0.67, 'mmtc': 0.59} elapsed=41s
+[train_congested] a2c/qoe seed=256 ep=200/600 mean_reward(last25)=-5.3020 congestion_mult(this_ep)={'embb': 0.4, 'urllc': 0.92, 'mmtc': 0.87} elapsed=47s
+[train_congested] a2c/qoe seed=256 ep=225/600 mean_reward(last25)=-5.4136 congestion_mult(this_ep)={'embb': 0.4, 'urllc': 0.54, 'mmtc': 1.18} elapsed=52s
+[train_congested] a2c/qoe seed=256 ep=250/600 mean_reward(last25)=-5.5841 congestion_mult(this_ep)={'embb': 0.5, 'urllc': 0.68, 'mmtc': 1.19} elapsed=58s
+[train_congested] a2c/qoe seed=256 ep=275/600 mean_reward(last25)=-5.4221 congestion_mult(this_ep)={'embb': 0.95, 'urllc': 0.91, 'mmtc': 0.56} elapsed=64s
+[train_congested] a2c/qoe seed=256 ep=300/600 mean_reward(last25)=-5.4392 congestion_mult(this_ep)={'embb': 0.65, 'urllc': 0.57, 'mmtc': 1.16} elapsed=69s
+[train_congested] a2c/qoe seed=256 ep=325/600 mean_reward(last25)=-5.5324 congestion_mult(this_ep)={'embb': 0.88, 'urllc': 0.92, 'mmtc': 0.58} elapsed=75s
+[train_congested] a2c/qoe seed=256 ep=350/600 mean_reward(last25)=-5.4576 congestion_mult(this_ep)={'embb': 1.23, 'urllc': 1.19, 'mmtc': 0.46} elapsed=81s
+[train_congested] a2c/qoe seed=256 ep=375/600 mean_reward(last25)=-5.5730 congestion_mult(this_ep)={'embb': 1.22, 'urllc': 1.0, 'mmtc': 0.96} elapsed=86s
+[train_congested] a2c/qoe seed=256 ep=400/600 mean_reward(last25)=-5.6102 congestion_mult(this_ep)={'embb': 0.82, 'urllc': 1.08, 'mmtc': 1.2} elapsed=92s
+[train_congested] a2c/qoe seed=256 ep=425/600 mean_reward(last25)=-5.5496 congestion_mult(this_ep)={'embb': 0.79, 'urllc': 1.27, 'mmtc': 1.03} elapsed=97s
+[train_congested] a2c/qoe seed=256 ep=450/600 mean_reward(last25)=-5.5361 congestion_mult(this_ep)={'embb': 1.1, 'urllc': 1.29, 'mmtc': 0.82} elapsed=103s
+[train_congested] a2c/qoe seed=256 ep=475/600 mean_reward(last25)=-5.2503 congestion_mult(this_ep)={'embb': 1.19, 'urllc': 1.08, 'mmtc': 0.68} elapsed=109s
+[train_congested] a2c/qoe seed=256 ep=500/600 mean_reward(last25)=-5.5940 congestion_mult(this_ep)={'embb': 0.55, 'urllc': 0.6, 'mmtc': 0.71} elapsed=114s
+[train_congested] a2c/qoe seed=256 ep=525/600 mean_reward(last25)=-9.3115 congestion_mult(this_ep)={'embb': 0.51, 'urllc': 1.0, 'mmtc': 0.94} elapsed=120s
+[train_congested] a2c/qoe seed=256 ep=550/600 mean_reward(last25)=-11.3126 congestion_mult(this_ep)={'embb': 1.17, 'urllc': 0.53, 'mmtc': 0.67} elapsed=126s
+[train_congested] a2c/qoe seed=256 ep=575/600 mean_reward(last25)=-5.6367 congestion_mult(this_ep)={'embb': 0.43, 'urllc': 1.22, 'mmtc': 0.45} elapsed=131s
+[train_congested] a2c/qoe seed=256 ep=600/600 mean_reward(last25)=-5.5441 congestion_mult(this_ep)={'embb': 1.1, 'urllc': 0.49, 'mmtc': 1.28} elapsed=137s
+[train_congested] a2c/qoe seed=256: wrote /home/kmanojp/oranslice_rig/experiments/results/offline_congested_v4_shaped/qoe/seed256/a2c/checkpoint.pt, final mean_reward(last25)=-5.5441, total_time=137s

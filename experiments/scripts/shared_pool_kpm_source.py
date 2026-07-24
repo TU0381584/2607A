@@ -48,6 +48,15 @@ class SharedPoolCongestedKpmSource(CongestedRandomKpmSource):
     def __init__(self, *args, shared_pool_prb: float = 15.0, **kwargs):
         super().__init__(*args, **kwargs)
         self._shared_pool_prb = shared_pool_prb
+        # Read by the training loop AFTER each poll() to build a
+        # contention-aware reward shaping term -- see
+        # train_offline_congested.py's contention_bonus(). last_contention_ratio
+        # in [0,1]: 0 = pool nowhere near saturated, 1 = fully saturated
+        # (rationing active). Deliberately exposed here rather than folded
+        # into reward.py itself -- keeps the shared-PRB physics and the
+        # reward-shaping experiment on top of it as two separable,
+        # independently-inspectable pieces.
+        self.last_contention_ratio: float = 0.0
 
     def poll(self) -> List[UeSample]:
         self._t += 1.0
@@ -81,6 +90,7 @@ class SharedPoolCongestedKpmSource(CongestedRandomKpmSource):
                 scale = self._shared_pool_prb / total_requested
             else:
                 scale = 1.0
+            self.last_contention_ratio = min(1.0, total_requested / max(self._shared_pool_prb, 1e-6))
 
             for slice_id in self._slice_ids:
                 key = (gnb_id, slice_id)

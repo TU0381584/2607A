@@ -1,0 +1,26 @@
+[train_congested] dqn/qoe seed=257 ep=1/600 mean_reward(last25)=-8.7571 congestion_mult(this_ep)={'embb': 1.04, 'urllc': 0.42, 'mmtc': 1.15} elapsed=0s
+[train_congested] dqn/qoe seed=257 ep=25/600 mean_reward(last25)=-9.3819 congestion_mult(this_ep)={'embb': 0.7, 'urllc': 0.95, 'mmtc': 0.88} elapsed=4s
+[train_congested] dqn/qoe seed=257 ep=50/600 mean_reward(last25)=-9.8381 congestion_mult(this_ep)={'embb': 0.42, 'urllc': 1.15, 'mmtc': 0.83} elapsed=8s
+[train_congested] dqn/qoe seed=257 ep=75/600 mean_reward(last25)=-9.6728 congestion_mult(this_ep)={'embb': 0.44, 'urllc': 0.98, 'mmtc': 0.59} elapsed=12s
+[train_congested] dqn/qoe seed=257 ep=100/600 mean_reward(last25)=-9.6272 congestion_mult(this_ep)={'embb': 0.75, 'urllc': 0.96, 'mmtc': 1.02} elapsed=16s
+[train_congested] dqn/qoe seed=257 ep=125/600 mean_reward(last25)=-9.4002 congestion_mult(this_ep)={'embb': 0.93, 'urllc': 1.27, 'mmtc': 0.75} elapsed=21s
+[train_congested] dqn/qoe seed=257 ep=150/600 mean_reward(last25)=-9.3002 congestion_mult(this_ep)={'embb': 1.09, 'urllc': 0.51, 'mmtc': 1.0} elapsed=25s
+[train_congested] dqn/qoe seed=257 ep=175/600 mean_reward(last25)=-9.5968 congestion_mult(this_ep)={'embb': 0.4, 'urllc': 0.62, 'mmtc': 0.87} elapsed=29s
+[train_congested] dqn/qoe seed=257 ep=200/600 mean_reward(last25)=-9.7382 congestion_mult(this_ep)={'embb': 0.67, 'urllc': 0.64, 'mmtc': 0.56} elapsed=34s
+[train_congested] dqn/qoe seed=257 ep=225/600 mean_reward(last25)=-9.9895 congestion_mult(this_ep)={'embb': 0.75, 'urllc': 0.47, 'mmtc': 0.76} elapsed=38s
+[train_congested] dqn/qoe seed=257 ep=250/600 mean_reward(last25)=-9.8242 congestion_mult(this_ep)={'embb': 0.84, 'urllc': 0.66, 'mmtc': 0.51} elapsed=42s
+[train_congested] dqn/qoe seed=257 ep=275/600 mean_reward(last25)=-9.8268 congestion_mult(this_ep)={'embb': 1.12, 'urllc': 1.02, 'mmtc': 0.65} elapsed=46s
+[train_congested] dqn/qoe seed=257 ep=300/600 mean_reward(last25)=-9.8363 congestion_mult(this_ep)={'embb': 1.23, 'urllc': 0.56, 'mmtc': 0.49} elapsed=51s
+[train_congested] dqn/qoe seed=257 ep=325/600 mean_reward(last25)=-9.6863 congestion_mult(this_ep)={'embb': 1.09, 'urllc': 0.71, 'mmtc': 1.03} elapsed=55s
+[train_congested] dqn/qoe seed=257 ep=350/600 mean_reward(last25)=-10.2942 congestion_mult(this_ep)={'embb': 0.66, 'urllc': 0.7, 'mmtc': 0.65} elapsed=59s
+[train_congested] dqn/qoe seed=257 ep=375/600 mean_reward(last25)=-9.7897 congestion_mult(this_ep)={'embb': 0.94, 'urllc': 1.14, 'mmtc': 0.75} elapsed=64s
+[train_congested] dqn/qoe seed=257 ep=400/600 mean_reward(last25)=-9.7334 congestion_mult(this_ep)={'embb': 1.21, 'urllc': 1.27, 'mmtc': 0.65} elapsed=68s
+[train_congested] dqn/qoe seed=257 ep=425/600 mean_reward(last25)=-8.9580 congestion_mult(this_ep)={'embb': 0.41, 'urllc': 0.73, 'mmtc': 0.5} elapsed=72s
+[train_congested] dqn/qoe seed=257 ep=450/600 mean_reward(last25)=-9.0322 congestion_mult(this_ep)={'embb': 1.3, 'urllc': 1.04, 'mmtc': 0.79} elapsed=77s
+[train_congested] dqn/qoe seed=257 ep=475/600 mean_reward(last25)=-9.7205 congestion_mult(this_ep)={'embb': 1.05, 'urllc': 1.26, 'mmtc': 0.75} elapsed=81s
+[train_congested] dqn/qoe seed=257 ep=500/600 mean_reward(last25)=-8.9659 congestion_mult(this_ep)={'embb': 0.45, 'urllc': 0.96, 'mmtc': 0.49} elapsed=85s
+[train_congested] dqn/qoe seed=257 ep=525/600 mean_reward(last25)=-9.3859 congestion_mult(this_ep)={'embb': 0.45, 'urllc': 1.16, 'mmtc': 1.2} elapsed=89s
+[train_congested] dqn/qoe seed=257 ep=550/600 mean_reward(last25)=-9.8290 congestion_mult(this_ep)={'embb': 1.25, 'urllc': 0.97, 'mmtc': 0.73} elapsed=94s
+[train_congested] dqn/qoe seed=257 ep=575/600 mean_reward(last25)=-10.3605 congestion_mult(this_ep)={'embb': 0.86, 'urllc': 0.85, 'mmtc': 0.72} elapsed=98s
+[train_congested] dqn/qoe seed=257 ep=600/600 mean_reward(last25)=-9.9552 congestion_mult(this_ep)={'embb': 0.89, 'urllc': 0.95, 'mmtc': 1.28} elapsed=102s
+[train_congested] dqn/qoe seed=257: wrote /home/kmanojp/oranslice_rig/experiments/results/offline_congested_v5_a2cexplore/qoe/seed257/dqn/checkpoint.pt, final mean_reward(last25)=-9.9552, total_time=102s
