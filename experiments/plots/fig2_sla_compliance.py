@@ -72,12 +72,14 @@ def main() -> None:
     ap.add_argument("--live-root", default="experiments/results/live_campaign")
     ap.add_argument("--seeds", type=int, nargs="+", default=[950, 951, 952])
     ap.add_argument("--out", default="experiments/plots/out/fig2_sla_compliance")
+    ap.add_argument("--arms", nargs="+", default=ARMS,
+                     help="Subset of args.arms to plot (default: all 5). E.g. --arms baseline dqn_sla dqn_qoe.")
     args = ap.parse_args()
 
     arm_episode_vals: dict = {}
     n_seeds_used = {}
 
-    for arm in ARMS:
+    for arm in args.arms:
         mode = ARM_REWARD_MODE[arm]
         pooled = []
         seeds_seen = 0
@@ -96,8 +98,8 @@ def main() -> None:
         2, 1, figsize=(3.5, 3.5 * 1.05), gridspec_kw={"height_ratios": [2.0, 1.0]}
     )
 
-    x = np.arange(len(ARMS))
-    for i, arm in enumerate(ARMS):
+    x = np.arange(len(args.arms))
+    for i, arm in enumerate(args.arms):
         vals = np.array(arm_episode_vals[arm])
         if vals.size == 0:
             continue
@@ -107,14 +109,14 @@ def main() -> None:
                         s=14, alpha=0.65, linewidths=0.3, edgecolors="white")
 
     ax_top.set_xticks(x)
-    ax_top.set_xticklabels([ARM_STYLE[a]["label"] for a in ARMS], rotation=30, ha="right")
+    ax_top.set_xticklabels([ARM_STYLE[a]["label"] for a in args.arms], rotation=30, ha="right")
     ax_top.set_ylabel("Per-episode SLA\ncompliance (%)")
     ax_top.set_ylim(-5, 105)
     ax_top.set_title("Per-episode SLA compliance by arm (n=15 episodes/arm, 3 seeds)")
 
     frac_fully_compliant = []
     worst_episode = []
-    for arm in ARMS:
+    for arm in args.arms:
         vals = np.array(arm_episode_vals[arm])
         if vals.size == 0:
             frac_fully_compliant.append(float("nan"))
@@ -129,7 +131,7 @@ def main() -> None:
     ax_bot.bar(x + bar_width / 2, worst_episode, bar_width,
                color="#e34948", label="Worst episode (%)")
     ax_bot.set_xticks(x)
-    ax_bot.set_xticklabels([ARM_STYLE[a]["label"] for a in ARMS], rotation=30, ha="right")
+    ax_bot.set_xticklabels([ARM_STYLE[a]["label"] for a in args.arms], rotation=30, ha="right")
     ax_bot.set_ylabel("%")
     ax_bot.set_ylim(0, 105)
     ax_bot.legend(loc="lower left", frameon=False, fontsize=5.5)
@@ -141,8 +143,8 @@ def main() -> None:
     fig.savefig(out_path.with_suffix(".pdf"))
     fig.savefig(out_path.with_suffix(".png"))
     print(f"[fig2] wrote {out_path}.pdf / .png -- n_seeds per arm: {n_seeds_used}, "
-          f"episodes fully compliant: {dict(zip(ARMS, frac_fully_compliant))}, "
-          f"worst episode: {dict(zip(ARMS, worst_episode))}")
+          f"episodes fully compliant: {dict(zip(args.arms, frac_fully_compliant))}, "
+          f"worst episode: {dict(zip(args.arms, worst_episode))}")
 
 
 if __name__ == "__main__":

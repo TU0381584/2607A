@@ -1,47 +1,23 @@
-% T1: testbed + campaign parameters. All values fixed by design/calibration
-% (experiments/configs/saclb_campaign.yaml, traffic_profiles.yaml,
-% CAMPAIGN_LOG.md's calibration sections) -- no campaign data needed to
-% populate this table, but every number here must match those files
-% byte-for-byte if either is ever edited.
-\begin{table*}[t]
+% T1: testbed + campaign parameters, condensed for the 6-page conference
+% version (full detail -- E2 transport, SD hex codes -- lives in the
+% CAMPAIGN_LOG.md / configs, not needed here). Every number must still match
+% experiments/configs/saclb_campaign.yaml / traffic_profiles.yaml byte-for-byte.
+\begin{table}[t]
 \centering
 \caption{Testbed and campaign parameters}
 \label{tab:params}
-\begin{tabular}{@{}lp{11cm}@{}}
+\small
+\begin{tabular}{@{}lp{4.6cm}@{}}
 \toprule
 \textbf{Parameter} & \textbf{Value} \\
 \midrule
-\multicolumn{2}{@{}l}{\textit{RAN configuration}} \\
-gNB & OAI rfsim, ORANSlice fork (OAI 2024.w28 base) \\
-Bandwidth / numerology & 106 PRB / $\mu=1$ (30 kHz SCS), band 78 \\
-E2 control primitive & \texttt{slicing\_control\_m}\{sst,sd,min\_ratio,max\_ratio\} \\
-E2 transport & UDP 6655/6600, request/response (no SUBSCRIPTION) \\
-\midrule
-\multicolumn{2}{@{}l}{\textit{Slices (S-NSSAI)}} \\
-eMBB & SST=1, SD=0xFFFFFF \\
-URLLC & SST=1, SD=0x000001 \\
-mMTC & SST=1, SD=0x000002 \\
-\midrule
-\multicolumn{2}{@{}l}{\textit{Traffic profiles (per slice, fixed, never varied across arms)}} \\
-eMBB & sustained UDP, 4 Mbps, 1200 B packets \\
-URLLC & sustained UDP, 300 kbps, 100 B packets \\
-mMTC & bursty UDP, 50 kbps, 80 B packets, 2 s on / 6 s off \\
-\midrule
-\multicolumn{2}{@{}l}{\textit{Calibrated PRB ratio ceilings (empirically derived, \S IV)}} \\
-eMBB \texttt{max\_ratio\_cap} & 12 (organic demand $\approx$15 PRB mean) \\
-URLLC \texttt{max\_ratio\_cap} & 4 (organic demand $\approx$5 PRB floor) \\
-mMTC \texttt{max\_ratio\_cap} & 3 (organic demand $\approx$5 PRB floor) \\
-\midrule
-\multicolumn{2}{@{}l}{\textit{QoE reward (eq.~9) weights}} \\
-$\alpha$ (MOS) / $\beta$ (cost) / $\gamma$ (SLA viol.) & 1.0 / 0.2 / 0.5 \\
-\midrule
-\multicolumn{2}{@{}l}{\textit{Evaluation campaign}} \\
-Arms & baseline, DQN$_{\text{SLA}}$, A2C$_{\text{SLA}}$, DQN$_{\text{QoE}}$, A2C$_{\text{QoE}}$ \\
-Episode length & 60 steps $\times$ 5 s = 5 min \\
-Seeds (paired across arms) & 950, 951, 952 \\
-Episodes / arm / seed & 5 \\
-Total live episodes & 75 \\
-Offline training (per learned arm) & 300 episodes $\times$ 3 seeds (256, 257, 258) \\
+gNB / E2 primitive & OAI rfsim, 106 PRB, $\mu{=}1$; \texttt{slicing\_control\_m} ratio ceiling \\
+Slices & eMBB (4 Mbps), URLLC (300 kbps), mMTC (50 kbps bursty, 2\,s/6\,s) \\
+Ceilings (eMBB/URLLC/mMTC) & 12 / 4 / 3 (below each slice's measured organic demand) \\
+QoE weights $\alpha,\beta,\gamma$ & 1.0, 0.2, 0.5 (Eq.~\ref{eq:qoe}) \\
+Arms & baseline (static), DQN$_{\text{SLA}}$, DQN$_{\text{QoE}}$ \\
+Live episodes & 3 seeds $\times$ 5 ep./arm = 45 learned + 15 baseline \\
+Offline training & 300 ep. $\times$ 3 seeds/arm; frozen weights at live deployment \\
 \bottomrule
 \end{tabular}
-\end{table*}
+\end{table}

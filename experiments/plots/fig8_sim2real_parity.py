@@ -32,7 +32,7 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import ARM_STYLE, SLICE_ORDER, SLICE_STYLE, arm_run_dir, read_omega_log  # noqa: E402
 
-LEARNED_ARMS = ["dqn_sla", "a2c_sla", "dqn_qoe", "a2c_qoe"]
+LEARNED_ARMS = ["dqn_sla", "dqn_qoe"]
 ARM_REWARD_MODE = {"dqn_sla": "sla", "a2c_sla": "sla", "dqn_qoe": "qoe", "a2c_qoe": "qoe"}
 ARM_ALGO = {"dqn_sla": "dqn", "a2c_sla": "a2c", "dqn_qoe": "dqn", "a2c_qoe": "a2c"}
 SLICE_MARKER = {"embb": "o", "urllc": "^", "mmtc": "s"}
@@ -94,7 +94,8 @@ def main() -> None:
     # docstring / script stderr output) -- without jitter, 12 points collapse
     # onto 2 visible dots. Jitter is display-only; exact values are printed
     # below and belong in the caption/prose, not read off the plot.
-    jitter = {arm: (i - 1.5) * 1.6 for i, arm in enumerate(LEARNED_ARMS)}
+    n_arms = len(LEARNED_ARMS)
+    jitter = {arm: (i - (n_arms - 1) / 2) * 2.4 for i, arm in enumerate(LEARNED_ARMS)}
 
     rows_for_print = []
     for arm in LEARNED_ARMS:

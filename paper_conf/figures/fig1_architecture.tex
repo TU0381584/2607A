@@ -34,7 +34,7 @@
 \node[ue, below=0.35cm of ue2] (ue3) {UE3\\mMTC slice};
 
 % -- xApp / arms --
-\node[xapp, minimum width=3.4cm, below=1.6cm of e2] (xapp) {xApp / Orchestrator\\\footnotesize baseline (static ratio) \\ \footnotesize DQN$_{\text{SLA}}$, A2C$_{\text{SLA}}$ \\ \footnotesize DQN$_{\text{QoE}}$, A2C$_{\text{QoE}}$};
+\node[xapp, minimum width=3.4cm, below=1.6cm of e2] (xapp) {xApp / Orchestrator\\\footnotesize baseline (static ratio) \\ \footnotesize DQN$_{\text{SLA}}$ vs.\ DQN$_{\text{QoE}}$};
 
 % -- Connections --
 \draw[arrow] (amf.east) -- ++(0.5,0) coordinate (n2n3) -- (n2n3 |- gnbbox.west) node[midway, above, font=\scriptsize] {N2/N3} -- (gnbbox.west);
