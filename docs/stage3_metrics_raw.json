@@ -1,0 +1,390 @@
+{
+  "static_at_cap": {
+    "seeds_used": [
+      950,
+      951,
+      952
+    ],
+    "compliance_pct": {
+      "embb": 83.11111111111111,
+      "urllc": 73.44444444444444,
+      "mmtc": 73.88888888888889
+    },
+    "u_priority_weight": 77.30429292929293,
+    "u_violation_penalty": 76.63440860215053,
+    "severity": {
+      "embb": {
+        "median": 1.0,
+        "iqr": 2.350197814138255e-10,
+        "p90": 1.0,
+        "n": 900
+      },
+      "urllc": {
+        "median": 0.7,
+        "iqr": 150816.7,
+        "p90": 0.7,
+        "n": 900
+      },
+      "mmtc": {
+        "median": 0.7,
+        "iqr": 85.8,
+        "p90": 0.7,
+        "n": 900
+      }
+    },
+    "episodes_fully_compliant": 11,
+    "episodes_total": 15,
+    "episode_compliance_rows": [
+      {
+        "embb": 0.3333333333333333,
+        "urllc": 0.016666666666666666,
+        "mmtc": 0.05
+      },
+      {
+        "embb": 0.43333333333333335,
+        "urllc": 0.0,
+        "mmtc": 0.0
+      },
+      {
+        "embb": 1.0,
+        "urllc": 1.0,
+        "mmtc": 1.0
+      },
+      {
+        "embb": 1.0,
+        "urllc": 1.0,
+        "mmtc": 1.0
+      },
+      {
+        "embb": 1.0,
+        "urllc": 1.0,
+        "mmtc": 1.0
+      },
+      {
+        "embb": 1.0,
+        "urllc": 1.0,
+        "mmtc": 1.0
+      },
+      {
+        "embb": 1.0,
+        "urllc": 1.0,
+        "mmtc": 1.0
+      },
+      {
+        "embb": 1.0,
+        "urllc": 1.0,
+        "mmtc": 1.0
+      },
+      {
+        "embb": 1.0,
+        "urllc": 1.0,
+        "mmtc": 1.0
+      },
+      {
+        "embb": 1.0,
+        "urllc": 1.0,
+        "mmtc": 1.0
+      },
+      {
+        "embb": 0.36666666666666664,
+        "urllc": 0.0,
+        "mmtc": 0.03333333333333333
+      },
+      {
+        "embb": 0.3333333333333333,
+        "urllc": 0.0,
+        "mmtc": 0.0
+      },
+      {
+        "embb": 1.0,
+        "urllc": 1.0,
+        "mmtc": 1.0
+      },
+      {
+        "embb": 1.0,
+        "urllc": 1.0,
+        "mmtc": 1.0
+      },
+      {
+        "embb": 1.0,
+        "urllc": 1.0,
+        "mmtc": 1.0
+      }
+    ],
+    "fisher_vs_baseline": {
+      "table": [
+        [
+          11,
+          4
+        ],
+        [
+          11,
+          4
+        ]
+      ],
+      "odds_ratio": 1.0,
+      "p_value": 1.0
+    },
+    "fisher_vs_dqn_sla_original": {
+      "table": [
+        [
+          11,
+          4
+        ],
+        [
+          15,
+          0
+        ]
+      ],
+      "odds_ratio": 0.0,
+      "p_value": 0.09961685823754789
+    },
+    "fisher_vs_dqn_sla_combined": {
+      "table": [
+        [
+          11,
+          4
+        ],
+        [
+          25,
+          0
+        ]
+      ],
+      "odds_ratio": 0.0,
+      "p_value": 0.014935988620199148
+    }
+  },
+  "dqn_sla_reverify_fresh_seeds": {
+    "seeds_used": [
+      953,
+      954
+    ],
+    "compliance_pct": {
+      "embb": 100.0,
+      "urllc": 100.0,
+      "mmtc": 100.0
+    },
+    "u_priority_weight": 99.99999999999999,
+    "u_violation_penalty": 100.0,
+    "severity": {
+      "embb": {
+        "median": 1.0,
+        "iqr": 3.4416913763379853e-15,
+        "p90": 1.0,
+        "n": 600
+      },
+      "urllc": {
+        "median": 0.7,
+        "iqr": 0.0,
+        "p90": 0.9973394437693059,
+        "n": 600
+      },
+      "mmtc": {
+        "median": 0.7,
+        "iqr": 0.0,
+        "p90": 0.7,
+        "n": 600
+      }
+    },
+    "episodes_fully_compliant": 10,
+    "episodes_total": 10,
+    "episode_compliance_rows": [
+      {
+        "embb": 1.0,
+        "urllc": 1.0,
+        "mmtc": 1.0
+      },
+      {
+        "embb": 1.0,
+        "urllc": 1.0,
+        "mmtc": 1.0
+      },
+      {
+        "embb": 1.0,
+        "urllc": 1.0,
+        "mmtc": 1.0
+      },
+      {
+        "embb": 1.0,
+        "urllc": 1.0,
+        "mmtc": 1.0
+      },
+      {
+        "embb": 1.0,
+        "urllc": 1.0,
+        "mmtc": 1.0
+      },
+      {
+        "embb": 1.0,
+        "urllc": 1.0,
+        "mmtc": 1.0
+      },
+      {
+        "embb": 1.0,
+        "urllc": 1.0,
+        "mmtc": 1.0
+      },
+      {
+        "embb": 1.0,
+        "urllc": 1.0,
+        "mmtc": 1.0
+      },
+      {
+        "embb": 1.0,
+        "urllc": 1.0,
+        "mmtc": 1.0
+      },
+      {
+        "embb": 1.0,
+        "urllc": 1.0,
+        "mmtc": 1.0
+      }
+    ],
+    "fisher_vs_baseline": {
+      "table": [
+        [
+          10,
+          0
+        ],
+        [
+          11,
+          4
+        ]
+      ],
+      "odds_ratio": Infinity,
+      "p_value": 0.12450592885375493
+    }
+  },
+  "dqn_sla_combined": {
+    "seeds": [
+      950,
+      951,
+      952,
+      953,
+      954
+    ],
+    "episodes_fully_compliant": 25,
+    "episodes_total": 25
+  },
+  "baseline_reused_from_stage2": {
+    "compliance_pct": {
+      "embb": 73.66666666666667,
+      "urllc": 73.44444444444444,
+      "mmtc": 73.77777777777777
+    },
+    "u_priority_weight": 73.54419191919192,
+    "u_violation_penalty": 73.56989247311827,
+    "severity": {
+      "embb": {
+        "median": 0.7,
+        "iqr": 1002377.8999999999,
+        "p90": 0.7,
+        "n": 900
+      },
+      "urllc": {
+        "median": 0.7,
+        "iqr": 150783.2,
+        "p90": 0.7,
+        "n": 900
+      },
+      "mmtc": {
+        "median": 0.7,
+        "iqr": 99.0,
+        "p90": 0.7,
+        "n": 900
+      }
+    },
+    "episodes_fully_compliant": 11,
+    "episodes_total": 15
+  },
+  "dqn_sla_reused_from_stage2": {
+    "compliance_pct": {
+      "embb": 100.0,
+      "urllc": 100.0,
+      "mmtc": 100.0
+    },
+    "u_priority_weight": 99.99999999999999,
+    "u_violation_penalty": 100.0,
+    "severity": {
+      "embb": {
+        "median": 1.0,
+        "iqr": 9.811040868612508e-13,
+        "p90": 1.0,
+        "n": 900
+      },
+      "urllc": {
+        "median": 0.7,
+        "iqr": 0.0,
+        "p90": 0.9949936936609447,
+        "n": 900
+      },
+      "mmtc": {
+        "median": 0.7,
+        "iqr": 0.0,
+        "p90": 0.9999988433241275,
+        "n": 900
+      }
+    },
+    "episodes_fully_compliant": 15,
+    "episodes_total": 15,
+    "fisher_vs_baseline": {
+      "table": [
+        [
+          15,
+          0
+        ],
+        [
+          11,
+          4
+        ]
+      ],
+      "odds_ratio": Infinity,
+      "p_value": 0.09961685823754789
+    }
+  },
+  "dqn_qoe_reused_from_stage2": {
+    "compliance_pct": {
+      "embb": 100.0,
+      "urllc": 100.0,
+      "mmtc": 100.0
+    },
+    "u_priority_weight": 99.99999999999999,
+    "u_violation_penalty": 100.0,
+    "severity": {
+      "embb": {
+        "median": 1.0,
+        "iqr": 2.042810365310288e-14,
+        "p90": 1.0,
+        "n": 900
+      },
+      "urllc": {
+        "median": 0.7,
+        "iqr": 0.0,
+        "p90": 0.99635040294379,
+        "n": 900
+      },
+      "mmtc": {
+        "median": 0.7,
+        "iqr": 0.0,
+        "p90": 0.9999217450385913,
+        "n": 900
+      }
+    },
+    "episodes_fully_compliant": 15,
+    "episodes_total": 15,
+    "fisher_vs_baseline": {
+      "table": [
+        [
+          15,
+          0
+        ],
+        [
+          11,
+          4
+        ]
+      ],
+      "odds_ratio": Infinity,
+      "p_value": 0.09961685823754789
+    }
+  }
+}

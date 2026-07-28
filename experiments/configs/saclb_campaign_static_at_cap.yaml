@@ -1,0 +1,106 @@
+# Stage 3 addendum (paper #4 rework plan): the STATIC-AT-CAP arm -- a
+# trivial provisioning oracle, added to test whether DQN's converged
+# live-campaign behaviour ("ride the ceiling to its calibrated cap the
+# whole episode") is actually doing anything a fixed, non-adaptive
+# ratio wouldn't already do.
+#
+# Derived from saclb_campaign_baseline.yaml (itself derived from the
+# frozen qoe_oran_framework/configs/saclb_live.yaml -- see that file's
+# own header) with exactly ONE substantive change:
+#   nominal_ratio is set EQUAL TO max_ratio_cap for all 3 slices
+#   (embb 3->12, urllc 2->4, mmtc 2->3).
+# Mechanism: AdmissionGate.reset_ceilings() (frozen,
+# qoe_oran_framework/action_mapping.py:68-75) always initializes each
+# slice's ceiling to spec.nominal_ratio, never spec.max_ratio_cap
+# directly -- there is no config field that maps straight to "start at
+# cap." Setting nominal_ratio == max_ratio_cap is the only way to
+# realize "ceiling pinned at the calibrated cap for the whole episode"
+# through configuration alone, without touching frozen framework
+# source. Combined with arrivals.ceiling_step_ratio: 0 (also unchanged
+# from the baseline arm) so the ceiling can never move away from that
+# initial value regardless of the run_baseline_static.py
+# AlwaysAcceptPolicy's per-request decisions.
+#
+# This is run with the EXACT SAME entrypoint as the `baseline` arm
+# (experiments/scripts/run_baseline_static.py), just pointed at this
+# config -- no script or framework changes. The omega log's internal
+# `method` field will still read "baseline_static" (that string names
+# the REALIZATION mechanism -- AlwaysAcceptPolicy + frozen ceiling --
+# which is identical for both arms), but each row's `run_id` and this
+# config's own `name` field distinguish the arm; run_live_eval_arm.py's
+# `--arm static_at_cap` also puts this arm's output under its own
+# directory, never mixed with `baseline`'s.
+name: saclb_campaign_static_at_cap
+random_seed: 256
+paper_variant: paper2
+B: 100
+Lmax: 10
+
+gnbs:
+  - gnb_id: gnb-0
+    prb_capacity: 100
+
+slices:
+  - slice_id: embb
+    sst: 1
+    sd: 16777215  # 0xFFFFFF, the confirmed real "no-SD" sentinel on this gNB
+    nominal_ratio: 12   # == max_ratio_cap (was 3 in the baseline/campaign configs) -- pins the ceiling at cap
+    min_ratio_floor: 1
+    max_ratio_cap: 12
+    latency_budget_ms: 45
+    loss_budget_pct: 2.0
+    priority_weight: 3.5
+    accept_reward: 1.0
+    violation_penalty: 5.0
+  - slice_id: urllc
+    sst: 1
+    sd: 1  # confirmed real MAC slice id3 (sst=1, sd=0x000001)
+    nominal_ratio: 4    # == max_ratio_cap (was 2)
+    min_ratio_floor: 1
+    max_ratio_cap: 4
+    latency_budget_ms: 20
+    loss_budget_pct: 0.5
+    priority_weight: 5.0
+    accept_reward: 1.0
+    violation_penalty: 8.0
+  - slice_id: mmtc
+    sst: 1
+    sd: 2
+    nominal_ratio: 3    # == max_ratio_cap (was 2)
+    min_ratio_floor: 1
+    max_ratio_cap: 3
+    latency_budget_ms: 65
+    loss_budget_pct: 3.5
+    priority_weight: 0.3
+    accept_reward: 1.0
+    violation_penalty: 2.5
+
+reward:
+  congestion_coeff: 1.5
+  lb_coeff: 1.0
+
+arrivals:
+  synthetic_arrivals_per_step: 2
+  max_pending_per_step: 8
+  ceiling_step_ratio: 0    # unchanged from saclb_campaign_baseline.yaml -- ceiling can never move
+
+episode:
+  step_seconds: 5.0
+  steps_per_episode: 60
+
+qoe:
+  reward:
+    alpha: 1.0
+    beta: 0.2
+    gamma: 0.5
+  lstm_hidden: 32
+  window: 8
+  max_staleness: 20
+  mapper_checkpoint:
+    urllc: qoe_oran_framework/results/qoe_mapper/qoe_mapper_urllc.pt
+    embb: qoe_oran_framework/results/qoe_mapper/qoe_mapper_embb.pt
+    mmtc: qoe_oran_framework/results/qoe_mapper/qoe_mapper_mmtc.pt
+  iqx_coeffs:
+    urllc: {alpha: 5.167748, beta: 9.999999, gamma: 44.904893, delta: 199.999999, epsilon: 0.000000}
+    embb:  {alpha: 3.522951, beta: 0.425081, gamma: 0.000000, delta: 0.000000, epsilon: 199.999999}
+    mmtc:  {alpha: 5.999999, beta: 9.999999, gamma: 0.000000, delta: 7.944624, epsilon: 0.000000}
