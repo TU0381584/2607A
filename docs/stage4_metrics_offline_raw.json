@@ -1,0 +1,36 @@
+{
+  "state_dim": 13,
+  "device": "cpu",
+  "n_warmup": 50,
+  "n_timed": 2000,
+  "arms": {
+    "dqn_sla": {
+      "checkpoint_path": "/home/kmanojp/oranslice_rig/experiments/results/offline/sla/seed256/dqn/offline_closed_loop/rep_0/checkpoint.pt",
+      "checkpoint_bytes": 306741,
+      "n_params": 18562,
+      "inference_latency_us": {
+        "n": 2000,
+        "mean_us": 70.21417697978904,
+        "median_us": 67.89500002923887,
+        "p90_us": 73.05979997909162,
+        "p99_us": 114.99840125907212,
+        "min_us": 66.03600013477262,
+        "max_us": 146.64599984826054
+      }
+    },
+    "dqn_qoe": {
+      "checkpoint_path": "/home/kmanojp/oranslice_rig/experiments/results/offline/qoe/seed256/dqn/offline_closed_loop/rep_0/checkpoint.pt",
+      "checkpoint_bytes": 306741,
+      "n_params": 18562,
+      "inference_latency_us": {
+        "n": 2000,
+        "mean_us": 75.38906000627321,
+        "median_us": 68.33249972260091,
+        "p90_us": 89.30920012062415,
+        "p99_us": 108.92298052567638,
+        "min_us": 66.16800055780914,
+        "max_us": 377.5299992412329
+      }
+    }
+  }
+}
