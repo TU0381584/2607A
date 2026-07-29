@@ -1,0 +1,28 @@
+% T: engineering instrumentation (Stage 4). All values measured directly
+% -- E2 latency live against the real gNB E2 agent
+% (experiments/scripts/measure_e2_latency.py), inference/footprint offline
+% on the real deployment device (CPU) with the real checkpoints
+% (experiments/scripts/metrics_stage4_offline.py), cadence from the real
+% per-step control loop (profile_run_single_overhead.py). See
+% docs/STAGE4_instrumentation.md for full raw data and the naive-estimate
+% artifact this corrects.
+\begin{table}[t]
+\centering
+\caption{Engineering instrumentation, measured directly (not assumed)}
+\label{tab:engineering}
+\small
+\begin{tabular}{@{}p{0.56\linewidth}r@{}}
+\toprule
+Metric & Value \\
+\midrule
+E2 \texttt{poll()} round trip, median (p99) & 0.566 (1.773)\,ms \\
+E2 \texttt{send\_control()}, median\textsuperscript{$\ast$} & 0.168\,ms \\
+DQN inference, median (p99), CPU & 68 (115)\,$\mu$s \\
+Checkpoint size / parameters & 307\,KB / 18,562 \\
+Control-loop cadence, configured & 5.000\,s \\
+Control-loop cadence, measured (direct) & 5.0007\,s \\
+\bottomrule
+\end{tabular}
+\\[2pt]
+\raggedright\footnotesize\textsuperscript{$\ast$}Not a round trip: this OAI E2 agent returns no response to CONTROL messages (fire-and-forget); value is send-call overhead only.
+\end{table}
