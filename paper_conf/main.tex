@@ -135,16 +135,17 @@ systematic review~\cite{survey-paper3}.}
 We deploy a real OAI gNB (ORANSlice fork \cite{oranslice}) with a
 simulated radio channel (rfsim), an Open5GS core, and three
 \texttt{nr-uesoftmodem} user equipment (UE), one per slice. The gNB
-has a nominal capacity of 100 Physical Resource Blocks (PRBs). Unlike
-our earlier simulated work, the real O-RAN E2 interface does not
-expose a binary accept/reject action; its only control primitive is
-a per-slice PRB ratio ceiling, enforced by the MAC scheduler
-\cite{oran-e2ap}. We therefore realise the admission decision as a
-ceiling adjustment: an accept decision raises a slice's ceiling
-toward a calibrated maximum, and a reject decision lowers it toward a
-floor. Ceiling values were calibrated by direct measurement on the
-live rig rather than assumed, since the ratio scale does not map
-linearly onto real PRBs at this cell's configuration. The static
+has a nominal capacity of 106 Physical Resource Blocks (PRBs, $\mu=1$
+numerology). Unlike our earlier simulated work, the real O-RAN E2
+interface does not expose a binary accept/reject action; its only
+control primitive is a per-slice ratio ceiling on a 0--100 scale,
+enforced by the MAC scheduler \cite{oran-e2ap}. We therefore realise
+the admission decision as a ceiling adjustment: an accept decision
+raises a slice's ceiling toward a calibrated maximum, and a reject
+decision lowers it toward a floor. Ceiling values were calibrated by
+direct measurement on the live rig rather than assumed, since the
+0--100 ratio scale does not map linearly onto real PRBs at this
+cell's configuration. The static
 baseline holds its ceiling fixed for the whole episode; a second
 static arm, \emph{static-at-cap}, instead pins every slice's ceiling
 at its calibrated maximum from the start, isolating whether a more
@@ -161,7 +162,8 @@ s_t = \left(\frac{U_s(t)}{B}, \; C_t, \; \frac{L_s(t)}{L_{\max}} \;\forall s \in
 \end{equation}
 where $U_s(t)$ is the resource allocation of slice $s \in
 \mathcal{S}=\{\text{eMBB},\text{URLLC},\text{mMTC}\}$, $B$ is the
-total available PRBs, $C_t$ is the current congestion level, and
+total resource budget on the ceiling's normalised 0--100 scale, $C_t$
+is the current congestion level, and
 $L_s(t)$ is slice $s$'s queue length, normalised by its maximum
 capacity $L_{\max}$. The agent's action at each step is the ceiling
 adjustment described above. The reward function is
