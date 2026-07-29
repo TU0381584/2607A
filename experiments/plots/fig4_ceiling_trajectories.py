@@ -6,7 +6,7 @@ step==-1, are skipped; only step>=1 records carry a ceiling snapshot).
 
 Usage:
     python3 experiments/plots/fig4_ceiling_trajectories.py \
-        --live-root experiments/results/live --seed 256 \
+        --live-root experiments/results/live_campaign --seed 950 \
         --best-arm dqn_qoe --episode 1 \
         --out experiments/plots/out/fig4_ceiling_trajectories
 """
@@ -66,8 +66,8 @@ def load_episode_ceilings(omega_path: Path, episode: int, run_id: str = None) ->
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--live-root", default="experiments/results/live")
-    ap.add_argument("--seed", type=int, default=256)
+    ap.add_argument("--live-root", default="experiments/results/live_campaign")
+    ap.add_argument("--seed", type=int, default=950)
     ap.add_argument("--best-arm", required=True, help="e.g. dqn_qoe -- chosen after inspecting Phase 3 results")
     ap.add_argument("--episode", type=int, default=1)
     ap.add_argument("--out", default="experiments/plots/out/fig4_ceiling_trajectories")
