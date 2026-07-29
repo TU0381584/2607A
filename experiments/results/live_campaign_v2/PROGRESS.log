@@ -1,0 +1,17 @@
+DONE arm=baseline seed=950 elapsed_s=614 rotation_idx=0 ts=2026-07-29T16:10:42+08:00
+DONE arm=dqn_sla seed=950 elapsed_s=707 rotation_idx=0 ts=2026-07-29T16:23:06+08:00
+DONE arm=dqn_qoe seed=950 elapsed_s=611 rotation_idx=0 ts=2026-07-29T16:33:52+08:00
+DONE arm=static_at_cap seed=950 elapsed_s=608 rotation_idx=0 ts=2026-07-29T16:44:35+08:00
+DONE arm=dqn_sla seed=951 elapsed_s=613 rotation_idx=1 ts=2026-07-29T16:55:23+08:00
+DONE arm=dqn_qoe seed=951 elapsed_s=612 rotation_idx=1 ts=2026-07-29T17:06:10+08:00
+DONE arm=static_at_cap seed=951 elapsed_s=607 rotation_idx=1 ts=2026-07-29T17:16:52+08:00
+DONE arm=baseline seed=951 elapsed_s=608 rotation_idx=1 ts=2026-07-29T17:27:35+08:00
+DONE arm=dqn_qoe seed=952 elapsed_s=612 rotation_idx=2 ts=2026-07-29T17:38:22+08:00
+DONE arm=static_at_cap seed=952 elapsed_s=608 rotation_idx=2 ts=2026-07-29T17:49:05+08:00
+DONE arm=baseline seed=952 elapsed_s=608 rotation_idx=2 ts=2026-07-29T17:59:48+08:00
+DONE arm=dqn_sla seed=952 elapsed_s=612 rotation_idx=2 ts=2026-07-29T18:10:35+08:00
+DONE arm=static_at_cap seed=953 elapsed_s=1715 ts=2026-07-29T19:18:02+08:00
+DONE arm=static_at_cap seed=954 elapsed_s=1714 ts=2026-07-29T19:47:12+08:00
+DONE arm=static_at_cap seed=955 elapsed_s=1713 ts=2026-07-29T20:16:20+08:00
+DONE arm=dqn_sla seed=953 elapsed_s=1727 ts=2026-07-29T20:45:42+08:00
+DONE arm=dqn_sla seed=954 elapsed_s=1735 ts=2026-07-29T21:15:12+08:00

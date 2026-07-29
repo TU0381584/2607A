@@ -1,0 +1,227 @@
+{
+  "baseline": {
+    "seeds_used": [
+      950,
+      951,
+      952
+    ],
+    "compliance_pct": {
+      "embb": 66.94444444444444,
+      "urllc": 66.94444444444444,
+      "mmtc": 67.22222222222223
+    },
+    "u_priority_weight": 66.95391414141413,
+    "u_violation_penalty": 66.98924731182795,
+    "mean_mos_by_slice": {
+      "embb": 1.911733783947097,
+      "urllc": 3.381896091832055,
+      "mmtc": 4.728445623980628
+    },
+    "severity": {
+      "embb": {
+        "median": 0.7,
+        "iqr": 1002378.2,
+        "p90": 0.7,
+        "n": 360
+      },
+      "urllc": {
+        "median": 0.7,
+        "iqr": 709872.0,
+        "p90": 1.0,
+        "n": 360
+      },
+      "mmtc": {
+        "median": 0.9999999999999984,
+        "iqr": 143.85,
+        "p90": 1.0,
+        "n": 360
+      }
+    },
+    "episodes_fully_compliant": 4,
+    "episodes_total": 6
+  },
+  "dqn_sla": {
+    "seeds_used": [
+      950,
+      951,
+      952,
+      953,
+      954
+    ],
+    "compliance_pct": {
+      "embb": 100.0,
+      "urllc": 100.0,
+      "mmtc": 100.0
+    },
+    "u_priority_weight": 99.99999999999999,
+    "u_violation_penalty": 100.0,
+    "mean_mos_by_slice": {
+      "embb": 2.1711353374024234,
+      "urllc": 3.766504166771968,
+      "mmtc": 4.81134862502416
+    },
+    "severity": {
+      "embb": {
+        "median": 0.7,
+        "iqr": 0.0,
+        "p90": 0.9999998705238241,
+        "n": 960
+      },
+      "urllc": {
+        "median": 0.7,
+        "iqr": 0.0,
+        "p90": 1.0,
+        "n": 960
+      },
+      "mmtc": {
+        "median": 0.7,
+        "iqr": 0.2999993340697009,
+        "p90": 1.0,
+        "n": 960
+      }
+    },
+    "episodes_fully_compliant": 16,
+    "episodes_total": 16,
+    "fisher_vs_baseline": {
+      "table": [
+        [
+          16,
+          0
+        ],
+        [
+          4,
+          2
+        ]
+      ],
+      "odds_ratio": Infinity,
+      "p_value": 0.06493506493506494
+    },
+    "fisher_vs_static_at_cap": {
+      "table": [
+        [
+          16,
+          0
+        ],
+        [
+          19,
+          2
+        ]
+      ],
+      "odds_ratio": Infinity,
+      "p_value": 0.4954954954954955
+    }
+  },
+  "dqn_qoe": {
+    "seeds_used": [
+      950,
+      951,
+      952
+    ],
+    "compliance_pct": {
+      "embb": 100.0,
+      "urllc": 100.0,
+      "mmtc": 100.0
+    },
+    "u_priority_weight": 99.99999999999999,
+    "u_violation_penalty": 100.0,
+    "mean_mos_by_slice": {
+      "embb": 2.1712756805949742,
+      "urllc": 4.721719714005788,
+      "mmtc": 4.904605719778273
+    },
+    "severity": {
+      "embb": {
+        "median": 1.0,
+        "iqr": 1.1102230246251565e-16,
+        "p90": 1.0,
+        "n": 360
+      },
+      "urllc": {
+        "median": 0.9999999997849401,
+        "iqr": 5.993801096115803e-05,
+        "p90": 0.9999999999999978,
+        "n": 360
+      },
+      "mmtc": {
+        "median": 0.9999999999969745,
+        "iqr": 6.830054449791234e-07,
+        "p90": 1.0,
+        "n": 360
+      }
+    },
+    "episodes_fully_compliant": 6,
+    "episodes_total": 6,
+    "fisher_vs_baseline": {
+      "table": [
+        [
+          6,
+          0
+        ],
+        [
+          4,
+          2
+        ]
+      ],
+      "odds_ratio": Infinity,
+      "p_value": 0.4545454545454546
+    }
+  },
+  "static_at_cap": {
+    "seeds_used": [
+      950,
+      951,
+      952,
+      953,
+      954,
+      955
+    ],
+    "compliance_pct": {
+      "embb": 94.36507936507937,
+      "urllc": 90.47619047619048,
+      "mmtc": 90.55555555555556
+    },
+    "u_priority_weight": 92.02561327561327,
+    "u_violation_penalty": 91.74347158218127,
+    "mean_mos_by_slice": {
+      "embb": 2.236232165873997,
+      "urllc": 3.543288252467201,
+      "mmtc": 4.767966260228838
+    },
+    "severity": {
+      "embb": {
+        "median": 1.0,
+        "iqr": 6.661338147750939e-16,
+        "p90": 1.0,
+        "n": 1260
+      },
+      "urllc": {
+        "median": 0.7,
+        "iqr": 0.29999890625224457,
+        "p90": 0.9999999999956396,
+        "n": 1260
+      },
+      "mmtc": {
+        "median": 0.7,
+        "iqr": 0.29999691821488217,
+        "p90": 0.9999999999999386,
+        "n": 1260
+      }
+    },
+    "episodes_fully_compliant": 19,
+    "episodes_total": 21,
+    "fisher_vs_baseline": {
+      "table": [
+        [
+          19,
+          2
+        ],
+        [
+          4,
+          2
+        ]
+      ],
+      "odds_ratio": 4.75,
+      "p_value": 0.2042735042735043
+    }
+  }
+}

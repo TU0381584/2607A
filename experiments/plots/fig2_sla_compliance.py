@@ -37,7 +37,7 @@ from common import ARM_STYLE, ARMS, SLICE_ORDER, arm_run_dir, read_omega_log  # 
 
 ARM_REWARD_MODE = {
     "baseline": "sla", "dqn_sla": "sla", "a2c_sla": "sla",
-    "dqn_qoe": "qoe", "a2c_qoe": "qoe",
+    "dqn_qoe": "qoe", "a2c_qoe": "qoe", "static_at_cap": "sla",
 }
 
 FULLY_COMPLIANT_THRESHOLD = 99.995  # % , tolerant of float roundoff at exactly 100.0
@@ -112,7 +112,10 @@ def main() -> None:
     ax_top.set_xticklabels([ARM_STYLE[a]["label"] for a in args.arms], rotation=30, ha="right")
     ax_top.set_ylabel("Per-episode SLA\ncompliance (%)")
     ax_top.set_ylim(-5, 105)
-    ax_top.set_title("Per-episode SLA compliance by arm (n=15 episodes/arm, 3 seeds)")
+    n_eps_seen = {len(v) for v in arm_episode_vals.values() if v}
+    n_eps_label = str(next(iter(n_eps_seen))) if len(n_eps_seen) == 1 else "varies"
+    ax_top.set_title(f"Per-episode SLA compliance by arm (n={n_eps_label} episodes/arm, "
+                      f"seeds={args.seeds})", fontsize=6.5)
 
     frac_fully_compliant = []
     worst_episode = []

@@ -55,6 +55,7 @@ ARM_STYLE: Dict[str, dict] = {
     "a2c_sla":  {"color": "#e87ba4", "marker": "^", "linestyle": ":",  "label": "A2C (SLA reward)"},
     "dqn_qoe":  {"color": "#eda100", "marker": "D", "linestyle": "-.", "label": "DQN (QoE reward)"},
     "a2c_qoe":  {"color": "#1baf7a", "marker": "v", "linestyle": (0, (3, 1, 1, 1)), "label": "A2C (QoE reward)"},
+    "static_at_cap": {"color": "#7a5cd6", "marker": "P", "linestyle": (0, (5, 1)), "label": "static-at-cap (oracle)"},
 }
 
 SLICE_ORDER: List[str] = ["embb", "urllc", "mmtc"]

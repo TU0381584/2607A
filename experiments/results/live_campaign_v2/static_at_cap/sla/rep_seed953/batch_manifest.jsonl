@@ -1,0 +1,3 @@
+{"batch_index": 0, "run_id": "static_at_cap_sla_seed953_batch0", "batch_seed": 953000, "episodes_requested": 2, "wall_clock_start": 1785322171.2833908, "elapsed_s": 606.2711577415466, "returncode": 0}
+{"batch_index": 1, "run_id": "static_at_cap_sla_seed953_batch1", "batch_seed": 953001, "episodes_requested": 2, "wall_clock_start": 1785322874.4270017, "elapsed_s": 605.2242577075958, "returncode": 0}
+{"batch_index": 2, "run_id": "static_at_cap_sla_seed953_batch2", "batch_seed": 953002, "episodes_requested": 1, "wall_clock_start": 1785323577.5367005, "elapsed_s": 305.32205963134766, "returncode": 0}

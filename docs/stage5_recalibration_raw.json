@@ -1,0 +1,105 @@
+{
+  "real_thresholds_from_campaign_config": {
+    "embb": {
+      "latency_budget_s": 0.045,
+      "loss_budget": 0.02
+    },
+    "urllc": {
+      "latency_budget_s": 0.02,
+      "loss_budget": 0.005
+    },
+    "mmtc": {
+      "latency_budget_s": 0.065,
+      "loss_budget": 0.035
+    }
+  },
+  "fits": {
+    "embb": {
+      "coeffs": {
+        "alpha": 5.733636472628272,
+        "beta": 1.4236267102501714,
+        "gamma": 0.13608280546298956,
+        "delta": 3.0493240242152496e-13,
+        "epsilon": 0.5101341519701991
+      },
+      "mae_train": 0.14433635277898024,
+      "mae_test": 0.12199470485489936,
+      "pearson_r_test": 0.9870077033558498,
+      "n_train": 300,
+      "n_test": 100,
+      "real_threshold_used": {
+        "latency_budget_s": 0.045,
+        "loss_budget": 0.02
+      }
+    },
+    "urllc": {
+      "coeffs": {
+        "alpha": 5.999999999999999,
+        "beta": 9.999999999991196,
+        "gamma": 14.038857437603232,
+        "delta": 61.07335533313723,
+        "epsilon": 9.281862392213389e-38
+      },
+      "mae_train": 0.11127700344125074,
+      "mae_test": 0.15421873931933353,
+      "pearson_r_test": 0.86307088216451,
+      "n_train": 300,
+      "n_test": 100,
+      "real_threshold_used": {
+        "latency_budget_s": 0.02,
+        "loss_budget": 0.005
+      }
+    },
+    "mmtc": {
+      "coeffs": {
+        "alpha": 5.999999999999999,
+        "beta": 9.999999999999998,
+        "gamma": 1.0239451195563005e-13,
+        "delta": 11.420383438640371,
+        "epsilon": 5.124456389714996e-17
+      },
+      "mae_train": 0.17074827146618668,
+      "mae_test": 0.14501619802846655,
+      "pearson_r_test": 0.9775765048711749,
+      "n_train": 300,
+      "n_test": 100,
+      "real_threshold_used": {
+        "latency_budget_s": 0.065,
+        "loss_budget": 0.035
+      }
+    }
+  },
+  "sanity_check_real_ratios": {
+    "embb": [
+      {
+        "ratio": 0.05,
+        "old_mos": 1.0,
+        "new_mos": 2.293936089148782
+      },
+      {
+        "ratio": 0.15,
+        "old_mos": 1.0,
+        "new_mos": 3.624095336381449
+      },
+      {
+        "ratio": 0.24,
+        "old_mos": 1.0,
+        "new_mos": 4.111252772173748
+      }
+    ],
+    "urllc": [
+      {
+        "ratio": 0.05,
+        "old_mos": 5.0,
+        "new_mos": 5.0
+      }
+    ],
+    "mmtc": [
+      {
+        "ratio": 0.05,
+        "old_mos": 5.0,
+        "new_mos": 5.0
+      }
+    ]
+  }
+}

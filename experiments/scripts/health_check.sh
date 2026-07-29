@@ -26,8 +26,16 @@ if ! sudo ip netns exec ue3ns ping -I oaitun_ue1 -c2 -W2 8.8.8.8 >/dev/null 2>&1
   ok=0
 fi
 
-if sudo dmesg | tail -200 | grep -qiE "segfault|general protection"; then
-  echo "[health] FAIL: segfault signature in recent dmesg"
+# Restricted to RAN process names specifically (2026-07-29 fix): the
+# unrestricted "segfault|general protection" match also fires on
+# unrelated host processes -- confirmed directly via dmesg during Stage 5
+# ("iperf3[...]: segfault ... in libiperf.so", a traffic-generator client
+# crash, not a RAN process) -- which then falsely marks the rig
+# unhealthy and burns restart attempts that can never fix a non-RAN
+# crash. Only a segfault naming nr-softmodem/nr-uesoftmodem indicates a
+# genuine RAN-stack problem this check should act on.
+if sudo dmesg | tail -200 | grep -iE "segfault|general protection" | grep -qiE "nr-softmodem|nr-uesoftmodem"; then
+  echo "[health] FAIL: segfault signature in recent dmesg (RAN process)"
   ok=0
 fi
 

@@ -1,0 +1,127 @@
+# STAGE 5 RECALIBRATION (v2): iqx_coeffs below are corrected, not the
+# original values. Two bugs fixed (see docs/STAGE5_recalibration.md and
+# experiments/scripts/recalibrate_iqx.py for full evidence):
+#   1. eMBB's coefficients were fit assuming "throughput" is an absolute
+#      PRB/UE count in [0.05, 5.0] (units.py's prb_to_kbps semantics), but
+#      the frozen env.py actually feeds prb_used_ratio (prb_sum/B=100) --
+#      for eMBB's real ~15 PRB demand, that's ~0.15, a value the OLD
+#      calibration interpreted as an almost-starved connection. Old
+#      coefficients pinned eMBB's MOS at the floor (1.0) for EVERY real
+#      observed ratio (0.05/0.15/0.24 all gave 1.000); corrected
+#      coefficients give 2.29/3.62/4.11 respectively -- a real, monotonic
+#      response to load.
+#   2. URLLC/mMTC's calibration scored objective MOS labels against
+#      acr_scoring.py's GENERIC default deadlines (5ms/1000ms), not this
+#      campaign's REAL configured per-slice SLA thresholds (20ms/65ms) --
+#      URLLC's old coefficients gave MOS=1.000 (total failure) AT its own
+#      real 20ms deadline; corrected coefficients give 3.525 (a sensible
+#      borderline value) at that same point.
+# Original (v1) coefficients are preserved unchanged in the non-"_v2"
+# sibling of this file for reproducibility of every previously-reported
+# number.
+
+# Offline training config for this campaign's 4 learned arms
+# (dqn_sla/a2c_sla/dqn_qoe/a2c_qoe), used with
+# framework/qoe_oran_framework/scripts/train_offline.py (ClosedLoopKpmSource,
+# synthetic but closed-loop demand -- see that script's own docstring for why
+# closed_loop, not open_loop, is the only source whose numbers are
+# meaningful).
+#
+# CRITICAL INVARIANT: the `slices:` list below is in the EXACT SAME ORDER
+# (embb, urllc, mmtc) as experiments/configs/saclb_campaign.yaml (the live
+# evaluation config). encode_state()/encode_request_context() in env.py
+# iterate cfg.slices in file order to build the network's input vector --
+# if this order ever differs between the offline-training config and the
+# live-eval config, state_dim would still match (both have 3 slices) but
+# each input position would mean a DIFFERENT slice between training and
+# evaluation, silently producing garbage decisions with no error raised.
+# Keep this order identical to saclb_campaign.yaml if either file is ever
+# edited.
+#
+# max_ratio_cap values here are DELIBERATELY DIFFERENT from
+# saclb_campaign.yaml's (12/4/3): those were calibrated against the live
+# rig's REAL measured demand; these are calibrated against
+# ClosedLoopKpmSource's synthetic demand model instead (train_offline.py's
+# OVERSUBSCRIPTION_FACTOR=1.25 x nominal_ratio/100 -- see that script). Pinned
+# at nominal_ratio (zero elastic headroom) so they stay permanently below the
+# 1.25x-oversubscribed synthetic demand, exactly the same calibration
+# philosophy as the prior campaign's saclb_offline_live1gnb.yaml. Only
+# max_ratio_cap differs from the live config; every reward-shape parameter
+# (Lmax, congestion_coeff, priority_weight, violation_penalty, latency/loss
+# budgets) is IDENTICAL to saclb_campaign.yaml on purpose -- a policy must be
+# evaluated under the same reward/MDP shape it was trained under, or the
+# comparison is methodologically invalid.
+name: saclb_offline_campaign
+random_seed: 256
+paper_variant: paper2
+B: 100
+Lmax: 10
+
+gnbs:
+  - gnb_id: gnb-0
+    prb_capacity: 100
+
+slices:
+  - slice_id: embb
+    sst: 1
+    sd: 16777215
+    nominal_ratio: 3
+    min_ratio_floor: 1
+    max_ratio_cap: 3   # < 3.75 (1.25x nominal), pinned at nominal_ratio per the oversubscription philosophy above
+    latency_budget_ms: 45
+    loss_budget_pct: 2.0
+    priority_weight: 3.5
+    accept_reward: 1.0
+    violation_penalty: 5.0
+  - slice_id: urllc
+    sst: 1
+    sd: 1
+    nominal_ratio: 2
+    min_ratio_floor: 1
+    max_ratio_cap: 2   # < 2.5 (1.25x nominal)
+    latency_budget_ms: 20
+    loss_budget_pct: 0.5
+    priority_weight: 5.0
+    accept_reward: 1.0
+    violation_penalty: 8.0
+  - slice_id: mmtc
+    sst: 1
+    sd: 2
+    nominal_ratio: 2
+    min_ratio_floor: 1
+    max_ratio_cap: 2   # < 2.5 (1.25x nominal)
+    latency_budget_ms: 65
+    loss_budget_pct: 3.5
+    priority_weight: 0.3
+    accept_reward: 1.0
+    violation_penalty: 2.5
+
+reward:
+  congestion_coeff: 1.5
+  lb_coeff: 1.0
+
+arrivals:
+  synthetic_arrivals_per_step: 2
+  max_pending_per_step: 8
+  ceiling_step_ratio: 1
+
+episode:
+  step_seconds: 5.0
+  steps_per_episode: 60
+
+qoe:
+  reward:
+    alpha: 1.0
+    beta: 0.2
+    gamma: 0.5
+  lstm_hidden: 32
+  window: 8
+  max_staleness: 20
+  mapper_checkpoint:
+    urllc: qoe_oran_framework/results/qoe_mapper/qoe_mapper_urllc.pt
+    embb: qoe_oran_framework/results/qoe_mapper/qoe_mapper_embb.pt
+    mmtc: qoe_oran_framework/results/qoe_mapper/qoe_mapper_mmtc.pt
+  iqx_coeffs:
+    urllc: {alpha: 6.000000, beta: 10.000000, gamma: 14.038857, delta: 61.073355, epsilon: 0.000000}
+    embb:  {alpha: 5.733636, beta: 1.423627, gamma: 0.136083, delta: 0.000000, epsilon: 0.510134}
+    mmtc:  {alpha: 6.000000, beta: 10.000000, gamma: 0.000000, delta: 11.420383, epsilon: 0.000000}
