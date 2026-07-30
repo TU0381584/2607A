@@ -147,6 +147,28 @@ immediately after this stage's commit, without further confirmation:
   a null result that could still reflect insufficient power rather than
   a genuinely identical true rate).
 
+**Operational note, added after launch:** both scripts were initially
+launched concurrently. Within minutes, the rig's free memory dropped to
+~140MB (from an already-tight ~200-400MB baseline) and the live
+reverify's own health check failed (all 3 UEs unreachable) mid-batch --
+consistent with this project's own documented finding that this rig
+runs at a very tight memory margin even under normal single-workload
+live operation, and that adding a second CPU/RAM-heavy job (offline
+DQN training) pushes it over the edge. The orchestrator's built-in
+`ensure_healthy()`/`restart_ran_stack.sh` retry logic caught this and
+recovered automatically (confirmed: `baseline` seed=956 completed
+5/5 episodes after one automatic restart) -- but running both jobs
+concurrently is clearly a real stability risk to the 10h live run,
+which is the harder-to-redo and higher-priority of the two given the
+open statistical question it exists to answer. **Decision (made
+without further user confirmation, per this stage's standing
+instruction): killed the offline reverify job immediately, will
+restart it sequentially after the 10h live run completes rather than
+concurrently.** This delays the offline reverify's own completion time
+past its original ~3h estimate (it will now start after the ~10h live
+run finishes), but protects the live run, which cannot be cheaply
+re-run if it fails partway through an unattended overnight session.
+
 Results and any further manuscript revision from these two runs will be
 recorded in a follow-on update to this document once they complete.
 
