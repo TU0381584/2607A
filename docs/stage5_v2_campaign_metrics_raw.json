@@ -3,42 +3,45 @@
     "seeds_used": [
       950,
       951,
-      952
+      952,
+      953,
+      954,
+      955
     ],
     "compliance_pct": {
-      "embb": 66.94444444444444,
-      "urllc": 66.94444444444444,
-      "mmtc": 67.22222222222223
+      "embb": 90.55555555555556,
+      "urllc": 90.55555555555556,
+      "mmtc": 90.63492063492063
     },
-    "u_priority_weight": 66.95391414141413,
-    "u_violation_penalty": 66.98924731182795,
+    "u_priority_weight": 90.55826118326118,
+    "u_violation_penalty": 90.56835637480799,
     "mean_mos_by_slice": {
-      "embb": 1.911733783947097,
-      "urllc": 3.381896091832055,
-      "mmtc": 4.728445623980628
+      "embb": 2.0970192779624273,
+      "urllc": 3.3966278674110533,
+      "mmtc": 4.760815022862147
     },
     "severity": {
       "embb": {
         "median": 0.7,
-        "iqr": 1002378.2,
-        "p90": 0.7,
-        "n": 360
+        "iqr": 0.0,
+        "p90": 0.9999998822943894,
+        "n": 1260
       },
       "urllc": {
         "median": 0.7,
-        "iqr": 709872.0,
-        "p90": 1.0,
-        "n": 360
+        "iqr": 0.0,
+        "p90": 0.9999999999998337,
+        "n": 1260
       },
       "mmtc": {
-        "median": 0.9999999999999984,
-        "iqr": 143.85,
-        "p90": 1.0,
-        "n": 360
+        "median": 0.7,
+        "iqr": 0.2999989254482509,
+        "p90": 0.9999999999999984,
+        "n": 1260
       }
     },
-    "episodes_fully_compliant": 4,
-    "episodes_total": 6
+    "episodes_fully_compliant": 19,
+    "episodes_total": 21
   },
   "dqn_sla": {
     "seeds_used": [
@@ -46,7 +49,80 @@
       951,
       952,
       953,
-      954
+      954,
+      955
+    ],
+    "compliance_pct": {
+      "embb": 92.61904761904762,
+      "urllc": 90.47619047619048,
+      "mmtc": 90.7936507936508
+    },
+    "u_priority_weight": 91.33928571428571,
+    "u_violation_penalty": 91.21863799283155,
+    "mean_mos_by_slice": {
+      "embb": 2.2023981003534225,
+      "urllc": 3.456620596514808,
+      "mmtc": 4.755392004573156
+    },
+    "severity": {
+      "embb": {
+        "median": 0.7,
+        "iqr": 0.0,
+        "p90": 0.9999999474243388,
+        "n": 1260
+      },
+      "urllc": {
+        "median": 0.7,
+        "iqr": 0.0,
+        "p90": 0.9999999820371812,
+        "n": 1260
+      },
+      "mmtc": {
+        "median": 0.7,
+        "iqr": 0.0,
+        "p90": 0.9999999998157791,
+        "n": 1260
+      }
+    },
+    "episodes_fully_compliant": 19,
+    "episodes_total": 21,
+    "fisher_vs_baseline": {
+      "table": [
+        [
+          19,
+          2
+        ],
+        [
+          19,
+          2
+        ]
+      ],
+      "odds_ratio": 1.0,
+      "p_value": 1.0
+    },
+    "fisher_vs_static_at_cap": {
+      "table": [
+        [
+          19,
+          2
+        ],
+        [
+          19,
+          2
+        ]
+      ],
+      "odds_ratio": 1.0,
+      "p_value": 1.0
+    }
+  },
+  "dqn_qoe": {
+    "seeds_used": [
+      950,
+      951,
+      952,
+      953,
+      954,
+      955
     ],
     "compliance_pct": {
       "embb": 100.0,
@@ -56,50 +132,36 @@
     "u_priority_weight": 99.99999999999999,
     "u_violation_penalty": 100.0,
     "mean_mos_by_slice": {
-      "embb": 2.1711353374024234,
-      "urllc": 3.766504166771968,
-      "mmtc": 4.81134862502416
+      "embb": 2.1711970285763815,
+      "urllc": 3.9730516248279146,
+      "mmtc": 4.813367706631857
     },
     "severity": {
       "embb": {
         "median": 0.7,
-        "iqr": 0.0,
-        "p90": 0.9999998705238241,
-        "n": 960
+        "iqr": 0.30000000000000004,
+        "p90": 1.0,
+        "n": 1260
       },
       "urllc": {
         "median": 0.7,
-        "iqr": 0.0,
-        "p90": 1.0,
-        "n": 960
+        "iqr": 0.29994006198903667,
+        "p90": 0.9999999997849401,
+        "n": 1260
       },
       "mmtc": {
         "median": 0.7,
-        "iqr": 0.2999993340697009,
-        "p90": 1.0,
-        "n": 960
+        "iqr": 0.29999931699455507,
+        "p90": 0.9999999999969745,
+        "n": 1260
       }
     },
-    "episodes_fully_compliant": 16,
-    "episodes_total": 16,
+    "episodes_fully_compliant": 21,
+    "episodes_total": 21,
     "fisher_vs_baseline": {
       "table": [
         [
-          16,
-          0
-        ],
-        [
-          4,
-          2
-        ]
-      ],
-      "odds_ratio": Infinity,
-      "p_value": 0.06493506493506494
-    },
-    "fisher_vs_static_at_cap": {
-      "table": [
-        [
-          16,
+          21,
           0
         ],
         [
@@ -108,62 +170,7 @@
         ]
       ],
       "odds_ratio": Infinity,
-      "p_value": 0.4954954954954955
-    }
-  },
-  "dqn_qoe": {
-    "seeds_used": [
-      950,
-      951,
-      952
-    ],
-    "compliance_pct": {
-      "embb": 100.0,
-      "urllc": 100.0,
-      "mmtc": 100.0
-    },
-    "u_priority_weight": 99.99999999999999,
-    "u_violation_penalty": 100.0,
-    "mean_mos_by_slice": {
-      "embb": 2.1712756805949742,
-      "urllc": 4.721719714005788,
-      "mmtc": 4.904605719778273
-    },
-    "severity": {
-      "embb": {
-        "median": 1.0,
-        "iqr": 1.1102230246251565e-16,
-        "p90": 1.0,
-        "n": 360
-      },
-      "urllc": {
-        "median": 0.9999999997849401,
-        "iqr": 5.993801096115803e-05,
-        "p90": 0.9999999999999978,
-        "n": 360
-      },
-      "mmtc": {
-        "median": 0.9999999999969745,
-        "iqr": 6.830054449791234e-07,
-        "p90": 1.0,
-        "n": 360
-      }
-    },
-    "episodes_fully_compliant": 6,
-    "episodes_total": 6,
-    "fisher_vs_baseline": {
-      "table": [
-        [
-          6,
-          0
-        ],
-        [
-          4,
-          2
-        ]
-      ],
-      "odds_ratio": Infinity,
-      "p_value": 0.4545454545454546
+      "p_value": 0.4878048780487804
     }
   },
   "static_at_cap": {
@@ -216,12 +223,12 @@
           2
         ],
         [
-          4,
+          19,
           2
         ]
       ],
-      "odds_ratio": 4.75,
-      "p_value": 0.2042735042735043
+      "odds_ratio": 1.0,
+      "p_value": 1.0
     }
   }
 }

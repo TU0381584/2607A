@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
-"""Stage 5 v2 campaign metrics: 4 arms x 3 seeds x 2 episodes
-(experiments/results/live_campaign_v2), under the corrected MOS/SLA
+"""Stage 5 v2 campaign metrics: 4 arms, fully powered at n=21 episodes/arm
+each (experiments/results/live_campaign_v2), under the corrected MOS/SLA
 calibration + retrained checkpoints (docs/STAGE5_recalibration.md).
 Reuses metrics_stage2.py's exact helper functions (weighted_u,
 percentile_stats, fisher_exact_vs_baseline) -- nothing recomputed with
 different logic than the rest of this project's metrics pipeline.
 
-n=6 episodes/arm here (3 seeds x 2 episodes) -- a properly cross-seed
-sample (unlike the 1-hour trial's n=2/1-seed draw), but still short of
-the original campaign's n=15 (3 seeds x 5 episodes) full-power standard.
-Reported as such, not silently equated to the v1 numbers.
+Reaches n=21/arm via the "top-up" pass (experiments/scripts/
+run_stage5_v2_topup.sh, 2026-07-30): all 4 arms now share the SAME
+seed set -- 950/951/952 at the 3h campaign's 2-episode depth, plus
+953/954/955 at the full 5-episode protocol -- 6 + 15 = 21 each. This is
+the deferred "full 3-seed x 5-episode x 4-arm" live re-evaluation user's
+own words: "we'll do the 6 hour one later" (docs/STAGE5_recalibration.md
+section 6).
 
 Usage:
     python3 experiments/scripts/metrics_stage5_v2.py --out docs/stage5_v2_campaign_metrics_raw.json
@@ -26,15 +29,12 @@ from metrics_stage2 import (  # noqa: E402
 )
 
 ARM_REWARD_MODE = {"baseline": "sla", "dqn_sla": "sla", "dqn_qoe": "qoe", "static_at_cap": "sla"}
-# Per-arm seed lists: baseline/dqn_qoe only have the 3h campaign's 3 seeds
-# (n=6 each); static_at_cap and dqn_sla were extended with a validation
-# round on new seeds (953-955) at the full 5-episode protocol, settling
-# whether DQN's Stage-3 collapse-avoidance edge over static_at_cap holds
-# under v2 -- see docs/STAGE5_recalibration.md.
+# All 4 arms now share the same, consistent seed set (n=21 each) after
+# the 2026-07-30 top-up pass -- see module docstring.
 ARM_SEEDS = {
-    "baseline": [950, 951, 952],
-    "dqn_qoe": [950, 951, 952],
-    "dqn_sla": [950, 951, 952, 953, 954],
+    "baseline": [950, 951, 952, 953, 954, 955],
+    "dqn_qoe": [950, 951, 952, 953, 954, 955],
+    "dqn_sla": [950, 951, 952, 953, 954, 955],
     "static_at_cap": [950, 951, 952, 953, 954, 955],
 }
 

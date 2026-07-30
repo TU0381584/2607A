@@ -1,0 +1,3 @@
+{"batch_index": 0, "run_id": "dqn_qoe_qoe_seed953_batch0", "batch_seed": 953000, "episodes_requested": 2, "wall_clock_start": 1785401051.5176554, "elapsed_s": 608.0732502937317, "returncode": 0}
+{"batch_index": 1, "run_id": "dqn_qoe_qoe_seed953_batch1", "batch_seed": 953001, "episodes_requested": 2, "wall_clock_start": 1785401759.387067, "elapsed_s": 608.0896971225739, "returncode": 0}
+{"batch_index": 2, "run_id": "dqn_qoe_qoe_seed953_batch2", "batch_seed": 953002, "episodes_requested": 1, "wall_clock_start": 1785402466.26152, "elapsed_s": 308.2823896408081, "returncode": 0}

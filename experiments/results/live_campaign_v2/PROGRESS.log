@@ -15,3 +15,10 @@ DONE arm=static_at_cap seed=954 elapsed_s=1714 ts=2026-07-29T19:47:12+08:00
 DONE arm=static_at_cap seed=955 elapsed_s=1713 ts=2026-07-29T20:16:20+08:00
 DONE arm=dqn_sla seed=953 elapsed_s=1727 ts=2026-07-29T20:45:42+08:00
 DONE arm=dqn_sla seed=954 elapsed_s=1735 ts=2026-07-29T21:15:12+08:00
+DONE arm=dqn_sla seed=955 elapsed_s=1731 ts=2026-07-30T16:14:23+08:00
+DONE arm=baseline seed=953 elapsed_s=1715 ts=2026-07-30T16:43:33+08:00
+DONE arm=dqn_qoe seed=953 elapsed_s=1726 ts=2026-07-30T17:12:54+08:00
+DONE arm=baseline seed=954 elapsed_s=1715 ts=2026-07-30T17:42:04+08:00
+DONE arm=dqn_qoe seed=954 elapsed_s=1724 ts=2026-07-30T18:11:23+08:00
+DONE arm=baseline seed=955 elapsed_s=1716 ts=2026-07-30T18:40:34+08:00
+DONE arm=dqn_qoe seed=955 elapsed_s=1725 ts=2026-07-30T19:09:54+08:00

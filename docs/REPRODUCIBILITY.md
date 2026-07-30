@@ -7,14 +7,28 @@ and table in `paper_conf/main.tex`, the exact script/config/seed that
 produced it, so a reviewer question or a future re-run doesn't require
 re-deriving provenance from scratch.
 
-| Manuscript item | Source data | Script | Config | Seeds |
+**Superseded (2026-07-30, see below): the original Table I / Fig. 1 / Fig.
+2 / $p=0.0149$ row below used the OLD (pre-Stage-5) calibration and a
+smaller sample. The manuscript's current Table I / Fig. 1 / Fig. 2 use
+the rows further down this table (the n=21, `live_campaign_v2` data).
+Kept here unedited for provenance of what was previously reported.**
+
+| Manuscript item (superseded) | Source data | Script | Config | Seeds |
 |---|---|---|---|---|
 | Table I (live SLA compliance) — baseline, DQN (SLA/QoE) rows | `experiments/results/live_campaign/{baseline,dqn_sla,dqn_qoe}/**/omega_log.jsonl` | `experiments/scripts/metrics_stage2.py` → `docs/stage2_metrics_raw.json` | `saclb_campaign.yaml` | 950, 951, 952 |
 | Table I — static-at-cap row | `experiments/results/live_campaign/static_at_cap/**/omega_log.jsonl` | `experiments/scripts/metrics_stage3.py` → `docs/stage3_metrics_raw.json` | `saclb_campaign_static_at_cap.yaml` | 950, 951, 952 |
-| Fig. 1 (ceiling trajectories) | same live-campaign omega logs, baseline vs.\ dqn\_sla, episode 1 | `experiments/plots/fig4_ceiling_trajectories.py` (defaults fixed this stage — see below) | `saclb_campaign.yaml` | 950 |
-| Fig. 2 (SLA compliance, per-episode) | live-campaign omega logs, 4 arms | `experiments/plots/fig2_sla_compliance.py --arms baseline dqn_sla dqn_qoe static_at_cap` | `saclb_campaign.yaml` / `saclb_campaign_static_at_cap.yaml` | 950, 951, 952 |
 | Fisher exact test, $p=0.0149$ (static-at-cap vs.\ DQN collapse rate) | `docs/stage3_metrics_raw.json` → `fisher_vs_dqn_sla_combined` | `experiments/scripts/metrics_stage3.py` | as above | 950–954 (DQN reverification adds 953, 954) |
-| Table II (congested scenario) | re-evaluation of frozen offline checkpoints | `experiments/scripts/eval_congested_vs_baseline.py`, re-run via `metrics_stage2.py` → `docs/stage2_metrics_raw.json` | `saclb_offline_congested_v1.yaml` | held-out episodes, same checkpoints as originally trained |
+
+**Current (2026-07-30 top-up campaign, n=21/arm, corrected v2 calibration):**
+
+| Manuscript item | Source data | Script | Config | Seeds |
+|---|---|---|---|---|
+| Table I (all 4 arms, n=21 each) | `experiments/results/live_campaign_v2/{baseline,dqn_sla,dqn_qoe,static_at_cap}/**/omega_log.jsonl` | `experiments/scripts/metrics_stage5_v2.py` (`ARM_SEEDS` updated to the full 950–955 set this stage) → `docs/stage5_v2_campaign_metrics_raw.json` | `saclb_campaign_v2.yaml` / `saclb_campaign_baseline_v2.yaml` / `saclb_campaign_static_at_cap_v2.yaml` | 950–952 (2 ep/seed) + 953–955 (5 ep/seed) = 21/arm |
+| Fig. 1 (ceiling trajectories) | live_campaign_v2 omega logs, baseline vs.\ dqn\_qoe (now the clear best arm), episode 1, seed 950 | `experiments/plots/fig4_ceiling_trajectories.py --live-root experiments/results/live_campaign_v2 --best-arm dqn_qoe` | `saclb_campaign_v2.yaml` | 950 |
+| Fig. 2 (SLA compliance, per-episode, 4 arms) | live_campaign_v2 omega logs | `experiments/plots/fig2_sla_compliance.py --live-root experiments/results/live_campaign_v2 --seeds 950 951 952 953 954 955` | v2 configs as above | 950–955 |
+| Fisher exact tests: dqn\_sla vs.\ static\_at\_cap ($p=1.0$), dqn\_sla vs.\ baseline ($p=1.0$), dqn\_qoe vs.\ baseline ($p=0.49$) | `docs/stage5_v2_campaign_metrics_raw.json` → `fisher_vs_static_at_cap` / `fisher_vs_baseline` | `experiments/scripts/metrics_stage5_v2.py` | as above | 950–955 |
+| Congested live pilot (all arms 100% compliant; QoE-reward URLLC MOS 4.83 vs.\ 2.44/2.66) | `experiments/results/live_congested_pilot/{baseline_congested,dqn_sla_congested,dqn_qoe_congested}/**/omega_log.jsonl` | one-off aggregation, same `_read_omega`/`per_slice_compliant`/`mos_by_slice` fields as `metrics_stage2.py` (no dedicated script written — see `docs/STAGE10_fullpower_reeval.md`) | `saclb_offline_congested_v1.yaml` / `saclb_offline_congested_v1_baseline.yaml` (new, one-line ceiling_step_ratio=0 variant) | 950 (1 seed, 2 episodes/arm — pilot scale, not yet statistically powered) |
+| Table II (congested scenario, offline) | re-evaluation of frozen offline checkpoints | `experiments/scripts/eval_congested_vs_baseline.py`, re-run via `metrics_stage2.py` → `docs/stage2_metrics_raw.json` | `saclb_offline_congested_v1.yaml` | held-out episodes, same checkpoints as originally trained (unchanged this stage) |
 | Priority-weighted utility (27.2 / 21.0 / 19.0, §IV-C prose) | same congested re-evaluation | `metrics_stage2.py`'s `weighted_u`, weights from `saclb_offline_congested_v1.yaml`'s `priority_weight` field | as above | as above |
 | E2 round-trip latency (0.57 ms median) | live measurement against the real gNB E2 agent | `experiments/scripts/measure_e2_latency.py` → `docs/stage4_e2_latency_raw.json` | n/a (direct measurement) | n/a |
 | DQN inference time (under 70 $\mu$s), parameter count (18,562) | offline, on the real deployment checkpoints, CPU | `experiments/scripts/metrics_stage4_offline.py` → `docs/stage4_metrics_offline_raw.json` | `dqn_sla`/`dqn_qoe` seed-256 checkpoints | n/a |

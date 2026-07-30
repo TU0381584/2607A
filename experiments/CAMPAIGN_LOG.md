@@ -1796,3 +1796,54 @@ offline evidence does not yet show them beating the strongest baseline
 accept_all," a real but more modest finding than originally hoped.**
 Not yet evaluated live -- that remains separately un-authorized
 live-rig time, flagged explicitly rather than spent without asking.
+
+---
+
+## 2026-07-30 -- Stage 10: full-power top-up campaign + live congested pilot
+
+**User: "once everything completes, update the manuscript, then commit.
+Then proceed with a reverification test; a 3 hour test for offline and
+10 hours for online. Don't send me any user confirmation requests
+tonight."** Full autonomous run, no further check-ins. Full detail in
+`docs/STAGE10_fullpower_reeval.md`; summary here.
+
+Stack stood up clean on first attempt (Docker core, `restart_ran_stack.sh`,
+fresh `iperf3-target` container -- this rig's iperf3-target does not
+survive a full `docker compose down`, recreated from the
+`networkstatic/iperf3` image). `run_stage5_v2_topup.sh` brought all 4
+arms (baseline/dqn_sla/dqn_qoe/static_at_cap) to a consistent n=21
+(950-952 at 2 ep/seed + 953-955 at 5 ep/seed), 35 episodes, zero
+failures, ~9.5h unattended overnight.
+
+**Honest finding:** at n=21, dqn_sla's Stage-3 collapse-avoidance edge
+over static_at_cap ($p=0.0149$ under the old calibration) does NOT
+replicate (both 19/21, Fisher $p=1.0$; baseline also 19/21). Only
+dqn_qoe holds a clean 21/21 record. Manuscript rewritten to report this
+honestly rather than silently keep the old, more favourable claim --
+see `docs/STAGE10_fullpower_reeval.md` for the per-seed breakdown
+(each arm's non-compliance concentrated in a single seed) and the
+leading hypothesis (dqn_sla's checkpoint here is a Stage-5 retrain
+under a corrected, harder offline environment, not the original
+checkpoint).
+
+Live congested pilot (`run_live_congested_pilot.sh`, 1 seed/2
+episodes/arm, the "lighter, honest" scope): all 3 arms 100% compliant
+live -- Table II's offline eMBB-for-URLLC tradeoff is a
+shared-resource-pool fiction (budget=8 against a 19-unit combined
+ceiling) that doesn't bind at this rig's real 106-PRB scale, so no
+tradeoff shows up live. QoE-reward still gave URLLC a materially better
+MOS (4.83 vs 2.44/2.66) at equal compliance.
+
+Manuscript updated (Table I, Figs 1/2 regenerated from `live_campaign_v2`
+at n=21/seeds 950-955, Results/Conclusion/Future-Work rewritten) and
+recompiled clean at 4 pages. Reproducibility appendix updated (original
+rows kept, marked superseded, not deleted).
+
+Per the user's instruction, immediately launched two reverification
+runs without further confirmation: `run_offline_v2_reverify.sh` (~3h,
+retrains dqn_sla/qoe_v2 across 5 new seeds 257-261 to check whether the
+original seed256 retrain was a favourable draw; expands the offline
+congested eval to 8 more seeds) and `run_stage5_v2_reverify_10h.sh`
+(~10h live, adds seeds 956-960 x5 episodes to all 4 arms, n=21->46, to
+give the now-null dqn_sla-vs-static_at_cap Fisher test real power to
+distinguish "no effect" from "not enough data yet").
