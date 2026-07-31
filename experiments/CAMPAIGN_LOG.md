@@ -1847,3 +1847,33 @@ congested eval to 8 more seeds) and `run_stage5_v2_reverify_10h.sh`
 (~10h live, adds seeds 956-960 x5 episodes to all 4 arms, n=21->46, to
 give the now-null dqn_sla-vs-static_at_cap Fisher test real power to
 distinguish "no effect" from "not enough data yet").
+
+---
+
+## 2026-07-31 -- Stage 10 continued: offline reverification complete
+
+`run_offline_v2_reverify.sh`'s first launch attempt failed silently on
+every single call (relative `qoe_mapper` checkpoint paths resolve
+against `framework/`, not the repo root; the script has no `set -e` so
+it printed "COMPLETE" despite 11 tracebacks) -- fixed (`cwd=framework/`,
+absolute paths throughout) and re-run clean. Full detail in
+`docs/STAGE10_fullpower_reeval.md` section 6.
+
+Training reproducibility across 6 seeds (256 original + 257-261 new)
+confirmed consistent Q1->Q4 convergence for both reward modes -- rules
+out "seed256 was a lucky training draw" as the explanation for the live
+collapse-avoidance non-replication; the real explanation is narrower
+now (likely the corrected training environment itself, or a
+live-hardware-specific effect) and flagged as a sharper follow-up than
+the manuscript's current Future Work item.
+
+Table II's congested evaluation extended to 8 more seeds (165 episodes/
+arm total, from 45) -- the URLLC-preservation pattern and the
+priority-weighted "baseline still wins overall" conclusion both
+replicate cleanly. Manuscript updated to the pooled numbers throughout
+and recompiled clean at 4 pages.
+
+All of tonight's reverification work (3h offline target, 10h online
+target) is now complete, matching the user's own request before leaving
+for the night. No further live-rig time was spent beyond what was
+already authorized.

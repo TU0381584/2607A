@@ -221,6 +221,73 @@ expanded congested eval seeds 953–960) was launched immediately after
 teardown, with the rig's resources fully free this time -- see the
 follow-on update below once it completes.
 
+## 6. Offline reverification: complete (2026-07-31)
+
+**Bug found and fixed on first launch attempt:** this script (and
+`train_offline_live_scale.py`/`eval_congested_vs_baseline.py`'s own
+usage examples) assume a repo-root working directory, but both
+scripts' configs give `mapper_checkpoint`/QoE-mapper paths relative to
+`framework/` (e.g. `qoe_oran_framework/results/qoe_mapper/
+qoe_mapper_urllc.pt`, which only exists under
+`framework/qoe_oran_framework/...`, not at the repo root). Running
+from repo-root made every `torch.load()` of a QoE-mapper checkpoint
+fail with `FileNotFoundError` -- silently, because this script has no
+`set -e`, so all 10 training calls and the eval call errored out
+immediately but the script still printed "COMPLETE". Same class of bug
+as the `fig4_ceiling_trajectories.py` stale-defaults issue found during
+Stage 9 -- a script's own usage example was wrong. Fixed by running
+with `cwd=framework/` and absolute paths for every script/output
+argument; re-ran cleanly, zero tracebacks.
+
+**Part A finding (training reproducibility):** computed per-episode
+Q1 (first quarter) vs.\ Q4 (last quarter) mean reward for all 6 seeds
+now available per reward mode (256 original + 257–261 new):
+
+| Seed | SLA reward Q1→Q4 | QoE reward Q1→Q4 |
+|---|---|---|
+| 256 (original) | -10.83 → -10.03 (+0.80) | -0.368 → -0.361 (+0.008) |
+| 257 | -11.04 → -10.04 (+0.99) | -0.372 → -0.361 (+0.011) |
+| 258 | -10.98 → -10.05 (+0.92) | -0.368 → -0.364 (+0.004) |
+| 259 | -10.96 → -10.11 (+0.84) | -0.370 → -0.361 (+0.009) |
+| 260 | -10.99 → -10.10 (+0.89) | -0.370 → -0.360 (+0.010) |
+| 261 | -11.01 → -10.07 (+0.94) | -0.370 → -0.361 (+0.010) |
+
+**Training convergence is consistent across all 6 seeds for both
+reward modes** -- seed256 was not a lucky or unlucky training draw.
+This narrows, rather than answers, the open question from section 1:
+the SLA-only reward's live collapse-avoidance non-replication is NOT
+explained by "the offline training itself was seed-sensitive." The
+more likely remaining explanations are (a) a property of the corrected,
+harder training environment itself (Bug #3's real-demand-scale fix)
+producing a policy that behaves like static-at-cap under real
+contention regardless of training seed, or (b) live-hardware-specific
+effects not present in any offline training signal. Distinguishing
+these two needs a live evaluation of a checkpoint trained under the
+ORIGINAL (pre-Bug-3) offline environment but the CORRECTED MOS
+calibration -- not yet done, flagged as a sharper follow-up than the
+manuscript's own current Future Work item (1).
+
+**Part B finding (congested Table II, statistical power):** the
+8-new-seed extension (953–960, 120 more held-out episodes/arm)
+replicates the original 3-seed finding's URLLC-preservation pattern
+cleanly, with only modest quantitative shifts:
+
+| Arm | URLLC (orig / new / pooled) | eMBB | mMTC |
+|---|---|---|---|
+| baseline | 22.6 / 18.6 / **19.7** | 34.5 / 32.1 / **32.7** | 19.0 / 20.1 / **19.8** |
+| dqn_sla | 30.9 / 26.5 / **27.7** | 7.9 / 7.6 / **7.7** | 9.2 / 9.5 / **9.4** |
+| dqn_qoe | 27.0 / 24.3 / **25.0** | 8.2 / 8.2 / **8.2** | 10.8 / 12.0 / **11.6** |
+
+Pooled (11 seeds, 165 episodes/arm, 9900 steps/arm) numbers now in
+Table II. Priority-weighted utility recomputed from the pooled
+compliance: baseline 24.9, DQN-SLA 19.1, DQN-QoE 17.9 (was 27.2/21.0/
+19.0) -- the qualitative conclusion (baseline still wins once eMBB's
+priority weight is accounted for) is unchanged, now on a much larger,
+independently-replicated sample.
+
+Manuscript's Table II and surrounding paragraph updated to the pooled
+165-episode numbers; recompiled clean at 4 pages.
+
 ## Acceptance status
 
 - [x] Item 1 (fully powered live re-evaluation) completed: all 4 arms
@@ -239,5 +306,12 @@ follow-on update below once it completes.
 - [x] Online reverification (10h live) — complete, n=46/arm, zero
       failures, self-healed once from a transient health-check failure.
       Rig torn down cleanly afterward.
-- [ ] Offline reverification (3h) — launched after teardown with full
-      resources free; not yet complete as of this document's writing.
+- [x] Offline reverification (3h) — complete. Found and fixed a real
+      relative-path bug on first launch (silent failure, no `set -e`);
+      re-ran clean. Training reproducibility confirmed across 6 seeds
+      for both reward modes (seed256 was not a lucky/unlucky draw).
+      Table II strengthened to a pooled 165 episodes/arm (from 45),
+      URLLC-preservation pattern and the priority-weighted conclusion
+      both replicate.
+- [x] Manuscript reflects final n=46 (Table I) and 165-episode (Table
+      II) numbers throughout; clean recompile at 4 pages.

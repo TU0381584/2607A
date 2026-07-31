@@ -307,39 +307,42 @@ traffic with genuine cross-slice resource contention: when combined
 demand exceeds the shared PRB pool, every slice's served allocation
 is scaled down in proportion to its request, rather than each slice
 being served independently. Table~\ref{tab:congested} reports SLA
-compliance under this scenario for a held-out set of episodes.
+compliance under this scenario, pooled over 11 seeds (165 held-out
+episodes per arm).
 
 \begin{table}[t]
 \centering
-\caption{SLA compliance (\%) under congested, randomised traffic (offline)}
+\caption{SLA compliance (\%) under congested, randomised traffic (offline), 165 episodes/arm}
 \label{tab:congested}
 \small
 \begin{tabular}{@{}lrrr@{}}
 \toprule
 Arm & URLLC & eMBB & mMTC \\
 \midrule
-Static baseline & 22.6 & \textbf{34.5} & \textbf{19.0} \\
-DQN (SLA reward) & \textbf{30.9} & 7.9 & 9.2 \\
-DQN (QoE reward) & 27.0 & 8.2 & 10.8 \\
+Static baseline & 19.7 & \textbf{32.7} & \textbf{19.8} \\
+DQN (SLA reward) & \textbf{27.7} & 7.7 & 9.4 \\
+DQN (QoE reward) & 25.0 & 8.2 & 11.6 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 Under both reward variants, DQN raises URLLC compliance above the
-static baseline (22.6\% $\rightarrow$ 30.9\% for the SLA-only reward,
-$\rightarrow$27.0\% for the QoE-aware reward) by actively trading off
+static baseline (19.7\% $\rightarrow$ 27.7\% for the SLA-only reward,
+$\rightarrow$25.0\% for the QoE-aware reward) by actively trading off
 eMBB and mMTC compliance -- the same URLLC-first behaviour our
 earlier simulated work targeted \cite{mecon-paper1,icraie-paper2},
 now shown under real cross-slice contention rather than each slice's
-demand being satisfied independently. This tradeoff, however, is not
-a net win once each slice's declared importance is taken into
-account: weighted by each slice's priority, the static baseline still
-scores higher overall (27.2\% vs.\ 21.0\% for DQN with the SLA reward
-and 19.0\% with the QoE reward), because eMBB's declared importance
-is high enough that the compliance it gives up outweighs URLLC's
-gain. The tradeoff is real and repeatable, but whether it or the
-underlying priority weights should be revisited is an open question
-for future work.
+demand being satisfied independently. Unlike the SLA-only reward's
+live collapse-avoidance edge (Section~IV-A), this tradeoff replicates
+cleanly on an independent, 8-seed extension of this same evaluation,
+with only modest quantitative shifts from the initial 3-seed round. This tradeoff, however, is not a net win once each
+slice's declared importance is taken into account: weighted by each
+slice's priority, the static baseline still scores higher overall
+(24.9\% vs.\ 19.1\% for DQN with the SLA reward and 17.9\% with the
+QoE reward), because eMBB's declared importance is high enough that
+the compliance it gives up outweighs URLLC's gain. The tradeoff is
+real and repeatable, but whether it or the underlying priority weights
+should be revisited is an open question for future work.
 
 We additionally live-evaluated the same congested/URLLC-preservation
 checkpoints on the real rig, at a smaller pilot scale (one seed, 2
