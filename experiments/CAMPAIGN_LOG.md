@@ -1877,3 +1877,42 @@ All of tonight's reverification work (3h offline target, 10h online
 target) is now complete, matching the user's own request before leaving
 for the night. No further live-rig time was spent beyond what was
 already authorized.
+
+---
+
+## 2026-07-31/08-01 -- Stage 11: checkpoint sensitivity
+
+**User: "proceed with no.1. go all the way, and dont prompt for user
+inputs."** Live-evaluated all 5 other already-trained DQN-SLA
+checkpoints (seeds 257-261, from Stage 10's offline reverification)
+against the existing static_at_cap record, same 21-episode protocol as
+every other arm. Full detail in `docs/STAGE11_checkpoint_sensitivity.md`.
+
+Two blocks failed on a real iperf3-target port wedge (same
+long-documented failure mode, same fix -- recreate the container).
+**Caught a real data-corruption mistake while retrying them**: naively
+re-invoking the orchestrator without clearing the failed attempt's
+partial omega log let the retry's episodes append under the SAME
+deterministic run_id, inflating one checkpoint's episode count to 25
+(should be 21) with duplicate-labelled data. Caught by checking
+`Counter(run_id)` per omega log before trusting any number; fixed by
+deleting the contaminated reps and re-running cleanly from a fresh
+health-checked stack.
+
+**Finding: real, substantial cross-checkpoint variance that offline
+training convergence does not predict.** Of 6 independently-trained
+DQN-SLA checkpoints (256 original + 257-261 new), 3 achieved a perfect
+21/21 live, one matched the original's 19/21 (now 44/46 in the pooled
+n=46), and one (257) collapsed to 13/21 -- worse than the static
+baseline -- despite all 6 converging equally well offline. Seed257's
+failure traced to its own first three eval-seed blocks specifically
+(0/2, 0/2, 0/2), ruled out as a rig-warmup artifact by checking that
+seeds 258-261's own early blocks (tested later, same eval seeds) were
+all clean.
+
+Manuscript updated (new paragraph in Section IV-A, Future Work item
+1 sharpened) and recompiled. Had to trim ~15 words elsewhere to stay at
+4 pages after the addition pushed to 5.
+
+Rig torn down after this stage; no further live-rig time authorized or
+spent beyond what was requested.
