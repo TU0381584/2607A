@@ -32,10 +32,10 @@ ARM_REWARD_MODE = {"baseline": "sla", "dqn_sla": "sla", "dqn_qoe": "qoe", "stati
 # All 4 arms now share the same, consistent seed set (n=21 each) after
 # the 2026-07-30 top-up pass -- see module docstring.
 ARM_SEEDS = {
-    "baseline": [950, 951, 952, 953, 954, 955],
-    "dqn_qoe": [950, 951, 952, 953, 954, 955],
-    "dqn_sla": [950, 951, 952, 953, 954, 955],
-    "static_at_cap": [950, 951, 952, 953, 954, 955],
+    "baseline": [950, 951, 952, 953, 954, 955, 956, 957, 958, 959, 960],
+    "dqn_qoe": [950, 951, 952, 953, 954, 955, 956, 957, 958, 959, 960],
+    "dqn_sla": [950, 951, 952, 953, 954, 955, 956, 957, 958, 959, 960],
+    "static_at_cap": [950, 951, 952, 953, 954, 955, 956, 957, 958, 959, 960],
 }
 
 

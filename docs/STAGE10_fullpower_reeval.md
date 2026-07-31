@@ -169,21 +169,75 @@ past its original ~3h estimate (it will now start after the ~10h live
 run finishes), but protects the live run, which cannot be cheaply
 re-run if it fails partway through an unattended overnight session.
 
-Results and any further manuscript revision from these two runs will be
-recorded in a follow-on update to this document once they complete.
+## 5. Online reverification: complete (2026-07-31 05:36)
+
+All 20 new (arm, seed) blocks (seeds 956–960 × 4 arms) completed
+cleanly overnight, zero failures logged. One transient health-check
+failure occurred early on (all 3 UEs briefly unreachable, most likely
+residual contention from the killed-but-not-yet-fully-released offline
+job) -- the orchestrator's own `ensure_healthy()` retry logic recovered
+it automatically with one stack restart; no manual intervention was
+needed beyond monitoring.
+
+All 4 arms now stand at n=46 (`metrics_stage5_v2.py`'s `ARM_SEEDS`
+updated to the full 950–960 set):
+
+| Arm | Episodes fully compliant | Compliance (eMBB/URLLC/mMTC, %) |
+|---|---|---|
+| baseline | 42/46 | 91.7 / 91.4 / 91.4 |
+| dqn_sla | 44/46 | 96.6 / 95.7 / 95.8 |
+| dqn_qoe | **46/46** | 100.0 / 100.0 / 100.0 |
+| static_at_cap | 44/46 | 97.4 / 95.7 / 95.7 |
+
+Fisher exact: dqn_sla vs.\ static_at_cap $p=1.0$ (44/46 vs.\ 44/46,
+exactly tied) -- at n=46 this is a genuine null result, not an
+underpowered one, confirming the n=21 finding rather than just adding
+more uncertainty to it. dqn_sla vs.\ baseline $p=0.68$; dqn_qoe vs.\
+baseline $p=0.12$ -- both arms clearly separate from baseline in raw
+terms (44 or 46 vs.\ 42) but neither reaches significance at this
+sample size, since baseline's own compliance is high enough here to
+leave a narrower gap than the original (pre-correction) baseline data
+showed.
+
+Manuscript updated again with these final numbers (Table I, all
+in-text Fisher/episode-count mentions, abstract, Summary of Findings,
+Conclusion); `docs/REPRODUCIBILITY.md` updated to match. Clean
+recompile, 4 pages.
+
+**Rig teardown:** the stack was found already down (all Docker
+containers exited with code 137, no native RAN processes, no dmesg
+OOM signature) when checked after the reverification script's own
+completion message -- most likely an external/incidental stop rather
+than anything this session did (the reverify script itself does not
+tear the stack down, and `free -h` showed healthy headroom by the time
+this was checked). Formally re-ran `docker compose down` and removed
+the `iperf3-target` container to leave a clean, known state rather than
+relying on the already-dead containers. No data loss: the reverify
+script's own `PROGRESS.log` confirms every block completed before
+whatever stopped the containers happened.
+
+The offline reverification (Part A retrain seeds 257–261, Part B
+expanded congested eval seeds 953–960) was launched immediately after
+teardown, with the rig's resources fully free this time -- see the
+follow-on update below once it completes.
 
 ## Acceptance status
 
 - [x] Item 1 (fully powered live re-evaluation) completed: all 4 arms
-      at n=21, corrected v2 calibration.
+      at n=21, then extended to n=46 by the 10h reverification (section 5).
 - [x] Finding reported honestly, including where it revises rather than
       confirms the previously-published claim — not silently glossed
-      over.
+      over — and re-confirmed, not just re-asserted, once n=46 showed
+      the same null result with real statistical power behind it.
 - [x] Item 2 (live congested reproduction) attempted at the
       user-selected "lighter, honest" scope; result and its scale-mismatch
       explanation reported, not hidden.
-- [x] Manuscript rewritten to match; clean recompile at 4 pages.
+- [x] Manuscript rewritten to match at both n=21 and (final) n=46;
+      clean recompile at 4 pages each time.
 - [x] Reproducibility appendix updated with new provenance rows,
       original rows kept (marked superseded) rather than deleted.
-- [ ] Reverification (3h offline / 10h live) — launched, not yet
-      complete as of this document's writing; see section 4.
+- [x] Online reverification (10h live) — complete, n=46/arm, zero
+      failures, self-healed once from a transient health-check failure.
+      Rig torn down cleanly afterward.
+- [ ] Offline reverification (3h) — launched after teardown with full
+      resources free; not yet complete as of this document's writing.

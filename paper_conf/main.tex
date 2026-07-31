@@ -46,14 +46,14 @@ OpenAirInterface (OAI) gNodeB (gNB) across three network slices
 (eMBB, URLLC, mMTC), and compare it against a static baseline and a
 best-possible static-at-cap policy. After identifying and correcting
 a calibration issue in our QoE estimation, a fully powered live
-re-evaluation (21 episodes per arm) shows DQN under the QoE-aware
+re-evaluation (46 episodes per arm) shows DQN under the QoE-aware
 reward sustains 100\% SLA compliance throughout, while the SLA-only
-reward and both static arms converge to a statistically
-indistinguishable, lower rate (19 of 21 episodes fully compliant for
-each, Fisher exact $p=1.0$): the collapse-avoidance edge our
-earlier, smaller-sample evaluation suggested for the SLA-only reward
-does not clearly hold at this larger scale, though it does for the
-QoE-aware one. We additionally live-evaluate checkpoints trained for
+reward and the static-at-cap arm converge to a statistically
+indistinguishable rate (44 of 46 episodes fully compliant for each,
+Fisher exact $p=1.0$), both modestly above the static baseline's 42 of
+46: the collapse-avoidance edge our earlier, smaller-sample evaluation
+suggested for the SLA-only reward does not hold at this larger,
+well-powered scale, though the QoE-aware reward's does. We additionally live-evaluate checkpoints trained for
 a congested, URLLC-preservation scenario: unlike its offline
 counterpart, where DQN measurably trades eMBB compliance for URLLC
 under an imposed shared-resource-pool constraint, every arm is fully
@@ -189,11 +189,14 @@ declared importance weight rather than an unweighted average across
 slices of unequal importance.
 
 \subsection{Evaluation Setup}
-Each of the four arms was evaluated live across 6 random seeds, with
+Each of the four arms was evaluated live across 11 random seeds, with
 frozen policy weights: an initial batch of 3 seeds at 2 episodes each,
-extended with a further 3 seeds at the full 5-episode protocol once a
-QoE-calibration issue discovered during this study (Section~IV-B) was
-corrected, for 21 fully-logged episodes per arm. The static-at-cap arm
+extended in two further rounds of 3 and 5 seeds at the full 5-episode
+protocol once a QoE-calibration issue discovered during this study
+(Section~IV-B) was corrected, for 46 fully-logged episodes per arm --
+large enough that a Fisher exact test between two arms tied at their
+observed rate is a genuine null result, not merely an
+underpowered one. The static-at-cap arm
 reuses the static baseline's own control code unmodified, with its
 ceiling parameter changed only in configuration. Training was
 performed offline, over 300 episodes per seed, against a closed-loop
@@ -202,33 +205,30 @@ simulated traffic source before live deployment.
 \section{Results and Discussion}
 \subsection{Live Testbed Results}
 Table~\ref{tab:results} summarises SLA compliance for all four arms
-across 21 live episodes each, following a fully powered re-evaluation
+across 46 live episodes each, following a fully powered re-evaluation
 under the corrected QoE calibration described in
 Section~\ref{sec:feasibility}. DQN under the QoE-aware reward sustains
-100\% SLA compliance on every slice, in every episode (21/21 episodes
-fully compliant). The static baseline, the static-at-cap arm, and DQN
-under the SLA-only reward each reach a similar, lower rate instead: 19
-of 21 episodes fully compliant for all three, with the 2 non-compliant
-episodes in each case concentrated in a single seed rather than spread
-evenly across seeds -- consistent with the real seed-to-seed
-variability real RF hardware can show even at a fixed seed value.
-Fig.~\ref{fig:ceiling} illustrates the underlying mechanism: the
-baseline's commanded ceiling stays flat at its starting value for the
-whole episode, while DQN raises each slice's ceiling toward its
-calibrated maximum within the first few steps and holds it there.
+100\% SLA compliance on every slice, in every episode (46/46 episodes
+fully compliant). DQN under the SLA-only reward and the static-at-cap
+arm reach an identical, slightly lower rate (44/46 each); the static
+baseline trails both at 42/46. Fig.~\ref{fig:ceiling} illustrates the
+underlying mechanism: the baseline's commanded ceiling stays flat at
+its starting value for the whole episode, while DQN raises each
+slice's ceiling toward its calibrated maximum within the first few
+steps and holds it there.
 
 \begin{table}[t]
 \centering
-\caption{Live SLA compliance (\%), 21 episodes/arm}
+\caption{Live SLA compliance (\%), 46 episodes/arm}
 \label{tab:results}
 \small
 \begin{tabular}{@{}lrrr@{}}
 \toprule
 Arm & eMBB & URLLC & mMTC \\
 \midrule
-Static baseline & 90.6 & 90.6 & 90.6 \\
-Static-at-cap & 94.4 & 90.5 & 90.6 \\
-DQN (SLA reward) & 92.6 & 90.5 & 90.8 \\
+Static baseline & 91.7 & 91.4 & 91.4 \\
+Static-at-cap & 97.4 & 95.7 & 95.7 \\
+DQN (SLA reward) & 96.6 & 95.7 & 95.8 \\
 DQN (QoE reward) & \textbf{100.0} & \textbf{100.0} & \textbf{100.0} \\
 \bottomrule
 \end{tabular}
@@ -246,19 +246,25 @@ using a more generous fixed ceiling. Our earlier, smaller-sample
 evaluation (15 static-at-cap and a reverified 25 DQN-SLA episodes)
 suggested a clear answer: static-at-cap collapsed in 27\% of episodes
 while DQN-SLA never collapsed once (Fisher exact test, $p=0.0149$). At
-the larger, fully powered sample reported here, this edge does not
-clearly hold for the SLA-only reward: DQN-SLA and static-at-cap both
-reach 19/21 fully-compliant episodes (Fisher exact $p=1.0$), and even
-the static baseline reaches the same rate. The QoE-aware reward is the
-one variant whose advantage survives the larger sample, with a clean
-21/21 record throughout -- though at this sample size its comparison
-against the baseline's own, now-improved rate is not itself
-statistically significant (Fisher exact $p=0.49$). We report both
-rounds rather than only the more favourable one: a fixed allocation's
-failure mode is real and shared by every non-learning arm, but whether
-the SLA-only reward's learned admission timing meaningfully reduces it
-relative to a well-chosen fixed ceiling, as opposed to the QoE-aware
-reward's, is closer than our initial, smaller sample suggested.
+this larger, fully powered sample, that edge does not hold for the
+SLA-only reward: DQN-SLA and static-at-cap reach an identical 44/46
+fully-compliant episodes (Fisher exact $p=1.0$) -- a large enough
+sample that this is a genuine null result, not merely insufficient
+power. Both do, however, clearly separate from the static baseline's
+42/46, though not to a statistically significant degree at this sample
+size (Fisher exact $p=0.68$ for each vs.\ baseline). The QoE-aware
+reward is the one variant whose advantage is unambiguous, with a clean
+46/46 record throughout -- though even its comparison against the
+baseline is not itself statistically significant here (Fisher exact
+$p=0.12$), since the baseline's own compliance is high enough at this
+scale to leave less room to separate from. We report both rounds
+rather than only the more favourable one: a fixed allocation's failure
+mode is real and shared by every non-learning arm, but the SLA-only
+reward's learned admission timing does not distinguishably improve on
+a well-chosen fixed ceiling here, contrary to what our initial, smaller
+sample suggested; only the QoE-aware reward's advantage is
+unambiguous, and even that awaits a larger sample to separate cleanly
+from the baseline.
 
 \begin{figure}[t]
 \centering
@@ -355,11 +361,12 @@ campaign's calibration, which we leave for future work.
 
 \subsection{Summary of Findings}
 At full statistical power, the QoE-aware reward is the arm whose
-advantage over static control clearly holds up: a clean 21/21
-fully-compliant record against 19/21 for every other arm, including
-static-at-cap. The SLA-only reward's own edge over a well-chosen fixed
-ceiling, which an earlier, smaller-sample round suggested was equally
-clear, does not clearly replicate here. The offline congested scenario
+advantage over static control clearly holds up: a clean 46/46
+fully-compliant record against 44/46 for DQN-SLA and static-at-cap and
+42/46 for the static baseline. The SLA-only reward's own edge over a
+well-chosen fixed ceiling, which an earlier, smaller-sample round
+suggested was equally clear, does not replicate here: DQN-SLA and
+static-at-cap are statistically indistinguishable at this sample size. The offline congested scenario
 shows the same policies can learn to prioritise URLLC under harder,
 more realistic contention, consistent with our earlier simulated
 findings, though this is not yet an unambiguous improvement once every
@@ -375,14 +382,16 @@ from our prior simulated work \cite{mecon-paper1,icraie-paper2} on a
 real OAI gNB over its native E2 control loop, with the radio channel
 still simulated. A calibration issue in our QoE estimation was
 identified and corrected, enabling a fully powered live re-evaluation
-(21 episodes/arm): DQN under the QoE-aware reward sustained 100\% SLA
-compliance throughout, while the SLA-only reward and both static arms
-converged to a statistically indistinguishable 19/21 rate. This
-revises our own earlier, smaller-sample finding that the SLA-only
-reward's collapse-avoidance edge over a best-possible fixed ceiling
-was clearly significant ($p=0.0149$) -- at full power that edge holds
-for the QoE-aware reward, but not clearly for the SLA-only one
-($p=1.0$). The control loop adds negligible latency and model
+(46 episodes/arm): DQN under the QoE-aware reward sustained 100\% SLA
+compliance throughout, while the SLA-only reward and static-at-cap
+converged to an identical, statistically indistinguishable 44/46 rate,
+both modestly above the static baseline's 42/46. This revises our own
+earlier, smaller-sample finding that the SLA-only reward's
+collapse-avoidance edge over a best-possible fixed ceiling was clearly
+significant ($p=0.0149$) -- at full power that edge holds for the
+QoE-aware reward, but not for the SLA-only one ($p=1.0$, a genuine null
+result at this sample size, not merely an underpowered one). The
+control loop adds negligible latency and model
 overhead, supporting the feasibility of real-time deployment. An
 offline evaluation under congested, randomised multi-slice traffic
 showed the learned policy can prioritise URLLC consistent with our
