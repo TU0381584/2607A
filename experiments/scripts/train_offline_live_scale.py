@@ -41,6 +41,13 @@ def main() -> None:
     ap.add_argument("--seed", type=int, default=256)
     ap.add_argument("--results-dir", default="experiments/results/offline_v2")
     ap.add_argument("--reward-mode", choices=["sla", "qoe"], default="qoe")
+    ap.add_argument("--backlog-capacity", type=float, default=BACKLOG_CAPACITY,
+                     help="Stage 12 finding: the default 2000 was chosen purely so "
+                          "accept_all/reject_all/threshold_like differentiate (Stage 5's "
+                          "own criterion) and was never checked against real live margin "
+                          "magnitude -- at 2000, mean offline SLA margin is ~-0.60 vs real "
+                          "live's ~+0.7-0.75 for the same checkpoint. Override for a "
+                          "recalibration attempt; see docs/STAGE13_recalibration_attempt.md.")
     args = ap.parse_args()
 
     cfg = load_saclb_config(args.config)
@@ -50,7 +57,7 @@ def main() -> None:
         return ClosedLoopKpmSource(
             seed=seed, gnb_ids=cfg.gnb_ids, slice_ids=list(cfg.slice_by_id),
             B=cfg.B, mean_offered_ratio=MEAN_OFFERED_RATIO,
-            backlog_capacity=BACKLOG_CAPACITY, sd_for_slice=sd_for_slice,
+            backlog_capacity=args.backlog_capacity, sd_for_slice=sd_for_slice,
         )
 
     out_dir = f"{args.results_dir}/{args.reward_mode}/seed{args.seed}"
