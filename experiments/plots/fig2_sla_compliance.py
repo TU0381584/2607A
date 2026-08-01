@@ -94,52 +94,67 @@ def main() -> None:
         arm_episode_vals[arm] = pooled
         n_seeds_used[arm] = seeds_seen
 
-    fig, (ax_top, ax_bot) = plt.subplots(
-        2, 1, figsize=(3.5, 3.5 * 1.05), gridspec_kw={"height_ratios": [2.0, 1.0]}
-    )
+    # Larger, double-column-width rendering for legibility -- scoped to this
+    # figure only (rc_context, not a change to common.py's shared defaults,
+    # which every other figure script still relies on unchanged).
+    big_style = {
+        "font.size": 11,
+        "axes.titlesize": 12.5,
+        "axes.labelsize": 11.5,
+        "xtick.labelsize": 10.5,
+        "ytick.labelsize": 10.5,
+        "legend.fontsize": 10,
+        "lines.linewidth": 1.6,
+        "axes.linewidth": 0.9,
+        "grid.linewidth": 0.5,
+    }
+    with plt.rc_context(big_style):
+        fig, (ax_top, ax_bot) = plt.subplots(
+            1, 2, figsize=(7.16, 3.6), gridspec_kw={"width_ratios": [1.6, 1.0]}
+        )
 
-    x = np.arange(len(args.arms))
-    for i, arm in enumerate(args.arms):
-        vals = np.array(arm_episode_vals[arm])
-        if vals.size == 0:
-            continue
-        jitter = deterministic_jitter(len(vals))
-        style = ARM_STYLE[arm]
-        ax_top.scatter(i + jitter, vals, color=style["color"], marker=style["marker"],
-                        s=14, alpha=0.65, linewidths=0.3, edgecolors="white")
+        x = np.arange(len(args.arms))
+        for i, arm in enumerate(args.arms):
+            vals = np.array(arm_episode_vals[arm])
+            if vals.size == 0:
+                continue
+            jitter = deterministic_jitter(len(vals))
+            style = ARM_STYLE[arm]
+            ax_top.scatter(i + jitter, vals, color=style["color"], marker=style["marker"],
+                            s=42, alpha=0.75, linewidths=0.5, edgecolors="white")
 
-    ax_top.set_xticks(x)
-    ax_top.set_xticklabels([ARM_STYLE[a]["label"] for a in args.arms], rotation=30, ha="right")
-    ax_top.set_ylabel("Per-episode SLA\ncompliance (%)")
-    ax_top.set_ylim(-5, 105)
-    n_eps_seen = {len(v) for v in arm_episode_vals.values() if v}
-    n_eps_label = str(next(iter(n_eps_seen))) if len(n_eps_seen) == 1 else "varies"
-    ax_top.set_title(f"Per-episode SLA compliance by arm (n={n_eps_label} episodes/arm, "
-                      f"seeds={args.seeds})", fontsize=6.5)
+        ax_top.set_xticks(x)
+        ax_top.set_xticklabels([ARM_STYLE[a]["label"] for a in args.arms], rotation=20, ha="right")
+        ax_top.set_ylabel("Per-episode SLA compliance (%)")
+        ax_top.set_ylim(-5, 105)
+        n_eps_seen = {len(v) for v in arm_episode_vals.values() if v}
+        n_eps_label = str(next(iter(n_eps_seen))) if len(n_eps_seen) == 1 else "varies"
+        ax_top.set_title(f"(a) Per-episode compliance (n={n_eps_label}/arm)")
 
-    frac_fully_compliant = []
-    worst_episode = []
-    for arm in args.arms:
-        vals = np.array(arm_episode_vals[arm])
-        if vals.size == 0:
-            frac_fully_compliant.append(float("nan"))
-            worst_episode.append(float("nan"))
-            continue
-        frac_fully_compliant.append(100.0 * float(np.mean(vals >= FULLY_COMPLIANT_THRESHOLD)))
-        worst_episode.append(float(np.min(vals)))
+        frac_fully_compliant = []
+        worst_episode = []
+        for arm in args.arms:
+            vals = np.array(arm_episode_vals[arm])
+            if vals.size == 0:
+                frac_fully_compliant.append(float("nan"))
+                worst_episode.append(float("nan"))
+                continue
+            frac_fully_compliant.append(100.0 * float(np.mean(vals >= FULLY_COMPLIANT_THRESHOLD)))
+            worst_episode.append(float(np.min(vals)))
 
-    bar_width = 0.35
-    ax_bot.bar(x - bar_width / 2, frac_fully_compliant, bar_width,
-               color="#2a78d6", label="Episodes fully compliant (%)")
-    ax_bot.bar(x + bar_width / 2, worst_episode, bar_width,
-               color="#e34948", label="Worst episode (%)")
-    ax_bot.set_xticks(x)
-    ax_bot.set_xticklabels([ARM_STYLE[a]["label"] for a in args.arms], rotation=30, ha="right")
-    ax_bot.set_ylabel("%")
-    ax_bot.set_ylim(0, 105)
-    ax_bot.legend(loc="lower left", frameon=False, fontsize=5.5)
+        bar_width = 0.35
+        ax_bot.bar(x - bar_width / 2, frac_fully_compliant, bar_width,
+                   color="#2a78d6", label="Fully compliant (%)")
+        ax_bot.bar(x + bar_width / 2, worst_episode, bar_width,
+                   color="#e34948", label="Worst episode (%)")
+        ax_bot.set_xticks(x)
+        ax_bot.set_xticklabels([ARM_STYLE[a]["label"] for a in args.arms], rotation=20, ha="right")
+        ax_bot.set_ylabel("%")
+        ax_bot.set_ylim(0, 105)
+        ax_bot.set_title("(b) Compliance summary")
+        ax_bot.legend(loc="lower left", frameon=False)
 
-    fig.tight_layout()
+        fig.tight_layout()
 
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)

@@ -5,21 +5,10 @@
 \usepackage{multirow}
 \usepackage{url}
 \usepackage{xcolor}
-\usepackage{listings}
-
-\renewcommand{\lstlistingname}{Algorithm}
-\lstset{
-  basicstyle=\ttfamily\scriptsize,
-  numbers=left,
-  numberstyle=\tiny\color{gray},
-  numbersep=4pt,
-  xleftmargin=1.4em,
-  frame=single,
-  columns=fullflexible,
-  breaklines=true,
-  mathescape=true,
-  captionpos=b,
-}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
 
 % Visible TODO markers for content the author (not Claude) writes.
 \newcommand{\authorTODO}[1]{\par\noindent\fbox{\parbox{0.95\linewidth}{\textbf{\color{red}TODO(MANOJ):} #1}}\par}
@@ -158,6 +147,46 @@ related work. Candidate sources are already screened in our
 systematic review~\cite{survey-paper3}.}
 
 \section{Methodology}
+Fig.~\ref{fig:pipeline} summarises the pipeline detailed in this
+section: offline training against a closed-loop simulator
+(Section~III-C) produces frozen checkpoints, deployed on the live
+testbed below with no further learning, and evaluated both live and,
+separately, offline against fresh held-out episodes -- a branch that,
+as Section~III-C shows, does not predict the live outcome.
+
+\begin{figure*}[t]
+\centering
+\begin{tikzpicture}[
+  font=\sffamily\scriptsize,
+  box/.style={draw, rounded corners, align=center, inner sep=3pt, minimum height=0.8cm, minimum width=2.2cm},
+  simbox/.style={box, fill=blue!8},
+  livebox/.style={box, fill=orange!10},
+  evalbox/.style={box, fill=green!10},
+  warnbox/.style={box, fill=red!8, dashed, minimum width=2.9cm},
+  arrow/.style={-{Latex[length=2.2mm]}, thick},
+  dashedarrow/.style={-{Latex[length=2.2mm]}, thick, dashed},
+]
+\node[simbox] (sim) {Closed-loop offline\\simulator (Alg.~1)};
+\node[simbox, right=0.6cm of sim] (train) {DQN training\\6 seeds $\times$ 300 ep};
+\node[simbox, right=0.6cm of train] (ckpt) {Frozen\\checkpoint};
+\node[livebox, right=0.6cm of ckpt] (rig) {Live OAI gNB\\(E2 control loop)};
+\node[evalbox, right=0.6cm of rig] (liveeval) {Live evaluation\\11 seeds, $\leq$46 ep/arm};
+\node[evalbox, right=0.6cm of liveeval] (stats) {Statistical analysis\\Fisher exact, SLA\%, MOS};
+
+\draw[arrow] (sim) -- (train);
+\draw[arrow] (train) -- (ckpt);
+\draw[arrow] (ckpt) -- (rig) node[midway, above, font=\tiny] {deploy, frozen weights};
+\draw[arrow] (rig) -- (liveeval);
+\draw[arrow] (liveeval) -- (stats);
+
+\node[warnbox, below=0.75cm of ckpt] (offeval) {Held-out offline eval\\100 ep, fresh seeds};
+\draw[dashedarrow] (ckpt.south) -- (offeval.north);
+\node[font=\tiny\itshape, below=0.02cm of offeval, align=center, text width=3.2cm] {does not rank-correlate\\with live outcome (Sec.~III-C)};
+\end{tikzpicture}
+\caption{End-to-end methodology. Checkpoints trained offline (left) are deployed live with no further learning (centre); a held-out offline evaluation runs alongside the live pipeline (bottom) but, per Section~III-C, does not predict its outcome.}
+\label{fig:pipeline}
+\end{figure*}
+
 \subsection{Testbed}
 We deploy a real OAI gNB (ORANSlice fork \cite{oranslice}) with a
 simulated radio channel (rfsim), an Open5GS core, and three
@@ -225,34 +254,33 @@ traffic is capped by the slice's own most recently commanded ceiling,
 and demand the ceiling could not serve persists as backlog into the
 next step rather than vanishing, so an admission decision carries a
 real, delayed consequence the agent can learn from rather than being
-free. This closed-loop property is not incidental: an earlier,
-open-loop source we also implemented sampled demand and backlog
-independently every step, recording admission decisions but never
-feeding them back into future state, under which always accepting was
-trivially reward-optimal -- training against it would validate only
-the training loop's mechanics (replay buffers, checkpointing,
-logging), not any genuine admission-demand tradeoff, which is why we
-do not use it for the results reported here. Algorithm~\ref{alg:sim}
-summarises the per-slice, per-step update the closed-loop source runs.
+free. This is not incidental: an earlier, open-loop source we also
+implemented let demand and backlog evolve independently of admission
+decisions, under which always accepting was trivially reward-optimal
+and training validated only the training loop's mechanics, not any
+genuine admission-demand tradeoff -- which is why we do not use it
+here. Algorithm~\ref{alg:sim} summarises the closed-loop update.
 
-\begin{figure}[t]
-\centering
-\begin{lstlisting}[caption={Offline closed-loop traffic simulation (one slice, one step).}, label={alg:sim}]
-Input: offered$_{t-1}$, backlog$_{t-1}$, ceiling$_t$
-mean $\gets$ mean_offered_ratio $\times$ B $\times$ gnb_load
-drift $\gets$ 0.1 $\times$ (mean $-$ offered$_{t-1}$)
-offered$_t$ $\gets$ max(0, offered$_{t-1}$ + drift + noise)
-if a reject freed backlog last step:
-    backlog$_{t-1}$ $\gets$ max(0, backlog$_{t-1}$ $-$ relief)
-demand $\gets$ offered$_t$ + backlog$_{t-1}$
-served $\gets$ min(demand, ceiling$_t$)
-backlog$_t$ $\gets$ min(backlog_cap, demand $-$ served)
-loss$_t$ $\gets$ 0.02 + 0.3 $\times$ (backlog$_t$ / backlog_cap)
-emit KPM sample (served, backlog$_t$, loss$_t$)
-agent observes $s_t$, sends ceiling$_{t+1}$
-\end{lstlisting}
-\vspace{-0.6em}
-\end{figure}
+\begin{algorithm}[t]
+\caption{Offline closed-loop traffic simulation (one slice, one step)}
+\label{alg:sim}
+\footnotesize
+\begin{algorithmic}[1]
+\REQUIRE offered$_{t-1}$, backlog$_{t-1}$, ceiling$_t$
+\STATE $mean \gets$ mean\_offered\_ratio $\times B \times$ gnb\_load
+\STATE $drift \gets 0.1 \times (mean - \text{offered}_{t-1})$
+\STATE offered$_t \gets \max(0,\ \text{offered}_{t-1} + drift + \text{noise})$
+\IF{a reject freed backlog last step}
+  \STATE backlog$_{t-1} \gets \max(0,\ \text{backlog}_{t-1} - \text{relief})$
+\ENDIF
+\STATE $demand \gets \text{offered}_t + \text{backlog}_{t-1}$
+\STATE $served \gets \min(demand,\ \text{ceiling}_t)$
+\STATE backlog$_t \gets \min(\text{backlog\_cap},\ demand - served)$
+\STATE $loss_t \gets 0.02 + 0.3 \times (\text{backlog}_t\ /\ \text{backlog\_cap})$
+\STATE emit KPM sample $(served,\ \text{backlog}_t,\ loss_t)$
+\STATE agent observes $s_t$, sends ceiling$_{t+1}$
+\end{algorithmic}
+\end{algorithm}
 
 This offline source's demand mean is tied to values measured live on
 this rig, but its temporal dynamics -- the random walk's volatility,
@@ -353,12 +381,12 @@ sample suggested; only the QoE-aware reward's advantage is
 unambiguous, and even that awaits a larger sample to separate cleanly
 from the baseline.
 
-\begin{figure}[t]
+\begin{figure*}[t]
 \centering
-\includegraphics[width=0.92\linewidth]{figures/fig2_sla_compliance.pdf}
-\caption{Per-episode SLA compliance (\%). Top: one point per episode. Bottom: fraction of episodes fully SLA-compliant and worst single-episode compliance. Baseline, static-at-cap, and DQN under the SLA-only reward all show the same bimodal split; only DQN under the QoE-aware reward stays uniformly compliant.}
+\includegraphics[width=0.76\linewidth]{figures/fig2_sla_compliance.pdf}
+\caption{Per-episode SLA compliance (\%). (a) One point per episode. (b) Fraction of episodes fully SLA-compliant and worst single-episode compliance. Baseline, static-at-cap, and DQN under the SLA-only reward all show the same bimodal split; only DQN under the QoE-aware reward stays uniformly compliant.}
 \label{fig:compliance}
-\end{figure}
+\end{figure*}
 
 Fig.~\ref{fig:compliance} shows this episode-by-episode: DQN under the
 QoE-aware reward sits at exactly 100\% in every episode, while the
@@ -457,21 +485,20 @@ simulated work, though not yet a net win once priorities are weighted,
 and does not reproduce live at this campaign's ceiling scale.
 
 \section{Conclusion and Future Work}
-This paper realised the DRL-based slice admission control problem
-from our prior simulated work \cite{mecon-paper1,icraie-paper2} on a
-real OAI gNB over its native E2 control loop, with the radio channel
-still simulated. After correcting a QoE-calibration issue, a fully
-powered live re-evaluation (46 episodes/arm) showed the QoE-aware
-reward sustaining 100\% SLA compliance, ahead of the SLA-only reward
-and static-at-cap (44/46 each -- revising our earlier, smaller-sample
-finding of a significant SLA-only edge, $p{=}0.0149\to p{=}1.0$ at full
-power) and the static baseline (42/46). The control loop adds
-negligible latency and model overhead. An offline congested-traffic
-evaluation showed the learned policy can prioritise URLLC as in our
-earlier simulated work, though not yet as a clear win once slice
-priorities are weighted; live, at this campaign's ceiling scale, no
-arm was forced into that tradeoff, though the QoE-aware reward still
-gave URLLC a materially better experience score.
+This paper moved our prior simulated DRL-based slice admission control
+work \cite{mecon-paper1,icraie-paper2} onto a real OAI gNB over its
+native E2 control loop, radio channel still simulated. After
+correcting a QoE-calibration issue, a fully powered live re-evaluation
+(46 episodes/arm) showed the QoE-aware reward sustaining 100\% SLA
+compliance, ahead of the SLA-only reward and static-at-cap (44/46 each
+-- revising our earlier, smaller-sample finding of a significant
+SLA-only edge, $p{=}0.0149\to p{=}1.0$ at full power) and the static
+baseline (42/46), with negligible control-loop latency/model overhead.
+An offline congested-traffic evaluation showed the learned policy can
+prioritise URLLC, though not yet as a clear win once priorities are
+weighted; live, no arm was forced into that tradeoff, though the
+QoE-aware reward still gave URLLC a materially better experience
+score.
 
 Our future work will (1) improve the offline training environment's
 temporal fidelity to real traffic, needed to make offline evaluation
