@@ -9,6 +9,13 @@
 \usepackage{algorithmic}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning,fit,backgrounds}
+% Same categorical palette used by the dataviz-validated Fig.~3/4 plots
+% (experiments/plots/common.py's ARM_STYLE), reused here for visual
+% consistency across the paper's figures.
+\definecolor{palBlue}{HTML}{2A78D6}
+\definecolor{palGreen}{HTML}{008300}
+\definecolor{palYellow}{HTML}{EDA100}
+\definecolor{palPurple}{HTML}{7A5CD6}
 
 % Visible TODO markers for content the author (not Claude) writes.
 \newcommand{\authorTODO}[1]{\par\noindent\fbox{\parbox{0.95\linewidth}{\textbf{\color{red}TODO(MANOJ):} #1}}\par}
@@ -154,26 +161,26 @@ testbed below with no further learning, and evaluated both live and,
 separately, offline against fresh held-out episodes -- a branch that,
 as Section~III-C shows, does not predict the live outcome.
 
-\begin{figure*}[t]
+\begin{figure}[t]
 \centering
 \begin{tikzpicture}[
   font=\sffamily\scriptsize,
-  box/.style={draw, rounded corners, align=center, inner sep=2.5pt, minimum height=0.8cm, minimum width=1.6cm},
-  simbox/.style={box, fill=blue!8},
-  livebox/.style={box, fill=orange!10},
-  evalbox/.style={box, fill=green!10},
-  warnbox/.style={box, fill=red!8, dashed, minimum width=2.6cm},
+  box/.style={draw, rounded corners, align=center, inner sep=3pt, minimum height=0.7cm, minimum width=3.1cm},
+  simbox/.style={box, fill=palBlue!12, draw=palBlue!70!black},
+  livebox/.style={box, fill=palYellow!25, draw=palYellow!70!black},
+  evalbox/.style={box, fill=palGreen!12, draw=palGreen!70!black},
+  warnbox/.style={box, fill=red!8, draw=red!60!black, dashed, minimum width=2.5cm},
   arrow/.style={-{Latex[length=2mm]}, thick},
   dashedarrow/.style={-{Latex[length=2mm]}, thick, dashed},
 ]
-\node[simbox] (probe) {Real-traffic\\probes};
-\node[simbox, right=0.25cm of probe] (sim) {Closed-loop\\simulator (Alg.~1)};
-\node[simbox, right=0.25cm of sim, minimum width=2.0cm] (train) {DQN training\\SLA/QoE $\times$ 6 seeds\\$\times$ 300 ep};
-\node[simbox, right=0.25cm of train] (ckpt) {Frozen\\checkpoints};
-\node[livebox, right=0.25cm of ckpt, minimum width=2.2cm] (arms) {4 arms: baseline,\\static-at-cap,\\DQN$_{\text{SLA}}$, DQN$_{\text{QoE}}$};
-\node[livebox, right=0.25cm of arms, minimum width=2.0cm] (rig) {Live OAI gNB\\(E2 loop, Fig.~\ref{fig:architecture})};
-\node[evalbox, right=0.25cm of rig, minimum width=1.9cm] (liveeval) {Live evaluation\\11 seeds, $\leq$46 ep/arm};
-\node[evalbox, right=0.25cm of liveeval, minimum width=1.8cm] (stats) {Statistical\\analysis};
+\node[simbox] (probe) {Real-traffic probes};
+\node[simbox, below=0.24cm of probe] (sim) {Closed-loop simulator (Alg.~1)};
+\node[simbox, below=0.24cm of sim] (train) {DQN training\\SLA/QoE $\times$ 6 seeds $\times$ 300 ep};
+\node[simbox, below=0.24cm of train] (ckpt) {Frozen checkpoints};
+\node[livebox, below=0.24cm of ckpt] (arms) {4 arms: baseline, static-at-cap,\\DQN$_{\text{SLA}}$, DQN$_{\text{QoE}}$};
+\node[livebox, below=0.24cm of arms] (rig) {Live OAI gNB\\(E2 loop, Fig.~\ref{fig:architecture})};
+\node[evalbox, below=0.24cm of rig] (liveeval) {Live evaluation: 11 seeds, $\leq$46 ep/arm};
+\node[evalbox, below=0.24cm of liveeval] (stats) {Statistical analysis\\Fisher exact, SLA\%, MOS};
 
 \draw[arrow] (probe) -- (sim);
 \draw[arrow] (sim) -- (train);
@@ -183,13 +190,13 @@ as Section~III-C shows, does not predict the live outcome.
 \draw[arrow] (rig) -- (liveeval);
 \draw[arrow] (liveeval) -- (stats);
 
-\node[warnbox, below=0.75cm of ckpt] (offeval) {Held-out offline eval\\100 ep, fresh seeds};
-\draw[dashedarrow] (ckpt.south) -- (offeval.north);
-\node[font=\tiny\itshape, below=0.02cm of offeval, align=center, text width=3.2cm] {does not rank-correlate\\with live outcome (Sec.~III-C)};
+\node[warnbox, right=0.55cm of ckpt] (offeval) {Held-out offline eval\\100 ep, fresh seeds};
+\draw[dashedarrow] (ckpt.east) -- (offeval.west);
+\node[font=\tiny\itshape, below=0.03cm of offeval, align=center, text width=2.5cm] {does not rank-correlate\\with live outcome (Sec.~III-C)};
 \end{tikzpicture}
 \caption{End-to-end methodology. Real-traffic probe measurements calibrate the offline simulator (Section~III-C, Algorithm~1); DQN training produces frozen checkpoints for both reward variants, joined by the two static arms into the four compared conditions, deployed live with no further learning; live episodes are logged and reduced to Table~\ref{tab:results}/Figs.~\ref{fig:compliance}--\ref{fig:ceiling} via Fisher exact tests and MOS. A held-out offline evaluation runs alongside this live pipeline but, per Section~III-C, does not predict its outcome.}
 \label{fig:pipeline}
-\end{figure*}
+\end{figure}
 
 \subsection{Testbed}
 Fig.~\ref{fig:architecture} shows the resulting software architecture:
@@ -201,11 +208,12 @@ arms issue their admission decisions.
 \centering
 \begin{tikzpicture}[
   font=\sffamily\scriptsize,
-  box/.style={draw, rounded corners, minimum height=0.75cm, align=center, inner sep=3pt},
-  core/.style={box, fill=blue!8},
-  gnb/.style={box, fill=orange!10},
-  ue/.style={box, fill=green!10, minimum width=2.0cm},
-  xapp/.style={box, fill=violet!10},
+  box/.style={draw, rounded corners, minimum height=0.75cm, align=center, inner sep=3pt, line width=0.6pt},
+  core/.style={box, fill=palBlue!15, draw=palBlue!70!black},
+  gnb/.style={box, fill=palYellow!30, draw=palYellow!65!black},
+  ue/.style={box, fill=palGreen!15, draw=palGreen!70!black, minimum width=2.0cm},
+  xapp/.style={box, fill=palPurple!15, draw=palPurple!70!black},
+  logbox/.style={box, fill=black!5, draw=black!60, minimum width=2.6cm},
   arrow/.style={-{Latex[length=2mm]}, thick},
   dashedarrow/.style={-{Latex[length=2mm]}, thick, dashed},
 ]
@@ -213,26 +221,28 @@ arms issue their admission decisions.
 \node[core, minimum width=2.4cm, below=0.2cm of amf] (smf1) {SMF/UPF\\eMBB};
 \node[core, minimum width=2.4cm, below=0.2cm of smf1] (smf2) {SMF/UPF\\URLLC};
 \node[core, minimum width=2.4cm, below=0.2cm of smf2] (smf3) {SMF/UPF\\mMTC};
-\node[draw, dashed, rounded corners, fit=(amf)(smf1)(smf2)(smf3), inner sep=5pt, label={[font=\sffamily\bfseries\scriptsize]above:Open5GS core (software)}] (core) {};
+\node[draw=palBlue!70!black, dashed, rounded corners, fit=(amf)(smf1)(smf2)(smf3), inner sep=5pt, label={[font=\sffamily\bfseries\scriptsize, text=palBlue!70!black]above:Open5GS core (software)}] (core) {};
 
 \node[gnb, minimum width=2.9cm, right=2.2cm of smf1.north east, anchor=north west, yshift=0.35cm] (mac) {MAC scheduler\\\texttt{slicing\_control\_m}\\enforcement};
 \node[gnb, minimum width=2.9cm, below=0.3cm of mac] (e2) {E2 Agent\\(RIC-free UDP loop)};
-\node[draw, rounded corners, fit=(mac)(e2), inner sep=5pt, label={[font=\sffamily\bfseries\scriptsize]above:gNB -- OAI (ORANSlice fork), rfsim}] (gnbbox) {};
+\node[draw=palYellow!65!black, rounded corners, fit=(mac)(e2), inner sep=5pt, label={[font=\sffamily\bfseries\scriptsize, text=palYellow!55!black]above:gNB -- OAI (ORANSlice fork), rfsim, 106 PRBs $\mu{=}1$}] (gnbbox) {};
 
 \node[ue, right=2.0cm of mac, yshift=0.75cm] (ue1) {UE1\\eMBB (\texttt{nr-uesoftmodem})};
 \node[ue, below=0.3cm of ue1] (ue2) {UE2\\URLLC (\texttt{nr-uesoftmodem})};
 \node[ue, below=0.3cm of ue2] (ue3) {UE3\\mMTC (\texttt{nr-uesoftmodem})};
 
 \node[xapp, minimum width=3.3cm, below=1.3cm of e2] (xapp) {xApp / orchestrator\\baseline, static-at-cap,\\DQN$_{\text{SLA}}$, DQN$_{\text{QoE}}$};
+\node[logbox, below=0.3cm of xapp] (log) {Episode log\\\texttt{omega\_log.jsonl}};
 
-\draw[arrow] (amf.east) -- ++(0.4,0) coordinate (n2n3) -- (n2n3 |- gnbbox.west) node[midway, above, font=\tiny] {N2/N3} -- (gnbbox.west);
+\draw[arrow] (amf.east) -- ++(0.4,0) coordinate (n2n3) -- (n2n3 |- gnbbox.west) node[midway, above, font=\tiny] {N2 (AMF) / N3 (UPF)} -- (gnbbox.west);
 \draw[arrow] (mac.east) -- (ue1.west);
 \draw[arrow] (gnbbox.east) -- (ue2.west);
 \draw[arrow] (e2.east) -- (ue3.west);
 \node[font=\tiny, above=0.02cm of ue1] {Uu / rfsim};
-\draw[dashedarrow] (e2.south) .. controls +(0,-0.8) and +(0,0.8) .. node[right, font=\tiny, align=left] {UDP 6655/6600\\INDICATION\_REQUEST/\\RESPONSE, CONTROL\\(never SUBSCRIPTION)} (xapp.north);
+\draw[dashedarrow] (e2.south) .. controls +(0,-0.8) and +(0,0.8) .. node[right, font=\tiny, align=left] {UDP 6655/6600\\INDICATION\_REQUEST/RESPONSE,\\CONTROL\{sst, sd, min\_ratio,\\max\_ratio\} (never SUBSCRIPTION)} (xapp.north);
+\draw[arrow] (xapp) -- (log);
 \end{tikzpicture}
-\caption{Testbed software architecture. Open5GS core (AMF, per-slice SMF/UPF) over N2/N3 to an OAI gNB (ORANSlice fork, simulated radio channel) whose MAC scheduler enforces the per-slice ceiling; three \texttt{nr-uesoftmodem} UEs, one per slice, connect over the simulated Uu interface. The RIC-free E2 agent exchanges UDP INDICATION/CONTROL messages (no SUBSCRIPTION channel) with the xApp/orchestrator that all four compared arms run through.}
+\caption{Testbed software architecture, colour-coded by component: Open5GS core (blue; AMF, per-slice SMF/UPF) over N2/N3 to an OAI gNB (yellow; ORANSlice fork, simulated radio channel, 106 PRBs at $\mu{=}1$) whose MAC scheduler enforces the per-slice ceiling; three \texttt{nr-uesoftmodem} UEs (green), one per slice, over the simulated Uu interface. The RIC-free E2 agent exchanges UDP INDICATION/RESPONSE and CONTROL (\texttt{sst}, \texttt{sd}, \texttt{min\_ratio}, \texttt{max\_ratio}) messages with the xApp/orchestrator (purple) that all four compared arms run through, which logs every step to \texttt{omega\_log.jsonl} for the offline analysis in Section~IV.}
 \label{fig:architecture}
 \end{figure*}
 
@@ -290,23 +300,22 @@ slices of unequal importance. Table~\ref{tab:qoe_vs_sla} summarises
 how the two variants differ conceptually and, ahead of the full
 results in Section~IV, how that difference actually shows up live.
 
-\begin{table*}[t]
+\begin{table}[t]
 \centering
-\caption{SLA-only vs.\ QoE-aware reward: what each optimises for, and how that shows up live}
+\caption{SLA-only vs.\ QoE-aware reward}
 \label{tab:qoe_vs_sla}
 \small
-\begin{tabular}{@{}p{0.16\linewidth}p{0.40\linewidth}p{0.40\linewidth}@{}}
+\begin{tabular}{@{}p{0.30\linewidth}p{0.31\linewidth}p{0.31\linewidth}@{}}
 \toprule
- & \textbf{SLA-only reward ($\eta=0$)} & \textbf{QoE-aware reward ($\eta=1$)} \\
+ & \textbf{SLA-only} ($\eta{=}0$) & \textbf{QoE-aware} ($\eta{=}1$) \\
 \midrule
-Reward signal & $\omega_s R_s - \lambda_s$: a per-slice serving reward minus an SLA-violation penalty & the same, plus $\eta\,\mathrm{MOS}_t$: a calibrated, continuous per-step Mean Opinion Score term \\
-Optimises for & staying on the compliant side of the SLA threshold & perceived experience quality, both at and beyond the threshold \\
-Once compliant & no further reward for exceeding the threshold -- barely compliant and excellent service score the same & continues rewarding better-than-threshold service \\
-Live compliance (Table~\ref{tab:results}, 46 ep/arm) & 44/46 (95.7\%) & \textbf{46/46 (100.0\%)} \\
-Congested URLLC MOS (Sec.~IV-C) & 2.44 & \textbf{4.83} \\
+Signal & $\omega_s R_s - \lambda_s$ & $+\ \eta\,\mathrm{MOS}_t$ \\
+Optimises for & threshold compliance & experience, beyond threshold too \\
+Live compliance & 44/46 (95.7\%) & \textbf{46/46 (100\%)} \\
+Congested URLLC MOS & 2.44 & \textbf{4.83} \\
 \bottomrule
 \end{tabular}
-\end{table*}
+\end{table}
 
 \subsection{Offline Training Environment}
 \label{sec:offline-env}
