@@ -8,7 +8,7 @@
 \usepackage{algorithm}
 \usepackage{algorithmic}
 \usepackage{tikz}
-\usetikzlibrary{arrows.meta,positioning}
+\usetikzlibrary{arrows.meta,positioning,fit,backgrounds}
 
 % Visible TODO markers for content the author (not Claude) writes.
 \newcommand{\authorTODO}[1]{\par\noindent\fbox{\parbox{0.95\linewidth}{\textbf{\color{red}TODO(MANOJ):} #1}}\par}
@@ -158,24 +158,28 @@ as Section~III-C shows, does not predict the live outcome.
 \centering
 \begin{tikzpicture}[
   font=\sffamily\scriptsize,
-  box/.style={draw, rounded corners, align=center, inner sep=3pt, minimum height=0.8cm, minimum width=2.2cm},
+  box/.style={draw, rounded corners, align=center, inner sep=2.5pt, minimum height=0.8cm, minimum width=1.6cm},
   simbox/.style={box, fill=blue!8},
   livebox/.style={box, fill=orange!10},
   evalbox/.style={box, fill=green!10},
-  warnbox/.style={box, fill=red!8, dashed, minimum width=2.9cm},
-  arrow/.style={-{Latex[length=2.2mm]}, thick},
-  dashedarrow/.style={-{Latex[length=2.2mm]}, thick, dashed},
+  warnbox/.style={box, fill=red!8, dashed, minimum width=2.6cm},
+  arrow/.style={-{Latex[length=2mm]}, thick},
+  dashedarrow/.style={-{Latex[length=2mm]}, thick, dashed},
 ]
-\node[simbox] (sim) {Closed-loop offline\\simulator (Alg.~1)};
-\node[simbox, right=0.6cm of sim] (train) {DQN training\\6 seeds $\times$ 300 ep};
-\node[simbox, right=0.6cm of train] (ckpt) {Frozen\\checkpoint};
-\node[livebox, right=0.6cm of ckpt] (rig) {Live OAI gNB\\(E2 control loop)};
-\node[evalbox, right=0.6cm of rig] (liveeval) {Live evaluation\\11 seeds, $\leq$46 ep/arm};
-\node[evalbox, right=0.6cm of liveeval] (stats) {Statistical analysis\\Fisher exact, SLA\%, MOS};
+\node[simbox] (probe) {Real-traffic\\probes};
+\node[simbox, right=0.25cm of probe] (sim) {Closed-loop\\simulator (Alg.~1)};
+\node[simbox, right=0.25cm of sim, minimum width=2.0cm] (train) {DQN training\\SLA/QoE $\times$ 6 seeds\\$\times$ 300 ep};
+\node[simbox, right=0.25cm of train] (ckpt) {Frozen\\checkpoints};
+\node[livebox, right=0.25cm of ckpt, minimum width=2.2cm] (arms) {4 arms: baseline,\\static-at-cap,\\DQN$_{\text{SLA}}$, DQN$_{\text{QoE}}$};
+\node[livebox, right=0.25cm of arms, minimum width=2.0cm] (rig) {Live OAI gNB\\(E2 loop, Fig.~\ref{fig:architecture})};
+\node[evalbox, right=0.25cm of rig, minimum width=1.9cm] (liveeval) {Live evaluation\\11 seeds, $\leq$46 ep/arm};
+\node[evalbox, right=0.25cm of liveeval, minimum width=1.8cm] (stats) {Statistical\\analysis};
 
+\draw[arrow] (probe) -- (sim);
 \draw[arrow] (sim) -- (train);
 \draw[arrow] (train) -- (ckpt);
-\draw[arrow] (ckpt) -- (rig) node[midway, above, font=\tiny] {deploy, frozen weights};
+\draw[arrow] (ckpt) -- (arms);
+\draw[arrow] (arms) -- (rig);
 \draw[arrow] (rig) -- (liveeval);
 \draw[arrow] (liveeval) -- (stats);
 
@@ -183,11 +187,55 @@ as Section~III-C shows, does not predict the live outcome.
 \draw[dashedarrow] (ckpt.south) -- (offeval.north);
 \node[font=\tiny\itshape, below=0.02cm of offeval, align=center, text width=3.2cm] {does not rank-correlate\\with live outcome (Sec.~III-C)};
 \end{tikzpicture}
-\caption{End-to-end methodology. Checkpoints trained offline (left) are deployed live with no further learning (centre); a held-out offline evaluation runs alongside the live pipeline (bottom) but, per Section~III-C, does not predict its outcome.}
+\caption{End-to-end methodology. Real-traffic probe measurements calibrate the offline simulator (Section~III-C, Algorithm~1); DQN training produces frozen checkpoints for both reward variants, joined by the two static arms into the four compared conditions, deployed live with no further learning; live episodes are logged and reduced to Table~\ref{tab:results}/Figs.~\ref{fig:compliance}--\ref{fig:ceiling} via Fisher exact tests and MOS. A held-out offline evaluation runs alongside this live pipeline but, per Section~III-C, does not predict its outcome.}
 \label{fig:pipeline}
 \end{figure*}
 
 \subsection{Testbed}
+Fig.~\ref{fig:architecture} shows the resulting software architecture:
+an Open5GS core, an OAI gNB enforcing per-slice ceilings, three UEs
+(one per slice), and the E2 agent/xApp loop through which all four
+arms issue their admission decisions.
+
+\begin{figure*}[t]
+\centering
+\begin{tikzpicture}[
+  font=\sffamily\scriptsize,
+  box/.style={draw, rounded corners, minimum height=0.75cm, align=center, inner sep=3pt},
+  core/.style={box, fill=blue!8},
+  gnb/.style={box, fill=orange!10},
+  ue/.style={box, fill=green!10, minimum width=2.0cm},
+  xapp/.style={box, fill=violet!10},
+  arrow/.style={-{Latex[length=2mm]}, thick},
+  dashedarrow/.style={-{Latex[length=2mm]}, thick, dashed},
+]
+\node[core, minimum width=2.4cm] (amf) {AMF};
+\node[core, minimum width=2.4cm, below=0.2cm of amf] (smf1) {SMF/UPF\\eMBB};
+\node[core, minimum width=2.4cm, below=0.2cm of smf1] (smf2) {SMF/UPF\\URLLC};
+\node[core, minimum width=2.4cm, below=0.2cm of smf2] (smf3) {SMF/UPF\\mMTC};
+\node[draw, dashed, rounded corners, fit=(amf)(smf1)(smf2)(smf3), inner sep=5pt, label={[font=\sffamily\bfseries\scriptsize]above:Open5GS core (software)}] (core) {};
+
+\node[gnb, minimum width=2.9cm, right=2.2cm of smf1.north east, anchor=north west, yshift=0.35cm] (mac) {MAC scheduler\\\texttt{slicing\_control\_m}\\enforcement};
+\node[gnb, minimum width=2.9cm, below=0.3cm of mac] (e2) {E2 Agent\\(RIC-free UDP loop)};
+\node[draw, rounded corners, fit=(mac)(e2), inner sep=5pt, label={[font=\sffamily\bfseries\scriptsize]above:gNB -- OAI (ORANSlice fork), rfsim}] (gnbbox) {};
+
+\node[ue, right=2.0cm of mac, yshift=0.75cm] (ue1) {UE1\\eMBB (\texttt{nr-uesoftmodem})};
+\node[ue, below=0.3cm of ue1] (ue2) {UE2\\URLLC (\texttt{nr-uesoftmodem})};
+\node[ue, below=0.3cm of ue2] (ue3) {UE3\\mMTC (\texttt{nr-uesoftmodem})};
+
+\node[xapp, minimum width=3.3cm, below=1.3cm of e2] (xapp) {xApp / orchestrator\\baseline, static-at-cap,\\DQN$_{\text{SLA}}$, DQN$_{\text{QoE}}$};
+
+\draw[arrow] (amf.east) -- ++(0.4,0) coordinate (n2n3) -- (n2n3 |- gnbbox.west) node[midway, above, font=\tiny] {N2/N3} -- (gnbbox.west);
+\draw[arrow] (mac.east) -- (ue1.west);
+\draw[arrow] (gnbbox.east) -- (ue2.west);
+\draw[arrow] (e2.east) -- (ue3.west);
+\node[font=\tiny, above=0.02cm of ue1] {Uu / rfsim};
+\draw[dashedarrow] (e2.south) .. controls +(0,-0.8) and +(0,0.8) .. node[right, font=\tiny, align=left] {UDP 6655/6600\\INDICATION\_REQUEST/\\RESPONSE, CONTROL\\(never SUBSCRIPTION)} (xapp.north);
+\end{tikzpicture}
+\caption{Testbed software architecture. Open5GS core (AMF, per-slice SMF/UPF) over N2/N3 to an OAI gNB (ORANSlice fork, simulated radio channel) whose MAC scheduler enforces the per-slice ceiling; three \texttt{nr-uesoftmodem} UEs, one per slice, connect over the simulated Uu interface. The RIC-free E2 agent exchanges UDP INDICATION/CONTROL messages (no SUBSCRIPTION channel) with the xApp/orchestrator that all four compared arms run through.}
+\label{fig:architecture}
+\end{figure*}
+
 We deploy a real OAI gNB (ORANSlice fork \cite{oranslice}) with a
 simulated radio channel (rfsim), an Open5GS core, and three
 \texttt{nr-uesoftmodem} user equipment (UE), one per slice. The gNB
@@ -238,7 +286,27 @@ calibrated QoE-scoring model, giving the QoE-aware reward evaluated
 here. Both variants are compared on the same live hardware. We also
 report a priority-weighted compliance score, using each slice's
 declared importance weight rather than an unweighted average across
-slices of unequal importance.
+slices of unequal importance. Table~\ref{tab:qoe_vs_sla} summarises
+how the two variants differ conceptually and, ahead of the full
+results in Section~IV, how that difference actually shows up live.
+
+\begin{table*}[t]
+\centering
+\caption{SLA-only vs.\ QoE-aware reward: what each optimises for, and how that shows up live}
+\label{tab:qoe_vs_sla}
+\small
+\begin{tabular}{@{}p{0.16\linewidth}p{0.40\linewidth}p{0.40\linewidth}@{}}
+\toprule
+ & \textbf{SLA-only reward ($\eta=0$)} & \textbf{QoE-aware reward ($\eta=1$)} \\
+\midrule
+Reward signal & $\omega_s R_s - \lambda_s$: a per-slice serving reward minus an SLA-violation penalty & the same, plus $\eta\,\mathrm{MOS}_t$: a calibrated, continuous per-step Mean Opinion Score term \\
+Optimises for & staying on the compliant side of the SLA threshold & perceived experience quality, both at and beyond the threshold \\
+Once compliant & no further reward for exceeding the threshold -- barely compliant and excellent service score the same & continues rewarding better-than-threshold service \\
+Live compliance (Table~\ref{tab:results}, 46 ep/arm) & 44/46 (95.7\%) & \textbf{46/46 (100.0\%)} \\
+Congested URLLC MOS (Sec.~IV-C) & 2.44 & \textbf{4.83} \\
+\bottomrule
+\end{tabular}
+\end{table*}
 
 \subsection{Offline Training Environment}
 \label{sec:offline-env}
