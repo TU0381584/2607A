@@ -17,6 +17,30 @@
 \definecolor{palYellow}{HTML}{EDA100}
 \definecolor{palPurple}{HTML}{7A5CD6}
 
+% Small self-contained TikZ pictograms for Fig.~2 (no external icon font/
+% asset dependency) -- server rack (core), radio tower (gNB), handset (UE),
+% gear (xApp/orchestrator).
+\newcommand{\iconServer}[1]{\tikz[baseline=-0.55ex, scale=0.075, color=#1]{
+  \foreach \i in {0,1,2} {\draw[thick] (0,\i*0.75) rectangle ++(1.9,0.55); \fill (1.6,\i*0.75+0.28) circle (0.09);}
+}}
+\newcommand{\iconTower}[1]{\tikz[baseline=-0.55ex, scale=0.075, color=#1]{
+  \draw[thick] (-0.55,0) -- (0,1.7) -- (0.55,0);
+  \draw[thick] (0,1.7) -- (0,2.0);
+  \fill (0,2.05) circle (0.11);
+  \draw[thick] (-0.45,2.15) -- (-0.2,1.85); \draw[thick] (0.45,2.15) -- (0.2,1.85);
+  \draw[thick] (-0.75,2.4) -- (-0.35,2.0); \draw[thick] (0.75,2.4) -- (0.35,2.0);
+}}
+\newcommand{\iconPhone}[1]{\tikz[baseline=-0.55ex, scale=0.075, color=#1]{
+  \draw[thick, rounded corners=0.15] (0,0) rectangle (1.15,2.0);
+  \draw[thick] (0.3,1.65) -- (0.85,1.65);
+  \draw[thick] (0.575,0.32) circle (0.16);
+}}
+\newcommand{\iconGear}[1]{\tikz[baseline=-0.55ex, scale=0.075, color=#1]{
+  \foreach \a in {0,30,...,330} {\draw[thick] (\a:0.95) -- (\a:1.35);}
+  \draw[thick] (0,0) circle (0.95);
+  \draw[thick] (0,0) circle (0.4);
+}}
+
 % Visible TODO markers for content the author (not Claude) writes.
 \newcommand{\authorTODO}[1]{\par\noindent\fbox{\parbox{0.95\linewidth}{\textbf{\color{red}TODO(MANOJ):} #1}}\par}
 
@@ -177,7 +201,7 @@ as Section~III-C shows, does not predict the live outcome.
 \node[simbox, below=0.24cm of probe] (sim) {Closed-loop simulator (Alg.~1)};
 \node[simbox, below=0.24cm of sim] (train) {DQN training\\SLA/QoE $\times$ 6 seeds $\times$ 300 ep};
 \node[simbox, below=0.24cm of train] (ckpt) {Frozen checkpoints};
-\node[livebox, below=0.24cm of ckpt] (arms) {4 arms: baseline, static-at-cap,\\DQN$_{\text{SLA}}$, DQN$_{\text{QoE}}$};
+\node[livebox, below=0.75cm of ckpt] (arms) {4 arms: baseline, static-at-cap,\\DQN$_{\text{SLA}}$, DQN$_{\text{QoE}}$};
 \node[livebox, below=0.24cm of arms] (rig) {Live OAI gNB\\(E2 loop, Fig.~\ref{fig:architecture})};
 \node[evalbox, below=0.24cm of rig] (liveeval) {Live evaluation: 11 seeds, $\leq$46 ep/arm};
 \node[evalbox, below=0.24cm of liveeval] (stats) {Statistical analysis\\Fisher exact, SLA\%, MOS};
@@ -190,9 +214,20 @@ as Section~III-C shows, does not predict the live outcome.
 \draw[arrow] (rig) -- (liveeval);
 \draw[arrow] (liveeval) -- (stats);
 
+% Side annotations -- fill the whitespace beside the main chain with the
+% concrete detail each stage's prose already states, instead of leaving
+% it empty.
+\node[font=\tiny, text=black!65, align=left, text width=2.5cm, anchor=west] at ([xshift=0.3cm]probe.east) {mean\_offered\_ratio per slice, from live probes};
+\node[font=\tiny, text=black!65, align=left, text width=2.5cm, anchor=west] at ([xshift=0.3cm]sim.east) {backlog persists as queue; loss $\propto$ backlog frac.\ (Alg.~1)};
+\node[font=\tiny, text=black!65, align=left, text width=2.5cm, anchor=west] at ([xshift=0.3cm]train.east) {off-policy TD learning, frozen after training};
+\node[font=\tiny, text=black!65, align=left, text width=2.5cm, anchor=west] at ([xshift=0.3cm]arms.east) {2 static (fixed ratio) + 2 learned (frozen DQN)};
+\node[font=\tiny, text=black!65, align=left, text width=2.5cm, anchor=west] at ([xshift=0.3cm]rig.east) {5\,s control cycle; ceiling on 0--100 scale};
+\node[font=\tiny, text=black!65, align=left, text width=2.5cm, anchor=west] at ([xshift=0.3cm]liveeval.east) {3+3+5 seed batches, 2/5 ep each (Sec.~III-D)};
+\node[font=\tiny, text=black!65, align=left, text width=2.5cm, anchor=west] at ([xshift=0.3cm]stats.east) {per-arm and priority-weighted compliance};
+
 \node[warnbox, right=0.55cm of ckpt] (offeval) {Held-out offline eval\\100 ep, fresh seeds};
 \draw[dashedarrow] (ckpt.east) -- (offeval.west);
-\node[font=\tiny\itshape, below=0.03cm of offeval, align=center, text width=2.5cm] {does not rank-correlate\\with live outcome (Sec.~III-C)};
+\node[font=\tiny\itshape, below=0.04cm of offeval, align=center, text width=3.0cm] {no live-rank correlation (Sec.~III-C)};
 \end{tikzpicture}
 \caption{End-to-end methodology. Real-traffic probe measurements calibrate the offline simulator (Section~III-C, Algorithm~1); DQN training produces frozen checkpoints for both reward variants, joined by the two static arms into the four compared conditions, deployed live with no further learning; live episodes are logged and reduced to Table~\ref{tab:results}/Figs.~\ref{fig:compliance}--\ref{fig:ceiling} via Fisher exact tests and MOS. A held-out offline evaluation runs alongside this live pipeline but, per Section~III-C, does not predict its outcome.}
 \label{fig:pipeline}
@@ -221,17 +256,17 @@ arms issue their admission decisions.
 \node[core, minimum width=2.4cm, below=0.2cm of amf] (smf1) {SMF/UPF\\eMBB};
 \node[core, minimum width=2.4cm, below=0.2cm of smf1] (smf2) {SMF/UPF\\URLLC};
 \node[core, minimum width=2.4cm, below=0.2cm of smf2] (smf3) {SMF/UPF\\mMTC};
-\node[draw=palBlue!70!black, dashed, rounded corners, fit=(amf)(smf1)(smf2)(smf3), inner sep=5pt, label={[font=\sffamily\bfseries\scriptsize, text=palBlue!70!black]above:Open5GS core (software)}] (core) {};
+\node[draw=palBlue!70!black, dashed, rounded corners, fit=(amf)(smf1)(smf2)(smf3), inner sep=5pt, label={[font=\sffamily\bfseries\scriptsize, text=palBlue!70!black]above:\iconServer{palBlue!70!black}\ Open5GS core (software)}] (core) {};
 
 \node[gnb, minimum width=2.9cm, right=2.2cm of smf1.north east, anchor=north west, yshift=0.35cm] (mac) {MAC scheduler\\\texttt{slicing\_control\_m}\\enforcement};
 \node[gnb, minimum width=2.9cm, below=0.3cm of mac] (e2) {E2 Agent\\(RIC-free UDP loop)};
-\node[draw=palYellow!65!black, rounded corners, fit=(mac)(e2), inner sep=5pt, label={[font=\sffamily\bfseries\scriptsize, text=palYellow!55!black]above:gNB -- OAI (ORANSlice fork), rfsim, 106 PRBs $\mu{=}1$}] (gnbbox) {};
+\node[draw=palYellow!65!black, rounded corners, fit=(mac)(e2), inner sep=5pt, label={[font=\sffamily\bfseries\scriptsize, text=palYellow!55!black]above:\iconTower{palYellow!55!black}\ gNB -- OAI (ORANSlice fork), rfsim, 106 PRBs $\mu{=}1$}] (gnbbox) {};
 
-\node[ue, right=2.0cm of mac, yshift=0.75cm] (ue1) {UE1\\eMBB (\texttt{nr-uesoftmodem})};
-\node[ue, below=0.3cm of ue1] (ue2) {UE2\\URLLC (\texttt{nr-uesoftmodem})};
-\node[ue, below=0.3cm of ue2] (ue3) {UE3\\mMTC (\texttt{nr-uesoftmodem})};
+\node[ue, right=2.0cm of mac, yshift=0.75cm] (ue1) {\iconPhone{palGreen!70!black}\\UE1\\eMBB (\texttt{nr-uesoftmodem})};
+\node[ue, below=0.3cm of ue1] (ue2) {\iconPhone{palGreen!70!black}\\UE2\\URLLC (\texttt{nr-uesoftmodem})};
+\node[ue, below=0.3cm of ue2] (ue3) {\iconPhone{palGreen!70!black}\\UE3\\mMTC (\texttt{nr-uesoftmodem})};
 
-\node[xapp, minimum width=3.3cm, below=1.3cm of e2] (xapp) {xApp / orchestrator\\baseline, static-at-cap,\\DQN$_{\text{SLA}}$, DQN$_{\text{QoE}}$};
+\node[xapp, minimum width=3.3cm, below=1.3cm of e2] (xapp) {\iconGear{palPurple!70!black}\ xApp / orchestrator\\baseline, static-at-cap,\\DQN$_{\text{SLA}}$, DQN$_{\text{QoE}}$};
 \node[logbox, below=0.3cm of xapp] (log) {Episode log\\\texttt{omega\_log.jsonl}};
 
 \draw[arrow] (amf.east) -- ++(0.4,0) coordinate (n2n3) -- (n2n3 |- gnbbox.west) node[midway, above, font=\tiny] {N2 (AMF) / N3 (UPF)} -- (gnbbox.west);
@@ -336,26 +371,34 @@ implemented let demand and backlog evolve independently of admission
 decisions, under which always accepting was trivially reward-optimal
 and training validated only the training loop's mechanics, not any
 genuine admission-demand tradeoff -- which is why we do not use it
-here. Algorithm~\ref{alg:sim} summarises the closed-loop update.
+here. Algorithm~\ref{alg:sim} summarises the closed-loop update, one
+full \texttt{poll()} call across every (gNB, slice) pair, matching the
+frozen source's actual per-step logic rather than a single-slice
+sketch of it.
 
 \begin{algorithm}[t]
-\caption{Offline closed-loop traffic simulation (one slice, one step)}
+\caption{Offline closed-loop traffic simulation (one polling step, all gNBs/slices)}
 \label{alg:sim}
 \footnotesize
 \begin{algorithmic}[1]
-\REQUIRE offered$_{t-1}$, backlog$_{t-1}$, ceiling$_t$
-\STATE $mean \gets$ mean\_offered\_ratio $\times B \times$ gnb\_load
-\STATE $drift \gets 0.1 \times (mean - \text{offered}_{t-1})$
-\STATE offered$_t \gets \max(0,\ \text{offered}_{t-1} + drift + \text{noise})$
-\IF{a reject freed backlog last step}
-  \STATE backlog$_{t-1} \gets \max(0,\ \text{backlog}_{t-1} - \text{relief})$
-\ENDIF
-\STATE $demand \gets \text{offered}_t + \text{backlog}_{t-1}$
-\STATE $served \gets \min(demand,\ \text{ceiling}_t)$
-\STATE backlog$_t \gets \min(\text{backlog\_cap},\ demand - served)$
-\STATE $loss_t \gets 0.02 + 0.3 \times (\text{backlog}_t\ /\ \text{backlog\_cap})$
-\STATE emit KPM sample $(served,\ \text{backlog}_t,\ loss_t)$
-\STATE agent observes $s_t$, sends ceiling$_{t+1}$
+\REQUIRE per-(gNB,slice) state: offered, backlog, ceiling, UE set
+\FORALL{gNB $g$, slice $s$}
+  \STATE $mean \gets$ mean\_offered\_ratio$_s \times B \times$ gnb\_load$_g$
+  \STATE offered$_{g,s} \gets \max(0,\ \text{offered}_{g,s} + 0.1(mean - \text{offered}_{g,s}) + \text{noise})$
+  \IF{a reject freed backlog last step (Sec.~III-C)}
+    \STATE backlog$_{g,s} \gets \max(0,\ \text{backlog}_{g,s} - \text{relief})$
+  \ENDIF
+  \STATE $demand \gets \text{offered}_{g,s} + \text{backlog}_{g,s}$
+  \STATE $served \gets \min(demand,\ \text{ceiling}_{g,s})$
+  \STATE backlog$_{g,s} \gets \min(\text{backlog\_cap},\ demand - served)$
+  \STATE with prob.\ churn\_prob, replace one UE's RNTI in $(g,s)$
+  \STATE $bler \gets 0.02 + 0.3 \times (\text{backlog}_{g,s} / \text{backlog\_cap})$
+  \FORALL{UE $u$ in $(g,s)$'s set, $n \gets |\text{UEs}_{g,s}|$}
+    \STATE emit KPM sample for $u$: $served/n$, $bler$, backlog$_{g,s}/n$
+  \ENDFOR
+\ENDFOR
+\STATE agent observes the resulting state $s_t$
+\STATE agent sends ceiling$_{g,s}\ \forall (g,s)$ for the next step
 \end{algorithmic}
 \end{algorithm}
 
