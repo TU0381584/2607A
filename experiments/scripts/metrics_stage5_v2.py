@@ -26,7 +26,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from metrics_stage2 import (  # noqa: E402
     SLICE_ORDER, LIVE_PRIORITY_WEIGHT, LIVE_VIOLATION_PENALTY,
-    weighted_u, percentile_stats, fisher_exact_vs_baseline, _read_omega,
+    weighted_u, percentile_stats, fisher_exact_vs_baseline, holm_bonferroni, _read_omega,
 )
 
 ARM_REWARD_MODE = {"baseline": "sla", "dqn_sla": "sla", "dqn_qoe": "qoe", "static_at_cap": "sla"}
@@ -102,11 +102,24 @@ def main() -> None:
         out[arm] = arm_metrics(live_root, arm, mode, ARM_SEEDS[arm])
 
     base = out["baseline"]
-    for arm in ("dqn_sla", "dqn_qoe", "static_at_cap"):
+    vs_baseline_arms = ("dqn_sla", "dqn_qoe", "static_at_cap")
+    for arm in vs_baseline_arms:
         out[arm]["fisher_vs_baseline"] = fisher_exact_vs_baseline(
             out[arm]["episodes_fully_compliant"], out[arm]["episodes_total"],
             base["episodes_fully_compliant"], base["episodes_total"],
         )
+
+    # Holm-Bonferroni across the family of pairwise-vs-baseline comparisons
+    # (dqn_sla, dqn_qoe, static_at_cap each vs. the same baseline arm) --
+    # these three tests share a control, so reporting all three raw p-values
+    # unadjusted risks a family-wise false positive; Holm controls that
+    # without flat Bonferroni's over-correction. The dqn_sla-vs-static_at_cap
+    # test is a separate comparison (different control) and is NOT part of
+    # this family.
+    raw_pvalues = {arm: out[arm]["fisher_vs_baseline"]["p_value"] for arm in vs_baseline_arms}
+    holm_adjusted = holm_bonferroni(raw_pvalues)
+    for arm in vs_baseline_arms:
+        out[arm]["fisher_vs_baseline"]["p_value_holm"] = holm_adjusted[arm]
 
     # The specific question this validation round exists to answer:
     # does DQN's Stage-3 collapse-avoidance edge over static_at_cap
@@ -125,6 +138,10 @@ def main() -> None:
         print(f"{arm}: compliance={r['compliance_pct']} U={r['u_priority_weight']:.1f} "
               f"mos={r['mean_mos_by_slice']} episodes_fully_compliant={r['episodes_fully_compliant']}/{r['episodes_total']}",
               file=sys.stderr)
+    print("Holm-Bonferroni family (vs. baseline), raw -> adjusted p-value:", file=sys.stderr)
+    for arm in vs_baseline_arms:
+        fb = out[arm]["fisher_vs_baseline"]
+        print(f"  {arm}: p_raw={fb['p_value']:.6f} -> p_holm={fb['p_value_holm']:.6f}", file=sys.stderr)
     print(f"wrote {out_path}", file=sys.stderr)
 
 

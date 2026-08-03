@@ -116,6 +116,54 @@ Fisher exact tests:
   double DQN-SLA's (2/128, 1.6%), a pattern invisible at n=46's 4/46
   vs.\ 2/46.
 
+## Post-hoc full-data audit (user: "check all the data used for this
+simulation for errors, issues, anomalies etc. Correct as needed.")
+
+Beyond the completion/duplicate-row/episode-count checks already done
+before trusting the numbers above, re-swept the entire n=128 dataset
+(all 112 blocks) for anything those checks wouldn't catch:
+
+- **Per-seed collapse concentration**: non-compliance is, again,
+  concentrated in specific seeds rather than spread evenly -- baseline
+  in seeds 950/956/961/974 (8 collapsed episodes total), dqn\_sla in
+  955 only (2), static\_at\_cap in 953 only (2), dqn\_qoe in none.
+  Matches this project's own repeated, already-documented finding
+  (real RF hardware, not an artifact) rather than introducing a new
+  pattern.
+- **Extreme SLA-margin values** (the Section III-C-adjacent phenomenon
+  documented since Stage 12/13): present in 1.05% of slice-steps
+  (967/92,160), versus 1.51% at n=46 -- same order of magnitude, not
+  growing with scale. Directly cross-checked against the collapsed-seed
+  list above: every extreme-margin episode is one of the seeds already
+  identified as genuinely collapsed (950, 953, 955, 961, 974) -- zero
+  extreme-margin readings outside that set. Confirms this is the same
+  real failure signature, not a new or spreading problem.
+- **MOS sanity**: all 92,160 per-step MOS readings fall inside [1.0,
+  4.94] -- inside the valid 1-5 MOS range, no out-of-bound values.
+- **Batch-timing sweep**: scanned every batch in every
+  `batch_manifest.jsonl` (not just the ones already flagged from
+  `PROGRESS.log`) for elapsed time >1.5x the ~300s/episode nominal.
+  Found exactly **one** real outlier not yet explained:
+  `static_at_cap` seed 971's first batch (2 episodes) took 12,430s
+  (~3.45h) against an expected ~605s -- roughly 20x slower per step
+  than nominal, cause unconfirmed (most likely a real, transient RF/
+  scheduler slowdown rather than a script-level retry loop, since the
+  manifest shows a single subprocess call, `returncode=0`, with no
+  internal retry). **Verified this did not corrupt the data it
+  produced**: both episodes have the expected 60/60 steps, no
+  duplicate or missing rows, and both are fully SLA-compliant (this
+  seed does not appear in the collapsed-seed list above) -- an
+  unusually slow real episode, not a bad one. Left in the dataset
+  as-is; noted here rather than silently passed over.
+
+**Conclusion: no data required correction.** Every anomaly found
+either matches an already-understood, already-documented real
+phenomenon (seed-concentrated hardware collapse, the extreme-margin
+signature) at a consistent rate, or -- the one new observation, seed
+971's slow batch -- was verified not to have damaged the data it
+produced. Table/Fisher numbers below are computed from the dataset
+exactly as collected, with no rows removed or adjusted.
+
 ## What this means for the paper
 
 Not applied to `paper_conf/main.tex` in this pass -- the user asked
@@ -147,3 +195,9 @@ manuscript is to cite this campaign.
       baseline now significant) without editorializing beyond the
       numbers, and the still-open manuscript-update step stated
       explicitly rather than assumed.
+- [x] Full post-hoc audit run on request: per-seed collapse pattern,
+      extreme-margin rate, MOS range, and a batch-level timing sweep
+      beyond the completion checks already done. One real anomaly
+      found (seed 971's slow batch) and verified not to have corrupted
+      its data rather than silently dropped or silently trusted; no
+      data required correction.

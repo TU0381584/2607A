@@ -94,6 +94,24 @@ def fisher_exact_vs_baseline(fully_compliant_arm: int, total_arm: int,
     return {"table": table, "odds_ratio": odds_ratio, "p_value": p}
 
 
+def holm_bonferroni(pvalues: dict) -> dict:
+    """Holm-Bonferroni step-down adjustment across a family of pairwise
+    tests sharing the same control (here: each arm's Fisher exact test
+    vs. the same baseline), controlling family-wise error rate without
+    the crude over-correction of a flat Bonferroni divide. `pvalues` is
+    {label: raw_p}; returns {label: holm_adjusted_p}, monotone non-decreasing
+    in sorted-p order and capped at 1.0, per Holm (1979)."""
+    labels_sorted = sorted(pvalues, key=lambda k: pvalues[k])
+    m = len(labels_sorted)
+    adjusted = {}
+    running_max = 0.0
+    for i, label in enumerate(labels_sorted):
+        step = pvalues[label] * (m - i)
+        running_max = max(running_max, step)
+        adjusted[label] = min(1.0, running_max)
+    return adjusted
+
+
 def chi2_step_proportion_vs_baseline(compliant_arm: int, total_arm: int,
                                       compliant_base: int, total_base: int):
     """Substitute for the episode-level Fisher test when EVERY arm shows
