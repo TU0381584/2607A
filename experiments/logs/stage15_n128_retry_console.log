@@ -1,0 +1,2463 @@
+=== 07:43:02 RETRY arm=baseline seed=974 ===
+[health] OK: all 3 UEs reachable, 16 RAN processes alive, no recent segfault
+     rnti=54129: mean=14.70 PRB  max=19.00  n=10
+
+Done. NEVER send SUBSCRIPTION-type messages: still assert(0!=0) in handle_subscription() on this OAI base (verified 2026-07-14).
+[orchestrator] === baseline rep_seed974 batch 0 (2 episodes, batch_seed=974000, 0/5 done so far) ===
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] OK: all 3 UEs reachable, 16 RAN processes alive, no recent segfault
+[orchestrator] $ python3 /home/kmanojp/oranslice_rig/experiments/scripts/run_baseline_static.py --config /home/kmanojp/oranslice_rig/experiments/configs/saclb_campaign_baseline_v2.yaml --gnb-id gnb-0 --episodes 2 --seed 974000 --run-id baseline_sla_seed974_batch0 --omega-jsonl /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/baseline/sla/rep_seed974/omega_log.jsonl --reward-mode sla
+[baseline_sla_seed974_batch0] baseline_static: talking to gNB E2 agent (listen=6600, gNB=6655)...
+
+Omega log: /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/baseline/sla/rep_seed974/omega_log.jsonl
+{
+  "run_id": "baseline_sla_seed974_batch0",
+  "algorithm": "baseline_static",
+  "mode": "live_testbed",
+  "seed": 974000,
+  "n_episodes": 2,
+  "mean_reward_per_step": -9.794083333333333,
+  "mean_blocks_per_episode": 0.0,
+  "mean_urllc_blocks_per_episode": 0.0,
+  "blocks_per_episode": [
+    0,
+    0
+  ],
+  "blocks_per_episode_by_slice": [
+    {},
+    {}
+  ],
+  "mean_rho": null,
+  "omega_path": "/home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/baseline/sla/rep_seed974/omega_log.jsonl",
+  "checkpoint_path": "",
+  "drift_flag": false,
+  "drift_reason": "",
+  "sla_compliance_by_slice": {
+    "embb": 0.008333333333333333,
+    "urllc": 0.016666666666666666,
+    "mmtc": 0.016666666666666666
+  },
+  "sla_compliance_all_slices": 0.008333333333333333,
+  "sla_compliance_by_slice_per_episode": [
+    {
+      "embb": 0.016666666666666666,
+      "urllc": 0.016666666666666666,
+      "mmtc": 0.03333333333333333
+    },
+    {
+      "embb": 0.0,
+      "urllc": 0.016666666666666666,
+      "mmtc": 0.0
+    }
+  ],
+  "sla_margin_by_slice": {
+    "embb": -973476.1141666665,
+    "urllc": -828064.7658333329,
+    "mmtc": -325.66499999999996
+  },
+  "sla_margin_by_slice_per_episode": [
+    {
+      "embb": -944574.7283333332,
+      "urllc": -650289.3866666667,
+      "mmtc": -174.95999999999992
+    },
+    {
+      "embb": -1002377.5,
+      "urllc": -1005840.144999999,
+      "mmtc": -476.37000000000006
+    }
+  ],
+  "mean_mos_by_slice": {
+    "embb": 1.3886627286672593,
+    "urllc": 1.0569332242012024,
+    "mmtc": 4.29899134238561
+  },
+  "mean_cost": 0.5838333333333333,
+  "mean_sla_viol": 0.9916666666666667
+}
+[orchestrator] === baseline rep_seed974 batch 1 (2 episodes, batch_seed=974001, 2/5 done so far) ===
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] FAIL: UE1 (embb) unreachable
+[health] FAIL: UE2 (mmtc) unreachable
+[health] FAIL: UE3 (urllc) unreachable
+[orchestrator] health check failed, restarting stack (attempt 1)
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh
+[restart] stopping all RAN processes and tmux sessions
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 23: 1097272 Killed                  sudo pkill -9 -f "nr-uesoftmodem" 2> /dev/null
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 24: 1097274 Killed                  sudo pkill -9 -f "nr-softmodem" 2> /dev/null
+[restart] confirmed clean: no RAN processes running
+[restart] launching gNB
+[restart] gNB up, E2 agent alive
+[restart] launching UE1 (embb, default netns)
+[restart] UE1 attached
+[restart] launching UE2 (mmtc, ue2ns)
+[restart] UE2 attached
+[restart] launching UE3 (urllc, ue3ns)
+[restart] UE3 attached
+[restart] verifying connectivity all 3 UEs
+[restart] SUCCESS: all 3 UEs attached and reachable
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] OK: all 3 UEs reachable, 16 RAN processes alive, no recent segfault
+[orchestrator] $ python3 /home/kmanojp/oranslice_rig/experiments/scripts/run_baseline_static.py --config /home/kmanojp/oranslice_rig/experiments/configs/saclb_campaign_baseline_v2.yaml --gnb-id gnb-0 --episodes 2 --seed 974001 --run-id baseline_sla_seed974_batch1 --omega-jsonl /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/baseline/sla/rep_seed974/omega_log.jsonl --reward-mode sla
+[baseline_sla_seed974_batch1] baseline_static: talking to gNB E2 agent (listen=6600, gNB=6655)...
+
+Omega log: /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/baseline/sla/rep_seed974/omega_log.jsonl
+{
+  "run_id": "baseline_sla_seed974_batch1",
+  "algorithm": "baseline_static",
+  "mode": "live_testbed",
+  "seed": 974001,
+  "n_episodes": 2,
+  "mean_reward_per_step": 5.334583333333335,
+  "mean_blocks_per_episode": 0.0,
+  "mean_urllc_blocks_per_episode": 0.0,
+  "blocks_per_episode": [
+    0,
+    0
+  ],
+  "blocks_per_episode_by_slice": [
+    {},
+    {}
+  ],
+  "mean_rho": null,
+  "omega_path": "/home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/baseline/sla/rep_seed974/omega_log.jsonl",
+  "checkpoint_path": "",
+  "drift_flag": false,
+  "drift_reason": "",
+  "sla_compliance_by_slice": {
+    "embb": 1.0,
+    "urllc": 1.0,
+    "mmtc": 1.0
+  },
+  "sla_compliance_all_slices": 1.0,
+  "sla_compliance_by_slice_per_episode": [
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    },
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    }
+  ],
+  "sla_margin_by_slice": {
+    "embb": 0.727499994740152,
+    "urllc": 0.7147404137393464,
+    "mmtc": 0.7099981934842907
+  },
+  "sla_margin_by_slice_per_episode": [
+    {
+      "embb": 0.7499999904177024,
+      "urllc": 0.7294808274786924,
+      "mmtc": 0.719996386968581
+    },
+    {
+      "embb": 0.7049999990626017,
+      "urllc": 0.7000000000000004,
+      "mmtc": 0.7000000000000004
+    }
+  ],
+  "mean_mos_by_slice": {
+    "embb": 2.1711423099040985,
+    "urllc": 2.9078941384951276,
+    "mmtc": 4.759054815769195
+  },
+  "mean_cost": 0.3025,
+  "mean_sla_viol": 0.0
+}
+[orchestrator] === baseline rep_seed974 batch 2 (1 episodes, batch_seed=974002, 4/5 done so far) ===
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] FAIL: UE1 (embb) unreachable
+[health] FAIL: UE2 (mmtc) unreachable
+[health] FAIL: UE3 (urllc) unreachable
+[orchestrator] health check failed, restarting stack (attempt 1)
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh
+[restart] stopping all RAN processes and tmux sessions
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 23: 1102654 Killed                  sudo pkill -9 -f "nr-uesoftmodem" 2> /dev/null
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 24: 1102656 Killed                  sudo pkill -9 -f "nr-softmodem" 2> /dev/null
+[restart] confirmed clean: no RAN processes running
+[restart] launching gNB
+[restart] gNB up, E2 agent alive
+[restart] launching UE1 (embb, default netns)
+[restart] UE1 attached
+[restart] launching UE2 (mmtc, ue2ns)
+[restart] UE2 attached
+[restart] launching UE3 (urllc, ue3ns)
+[restart] UE3 attached
+[restart] verifying connectivity all 3 UEs
+[restart] SUCCESS: all 3 UEs attached and reachable
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] OK: all 3 UEs reachable, 16 RAN processes alive, no recent segfault
+[orchestrator] $ python3 /home/kmanojp/oranslice_rig/experiments/scripts/run_baseline_static.py --config /home/kmanojp/oranslice_rig/experiments/configs/saclb_campaign_baseline_v2.yaml --gnb-id gnb-0 --episodes 1 --seed 974002 --run-id baseline_sla_seed974_batch2 --omega-jsonl /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/baseline/sla/rep_seed974/omega_log.jsonl --reward-mode sla
+[baseline_sla_seed974_batch2] baseline_static: talking to gNB E2 agent (listen=6600, gNB=6655)...
+
+Omega log: /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/baseline/sla/rep_seed974/omega_log.jsonl
+{
+  "run_id": "baseline_sla_seed974_batch2",
+  "algorithm": "baseline_static",
+  "mode": "live_testbed",
+  "seed": 974002,
+  "n_episodes": 1,
+  "mean_reward_per_step": 5.487500000000001,
+  "mean_blocks_per_episode": 0.0,
+  "mean_urllc_blocks_per_episode": 0.0,
+  "blocks_per_episode": [
+    0
+  ],
+  "blocks_per_episode_by_slice": [
+    {}
+  ],
+  "mean_rho": null,
+  "omega_path": "/home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/baseline/sla/rep_seed974/omega_log.jsonl",
+  "checkpoint_path": "",
+  "drift_flag": false,
+  "drift_reason": "",
+  "sla_compliance_by_slice": {
+    "embb": 1.0,
+    "urllc": 1.0,
+    "mmtc": 1.0
+  },
+  "sla_compliance_all_slices": 1.0,
+  "sla_compliance_by_slice_per_episode": [
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    }
+  ],
+  "sla_margin_by_slice": {
+    "embb": 0.7649999888341894,
+    "urllc": 0.7343973890397082,
+    "mmtc": 0.7249963803132972
+  },
+  "sla_margin_by_slice_per_episode": [
+    {
+      "embb": 0.7649999888341894,
+      "urllc": 0.7343973890397082,
+      "mmtc": 0.7249963803132972
+    }
+  ],
+  "mean_mos_by_slice": {
+    "embb": 2.171096384525299,
+    "urllc": 2.9563539107640584,
+    "mmtc": 4.768317874272665
+  },
+  "mean_cost": 0.3050000000000001,
+  "mean_sla_viol": 0.0
+}
+[orchestrator] DONE: 5/5 episodes completed for baseline rep_seed974. omega log: /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/baseline/sla/rep_seed974/omega_log.jsonl
+=== 08:12:16 RETRY-DONE arm=baseline seed=974 (1715s) ===
+=== 08:12:16 RETRY arm=baseline seed=975 ===
+[health] FAIL: UE1 (embb) unreachable
+[health] FAIL: UE2 (mmtc) unreachable
+[health] FAIL: UE3 (urllc) unreachable
+[restart] stopping all RAN processes and tmux sessions
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 23: 1105892 Killed                  sudo pkill -9 -f "nr-uesoftmodem" 2> /dev/null
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 24: 1105894 Killed                  sudo pkill -9 -f "nr-softmodem" 2> /dev/null
+[restart] confirmed clean: no RAN processes running
+[restart] launching gNB
+[restart] gNB up, E2 agent alive
+[restart] launching UE1 (embb, default netns)
+[restart] UE1 attached
+[restart] launching UE2 (mmtc, ue2ns)
+[restart] UE2 attached
+[restart] launching UE3 (urllc, ue3ns)
+[restart] UE3 attached
+[restart] verifying connectivity all 3 UEs
+[restart] SUCCESS: all 3 UEs attached and reachable
+     rnti=60185: mean=5.00 PRB  max=5.00  n=10
+
+Done. NEVER send SUBSCRIPTION-type messages: still assert(0!=0) in handle_subscription() on this OAI base (verified 2026-07-14).
+[orchestrator] === baseline rep_seed975 batch 0 (2 episodes, batch_seed=975000, 0/5 done so far) ===
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] OK: all 3 UEs reachable, 16 RAN processes alive, no recent segfault
+[orchestrator] $ python3 /home/kmanojp/oranslice_rig/experiments/scripts/run_baseline_static.py --config /home/kmanojp/oranslice_rig/experiments/configs/saclb_campaign_baseline_v2.yaml --gnb-id gnb-0 --episodes 2 --seed 975000 --run-id baseline_sla_seed975_batch0 --omega-jsonl /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/baseline/sla/rep_seed975/omega_log.jsonl --reward-mode sla
+[baseline_sla_seed975_batch0] baseline_static: talking to gNB E2 agent (listen=6600, gNB=6655)...
+
+Omega log: /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/baseline/sla/rep_seed975/omega_log.jsonl
+{
+  "run_id": "baseline_sla_seed975_batch0",
+  "algorithm": "baseline_static",
+  "mode": "live_testbed",
+  "seed": 975000,
+  "n_episodes": 2,
+  "mean_reward_per_step": 5.074583333333335,
+  "mean_blocks_per_episode": 0.0,
+  "mean_urllc_blocks_per_episode": 0.0,
+  "blocks_per_episode": [
+    0,
+    0
+  ],
+  "blocks_per_episode_by_slice": [
+    {},
+    {}
+  ],
+  "mean_rho": null,
+  "omega_path": "/home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/baseline/sla/rep_seed975/omega_log.jsonl",
+  "checkpoint_path": "",
+  "drift_flag": false,
+  "drift_reason": "",
+  "sla_compliance_by_slice": {
+    "embb": 1.0,
+    "urllc": 1.0,
+    "mmtc": 1.0
+  },
+  "sla_compliance_all_slices": 1.0,
+  "sla_compliance_by_slice_per_episode": [
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    },
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    }
+  ],
+  "sla_margin_by_slice": {
+    "embb": 0.7124999999313202,
+    "urllc": 0.7074921830169725,
+    "mmtc": 0.7349996815377845
+  },
+  "sla_margin_by_slice_per_episode": [
+    {
+      "embb": 0.7199999998837784,
+      "urllc": 0.7149843660339444,
+      "mmtc": 0.7699993630755686
+    },
+    {
+      "embb": 0.7049999999788619,
+      "urllc": 0.7000000000000004,
+      "mmtc": 0.7000000000000004
+    }
+  ],
+  "mean_mos_by_slice": {
+    "embb": 2.171136023600896,
+    "urllc": 4.099802748362223,
+    "mmtc": 4.774673163890839
+  },
+  "mean_cost": 0.3025,
+  "mean_sla_viol": 0.0
+}
+[orchestrator] === baseline rep_seed975 batch 1 (2 episodes, batch_seed=975001, 2/5 done so far) ===
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] FAIL: UE1 (embb) unreachable
+[health] FAIL: UE2 (mmtc) unreachable
+[health] FAIL: UE3 (urllc) unreachable
+[orchestrator] health check failed, restarting stack (attempt 1)
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh
+[restart] stopping all RAN processes and tmux sessions
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 23: 1112161 Killed                  sudo pkill -9 -f "nr-uesoftmodem" 2> /dev/null
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 24: 1112163 Killed                  sudo pkill -9 -f "nr-softmodem" 2> /dev/null
+[restart] confirmed clean: no RAN processes running
+[restart] launching gNB
+[restart] gNB up, E2 agent alive
+[restart] launching UE1 (embb, default netns)
+[restart] UE1 attached
+[restart] launching UE2 (mmtc, ue2ns)
+[restart] UE2 attached
+[restart] launching UE3 (urllc, ue3ns)
+[restart] UE3 attached
+[restart] verifying connectivity all 3 UEs
+[restart] SUCCESS: all 3 UEs attached and reachable
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] OK: all 3 UEs reachable, 16 RAN processes alive, no recent segfault
+[orchestrator] $ python3 /home/kmanojp/oranslice_rig/experiments/scripts/run_baseline_static.py --config /home/kmanojp/oranslice_rig/experiments/configs/saclb_campaign_baseline_v2.yaml --gnb-id gnb-0 --episodes 2 --seed 975001 --run-id baseline_sla_seed975_batch1 --omega-jsonl /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/baseline/sla/rep_seed975/omega_log.jsonl --reward-mode sla
+[baseline_sla_seed975_batch1] baseline_static: talking to gNB E2 agent (listen=6600, gNB=6655)...
+
+Omega log: /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/baseline/sla/rep_seed975/omega_log.jsonl
+{
+  "run_id": "baseline_sla_seed975_batch1",
+  "algorithm": "baseline_static",
+  "mode": "live_testbed",
+  "seed": 975001,
+  "n_episodes": 2,
+  "mean_reward_per_step": 5.297083333333333,
+  "mean_blocks_per_episode": 0.0,
+  "mean_urllc_blocks_per_episode": 0.0,
+  "blocks_per_episode": [
+    0,
+    0
+  ],
+  "blocks_per_episode_by_slice": [
+    {},
+    {}
+  ],
+  "mean_rho": null,
+  "omega_path": "/home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/baseline/sla/rep_seed975/omega_log.jsonl",
+  "checkpoint_path": "",
+  "drift_flag": false,
+  "drift_reason": "",
+  "sla_compliance_by_slice": {
+    "embb": 1.0,
+    "urllc": 1.0,
+    "mmtc": 1.0
+  },
+  "sla_compliance_all_slices": 1.0,
+  "sla_compliance_by_slice_per_episode": [
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    },
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    }
+  ],
+  "sla_margin_by_slice": {
+    "embb": 0.7274999957354114,
+    "urllc": 0.7049165615610161,
+    "mmtc": 0.7099981934842907
+  },
+  "sla_margin_by_slice_per_episode": [
+    {
+      "embb": 0.7549999914708224,
+      "urllc": 0.7098331231220318,
+      "mmtc": 0.719996386968581
+    },
+    {
+      "embb": 0.7000000000000004,
+      "urllc": 0.7000000000000004,
+      "mmtc": 0.7000000000000004
+    }
+  ],
+  "mean_mos_by_slice": {
+    "embb": 2.171141348282496,
+    "urllc": 3.007577447096507,
+    "mmtc": 4.759054815769195
+  },
+  "mean_cost": 0.3025,
+  "mean_sla_viol": 0.0
+}
+[orchestrator] === baseline rep_seed975 batch 2 (1 episodes, batch_seed=975002, 4/5 done so far) ===
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] FAIL: UE1 (embb) unreachable
+[health] FAIL: UE2 (mmtc) unreachable
+[health] FAIL: UE3 (urllc) unreachable
+[orchestrator] health check failed, restarting stack (attempt 1)
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh
+[restart] stopping all RAN processes and tmux sessions
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 23: 1117573 Killed                  sudo pkill -9 -f "nr-uesoftmodem" 2> /dev/null
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 24: 1117575 Killed                  sudo pkill -9 -f "nr-softmodem" 2> /dev/null
+[restart] confirmed clean: no RAN processes running
+[restart] launching gNB
+[restart] gNB up, E2 agent alive
+[restart] launching UE1 (embb, default netns)
+[restart] UE1 attached
+[restart] launching UE2 (mmtc, ue2ns)
+[restart] UE2 attached
+[restart] launching UE3 (urllc, ue3ns)
+[restart] UE3 attached
+[restart] verifying connectivity all 3 UEs
+[restart] SUCCESS: all 3 UEs attached and reachable
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] OK: all 3 UEs reachable, 16 RAN processes alive, no recent segfault
+[orchestrator] $ python3 /home/kmanojp/oranslice_rig/experiments/scripts/run_baseline_static.py --config /home/kmanojp/oranslice_rig/experiments/configs/saclb_campaign_baseline_v2.yaml --gnb-id gnb-0 --episodes 1 --seed 975002 --run-id baseline_sla_seed975_batch2 --omega-jsonl /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/baseline/sla/rep_seed975/omega_log.jsonl --reward-mode sla
+[baseline_sla_seed975_batch2] baseline_static: talking to gNB E2 agent (listen=6600, gNB=6655)...
+
+Omega log: /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/baseline/sla/rep_seed975/omega_log.jsonl
+{
+  "run_id": "baseline_sla_seed975_batch2",
+  "algorithm": "baseline_static",
+  "mode": "live_testbed",
+  "seed": 975002,
+  "n_episodes": 1,
+  "mean_reward_per_step": 5.255833333333334,
+  "mean_blocks_per_episode": 0.0,
+  "mean_urllc_blocks_per_episode": 0.0,
+  "blocks_per_episode": [
+    0
+  ],
+  "blocks_per_episode_by_slice": [
+    {}
+  ],
+  "mean_rho": null,
+  "omega_path": "/home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/baseline/sla/rep_seed975/omega_log.jsonl",
+  "checkpoint_path": "",
+  "drift_flag": false,
+  "drift_reason": "",
+  "sla_compliance_by_slice": {
+    "embb": 1.0,
+    "urllc": 1.0,
+    "mmtc": 1.0
+  },
+  "sla_compliance_all_slices": 1.0,
+  "sla_compliance_by_slice_per_episode": [
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    }
+  ],
+  "sla_margin_by_slice": {
+    "embb": 0.7799999863007703,
+    "urllc": 0.7345118851463005,
+    "mmtc": 0.7199967482718477
+  },
+  "sla_margin_by_slice_per_episode": [
+    {
+      "embb": 0.7799999863007703,
+      "urllc": 0.7345118851463005,
+      "mmtc": 0.7199967482718477
+    }
+  ],
+  "mean_mos_by_slice": {
+    "embb": 2.1711026668548583,
+    "urllc": 3.2242040236790976,
+    "mmtc": 4.76516489982605
+  },
+  "mean_cost": 0.3050000000000001,
+  "mean_sla_viol": 0.0
+}
+[orchestrator] DONE: 5/5 episodes completed for baseline rep_seed975. omega log: /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/baseline/sla/rep_seed975/omega_log.jsonl
+=== 08:42:57 RETRY-DONE arm=baseline seed=975 (1715s) ===
+=== 08:42:57 RETRY arm=dqn_sla seed=975 ===
+[health] FAIL: UE1 (embb) unreachable
+[health] FAIL: UE2 (mmtc) unreachable
+[health] FAIL: UE3 (urllc) unreachable
+[restart] stopping all RAN processes and tmux sessions
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 23: 1120818 Killed                  sudo pkill -9 -f "nr-uesoftmodem" 2> /dev/null
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 24: 1120820 Killed                  sudo pkill -9 -f "nr-softmodem" 2> /dev/null
+[restart] confirmed clean: no RAN processes running
+[restart] launching gNB
+[restart] gNB up, E2 agent alive
+[restart] launching UE1 (embb, default netns)
+[restart] UE1 attached
+[restart] launching UE2 (mmtc, ue2ns)
+[restart] UE2 attached
+[restart] launching UE3 (urllc, ue3ns)
+[restart] UE3 attached
+[restart] verifying connectivity all 3 UEs
+[restart] SUCCESS: all 3 UEs attached and reachable
+     rnti=52875: mean=5.00 PRB  max=5.00  n=10
+
+Done. NEVER send SUBSCRIPTION-type messages: still assert(0!=0) in handle_subscription() on this OAI base (verified 2026-07-14).
+[orchestrator] === dqn_sla rep_seed975 batch 0 (2 episodes, batch_seed=975000, 0/5 done so far) ===
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] OK: all 3 UEs reachable, 16 RAN processes alive, no recent segfault
+[orchestrator] $ python3 /home/kmanojp/oranslice_rig/framework/qoe_oran_framework/xapp/saclb_xapp.py --config /home/kmanojp/oranslice_rig/experiments/configs/saclb_campaign_v2.yaml --algorithm dqn --checkpoint /home/kmanojp/oranslice_rig/experiments/results/offline_v2/sla/seed256/dqn/offline_closed_loop/rep_0/checkpoint.pt --gnb-id gnb-0 --episodes 2 --seed 975000 --run-id dqn_sla_sla_seed975_batch0 --omega-jsonl /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_sla/sla/rep_seed975/omega_log.jsonl --reward-mode sla
+[dqn_sla_sla_seed975_batch0] talking to gNB E2 agent (listen=6600, gNB=6655)...
+
+Omega log: /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_sla/sla/rep_seed975/omega_log.jsonl
+{
+  "run_id": "dqn_sla_sla_seed975_batch0",
+  "algorithm": "dqn",
+  "mode": "live_testbed",
+  "seed": 975000,
+  "n_episodes": 2,
+  "mean_reward_per_step": 0.0,
+  "mean_blocks_per_episode": 121.0,
+  "mean_urllc_blocks_per_episode": 38.0,
+  "blocks_per_episode": [
+    122,
+    120
+  ],
+  "blocks_per_episode_by_slice": [
+    {
+      "mmtc": 46,
+      "urllc": 39,
+      "embb": 37
+    },
+    {
+      "urllc": 37,
+      "embb": 36,
+      "mmtc": 47
+    }
+  ],
+  "mean_rho": null,
+  "omega_path": "/home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_sla/sla/rep_seed975/omega_log.jsonl",
+  "checkpoint_path": "",
+  "drift_flag": true,
+  "drift_reason": "mean URLLC block rate 38.00/episode exceeds 2x the 1.0/episode acceptance bar",
+  "sla_compliance_by_slice": {
+    "embb": 1.0,
+    "urllc": 1.0,
+    "mmtc": 1.0
+  },
+  "sla_compliance_all_slices": 1.0,
+  "sla_compliance_by_slice_per_episode": [
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    },
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    }
+  ],
+  "sla_margin_by_slice": {
+    "embb": 0.707499999948481,
+    "urllc": 0.7324711310752905,
+    "mmtc": 0.7299998204395919
+  },
+  "sla_margin_by_slice_per_episode": [
+    {
+      "embb": 0.7149999998969617,
+      "urllc": 0.7649422621505806,
+      "mmtc": 0.7599996408791834
+    },
+    {
+      "embb": 0.7000000000000004,
+      "urllc": 0.7000000000000004,
+      "mmtc": 0.7000000000000004
+    }
+  ],
+  "mean_mos_by_slice": {
+    "embb": 2.171132971843084,
+    "urllc": 4.162485643227895,
+    "mmtc": 4.771489508946737
+  },
+  "mean_cost": 0.0,
+  "mean_sla_viol": 0.0
+}
+[orchestrator] === dqn_sla rep_seed975 batch 1 (2 episodes, batch_seed=975001, 2/5 done so far) ===
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] FAIL: UE1 (embb) unreachable
+[health] FAIL: UE2 (mmtc) unreachable
+[health] FAIL: UE3 (urllc) unreachable
+[orchestrator] health check failed, restarting stack (attempt 1)
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh
+[restart] stopping all RAN processes and tmux sessions
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 23: 1126504 Killed                  sudo pkill -9 -f "nr-uesoftmodem" 2> /dev/null
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 24: 1126506 Killed                  sudo pkill -9 -f "nr-softmodem" 2> /dev/null
+[restart] confirmed clean: no RAN processes running
+[restart] launching gNB
+[restart] gNB up, E2 agent alive
+[restart] launching UE1 (embb, default netns)
+[restart] UE1 attached
+[restart] launching UE2 (mmtc, ue2ns)
+[restart] UE2 attached
+[restart] launching UE3 (urllc, ue3ns)
+[restart] UE3 attached
+[restart] verifying connectivity all 3 UEs
+[restart] SUCCESS: all 3 UEs attached and reachable
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] OK: all 3 UEs reachable, 16 RAN processes alive, no recent segfault
+[orchestrator] $ python3 /home/kmanojp/oranslice_rig/framework/qoe_oran_framework/xapp/saclb_xapp.py --config /home/kmanojp/oranslice_rig/experiments/configs/saclb_campaign_v2.yaml --algorithm dqn --checkpoint /home/kmanojp/oranslice_rig/experiments/results/offline_v2/sla/seed256/dqn/offline_closed_loop/rep_0/checkpoint.pt --gnb-id gnb-0 --episodes 2 --seed 975001 --run-id dqn_sla_sla_seed975_batch1 --omega-jsonl /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_sla/sla/rep_seed975/omega_log.jsonl --reward-mode sla
+[dqn_sla_sla_seed975_batch1] talking to gNB E2 agent (listen=6600, gNB=6655)...
+
+Omega log: /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_sla/sla/rep_seed975/omega_log.jsonl
+{
+  "run_id": "dqn_sla_sla_seed975_batch1",
+  "algorithm": "dqn",
+  "mode": "live_testbed",
+  "seed": 975001,
+  "n_episodes": 2,
+  "mean_reward_per_step": 0.0,
+  "mean_blocks_per_episode": 121.0,
+  "mean_urllc_blocks_per_episode": 40.5,
+  "blocks_per_episode": [
+    122,
+    120
+  ],
+  "blocks_per_episode_by_slice": [
+    {
+      "mmtc": 43,
+      "urllc": 39,
+      "embb": 40
+    },
+    {
+      "embb": 34,
+      "urllc": 42,
+      "mmtc": 44
+    }
+  ],
+  "mean_rho": null,
+  "omega_path": "/home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_sla/sla/rep_seed975/omega_log.jsonl",
+  "checkpoint_path": "",
+  "drift_flag": true,
+  "drift_reason": "mean URLLC block rate 40.50/episode exceeds 2x the 1.0/episode acceptance bar",
+  "sla_compliance_by_slice": {
+    "embb": 1.0,
+    "urllc": 1.0,
+    "mmtc": 1.0
+  },
+  "sla_compliance_all_slices": 1.0,
+  "sla_compliance_by_slice_per_episode": [
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    },
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    }
+  ],
+  "sla_margin_by_slice": {
+    "embb": 0.7224999964988164,
+    "urllc": 0.7196569753003621,
+    "mmtc": 0.7074989949593635
+  },
+  "sla_margin_by_slice_per_episode": [
+    {
+      "embb": 0.7449999929976322,
+      "urllc": 0.7393139506007239,
+      "mmtc": 0.7149979899187265
+    },
+    {
+      "embb": 0.7000000000000004,
+      "urllc": 0.7000000000000004,
+      "mmtc": 0.7000000000000004
+    }
+  ],
+  "mean_mos_by_slice": {
+    "embb": 2.171139254172643,
+    "urllc": 2.920806058247884,
+    "mmtc": 4.757386688391367
+  },
+  "mean_cost": 0.0,
+  "mean_sla_viol": 0.0
+}
+[orchestrator] === dqn_sla rep_seed975 batch 2 (1 episodes, batch_seed=975002, 4/5 done so far) ===
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] FAIL: UE1 (embb) unreachable
+[health] FAIL: UE2 (mmtc) unreachable
+[health] FAIL: UE3 (urllc) unreachable
+[orchestrator] health check failed, restarting stack (attempt 1)
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh
+[restart] stopping all RAN processes and tmux sessions
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 23: 1131936 Killed                  sudo pkill -9 -f "nr-uesoftmodem" 2> /dev/null
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 24: 1131938 Killed                  sudo pkill -9 -f "nr-softmodem" 2> /dev/null
+[restart] confirmed clean: no RAN processes running
+[restart] launching gNB
+[restart] gNB up, E2 agent alive
+[restart] launching UE1 (embb, default netns)
+[restart] UE1 attached
+[restart] launching UE2 (mmtc, ue2ns)
+[restart] UE2 attached
+[restart] launching UE3 (urllc, ue3ns)
+[restart] UE3 attached
+[restart] verifying connectivity all 3 UEs
+[restart] SUCCESS: all 3 UEs attached and reachable
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] OK: all 3 UEs reachable, 16 RAN processes alive, no recent segfault
+[orchestrator] $ python3 /home/kmanojp/oranslice_rig/framework/qoe_oran_framework/xapp/saclb_xapp.py --config /home/kmanojp/oranslice_rig/experiments/configs/saclb_campaign_v2.yaml --algorithm dqn --checkpoint /home/kmanojp/oranslice_rig/experiments/results/offline_v2/sla/seed256/dqn/offline_closed_loop/rep_0/checkpoint.pt --gnb-id gnb-0 --episodes 1 --seed 975002 --run-id dqn_sla_sla_seed975_batch2 --omega-jsonl /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_sla/sla/rep_seed975/omega_log.jsonl --reward-mode sla
+[dqn_sla_sla_seed975_batch2] talking to gNB E2 agent (listen=6600, gNB=6655)...
+
+Omega log: /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_sla/sla/rep_seed975/omega_log.jsonl
+{
+  "run_id": "dqn_sla_sla_seed975_batch2",
+  "algorithm": "dqn",
+  "mode": "live_testbed",
+  "seed": 975002,
+  "n_episodes": 1,
+  "mean_reward_per_step": 0.0,
+  "mean_blocks_per_episode": 122.0,
+  "mean_urllc_blocks_per_episode": 42.0,
+  "blocks_per_episode": [
+    122
+  ],
+  "blocks_per_episode_by_slice": [
+    {
+      "mmtc": 46,
+      "urllc": 42,
+      "embb": 34
+    }
+  ],
+  "mean_rho": null,
+  "omega_path": "/home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_sla/sla/rep_seed975/omega_log.jsonl",
+  "checkpoint_path": "",
+  "drift_flag": true,
+  "drift_reason": "mean URLLC block rate 42.00/episode exceeds 2x the 1.0/episode acceptance bar",
+  "sla_compliance_by_slice": {
+    "embb": 1.0,
+    "urllc": 1.0,
+    "mmtc": 1.0
+  },
+  "sla_compliance_all_slices": 1.0,
+  "sla_compliance_by_slice_per_episode": [
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    }
+  ],
+  "sla_margin_by_slice": {
+    "embb": 0.7649999918601256,
+    "urllc": 0.7295794702786956,
+    "mmtc": 0.7199978665414913
+  },
+  "sla_margin_by_slice_per_episode": [
+    {
+      "embb": 0.7649999918601256,
+      "urllc": 0.7295794702786956,
+      "mmtc": 0.7199978665414913
+    }
+  ],
+  "mean_mos_by_slice": {
+    "embb": 2.171096384525299,
+    "urllc": 3.2063082416852313,
+    "mmtc": 4.765074332555135
+  },
+  "mean_cost": 0.0,
+  "mean_sla_viol": 0.0
+}
+[orchestrator] DONE: 5/5 episodes completed for dqn_sla rep_seed975. omega log: /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_sla/sla/rep_seed975/omega_log.jsonl
+=== 09:13:46 RETRY-DONE arm=dqn_sla seed=975 (1724s) ===
+=== 09:13:46 RETRY arm=dqn_qoe seed=975 ===
+[health] FAIL: UE1 (embb) unreachable
+[health] FAIL: UE2 (mmtc) unreachable
+[health] FAIL: UE3 (urllc) unreachable
+[restart] stopping all RAN processes and tmux sessions
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 23: 1135191 Killed                  sudo pkill -9 -f "nr-uesoftmodem" 2> /dev/null
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 24: 1135193 Killed                  sudo pkill -9 -f "nr-softmodem" 2> /dev/null
+[restart] confirmed clean: no RAN processes running
+[restart] launching gNB
+[restart] gNB up, E2 agent alive
+[restart] launching UE1 (embb, default netns)
+[restart] UE1 attached
+[restart] launching UE2 (mmtc, ue2ns)
+[restart] UE2 attached
+[restart] launching UE3 (urllc, ue3ns)
+[restart] UE3 attached
+[restart] verifying connectivity all 3 UEs
+[restart] SUCCESS: all 3 UEs attached and reachable
+     rnti=25807: mean=5.00 PRB  max=5.00  n=10
+
+Done. NEVER send SUBSCRIPTION-type messages: still assert(0!=0) in handle_subscription() on this OAI base (verified 2026-07-14).
+[orchestrator] === dqn_qoe rep_seed975 batch 0 (2 episodes, batch_seed=975000, 0/5 done so far) ===
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] OK: all 3 UEs reachable, 16 RAN processes alive, no recent segfault
+[orchestrator] $ python3 /home/kmanojp/oranslice_rig/framework/qoe_oran_framework/xapp/saclb_xapp.py --config /home/kmanojp/oranslice_rig/experiments/configs/saclb_campaign_v2.yaml --algorithm dqn --checkpoint /home/kmanojp/oranslice_rig/experiments/results/offline_v2/qoe/seed256/dqn/offline_closed_loop/rep_0/checkpoint.pt --gnb-id gnb-0 --episodes 2 --seed 975000 --run-id dqn_qoe_qoe_seed975_batch0 --omega-jsonl /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_qoe/qoe/rep_seed975/omega_log.jsonl --reward-mode qoe
+[dqn_qoe_qoe_seed975_batch0] talking to gNB E2 agent (listen=6600, gNB=6655)...
+
+Omega log: /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_qoe/qoe/rep_seed975/omega_log.jsonl
+{
+  "run_id": "dqn_qoe_qoe_seed975_batch0",
+  "algorithm": "dqn",
+  "mode": "live_testbed",
+  "seed": 975000,
+  "n_episodes": 2,
+  "mean_reward_per_step": 0.6690492780672179,
+  "mean_blocks_per_episode": 108.5,
+  "mean_urllc_blocks_per_episode": 32.0,
+  "blocks_per_episode": [
+    97,
+    120
+  ],
+  "blocks_per_episode_by_slice": [
+    {
+      "embb": 32,
+      "mmtc": 38,
+      "urllc": 27
+    },
+    {
+      "urllc": 37,
+      "embb": 36,
+      "mmtc": 47
+    }
+  ],
+  "mean_rho": null,
+  "omega_path": "/home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_qoe/qoe/rep_seed975/omega_log.jsonl",
+  "checkpoint_path": "",
+  "drift_flag": true,
+  "drift_reason": "mean URLLC block rate 32.00/episode exceeds 2x the 1.0/episode acceptance bar",
+  "sla_compliance_by_slice": {
+    "embb": 1.0,
+    "urllc": 1.0,
+    "mmtc": 1.0
+  },
+  "sla_compliance_all_slices": 1.0,
+  "sla_compliance_by_slice_per_episode": [
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    },
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    }
+  ],
+  "sla_margin_by_slice": {
+    "embb": 0.7924999998829503,
+    "urllc": 0.7324789545557486,
+    "mmtc": 0.727499796457884
+  },
+  "sla_margin_by_slice_per_episode": [
+    {
+      "embb": 0.8849999997659002,
+      "urllc": 0.7649579091114967,
+      "mmtc": 0.7549995929157676
+    },
+    {
+      "embb": 0.7000000000000004,
+      "urllc": 0.7000000000000004,
+      "mmtc": 0.7000000000000004
+    }
+  ],
+  "mean_mos_by_slice": {
+    "embb": 2.1711685717105866,
+    "urllc": 4.162520249684651,
+    "mmtc": 4.769902515411377
+  },
+  "mean_cost": 0.03125000000000001,
+  "mean_sla_viol": 0.0
+}
+[orchestrator] === dqn_qoe rep_seed975 batch 1 (2 episodes, batch_seed=975001, 2/5 done so far) ===
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] FAIL: UE1 (embb) unreachable
+[health] FAIL: UE2 (mmtc) unreachable
+[health] FAIL: UE3 (urllc) unreachable
+[orchestrator] health check failed, restarting stack (attempt 1)
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh
+[restart] stopping all RAN processes and tmux sessions
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 23: 1140881 Killed                  sudo pkill -9 -f "nr-uesoftmodem" 2> /dev/null
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 24: 1140883 Killed                  sudo pkill -9 -f "nr-softmodem" 2> /dev/null
+[restart] confirmed clean: no RAN processes running
+[restart] launching gNB
+[restart] gNB up, E2 agent alive
+[restart] launching UE1 (embb, default netns)
+[restart] UE1 attached
+[restart] launching UE2 (mmtc, ue2ns)
+[restart] UE2 attached
+[restart] launching UE3 (urllc, ue3ns)
+[restart] UE3 attached
+[restart] verifying connectivity all 3 UEs
+[restart] SUCCESS: all 3 UEs attached and reachable
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] OK: all 3 UEs reachable, 16 RAN processes alive, no recent segfault
+[orchestrator] $ python3 /home/kmanojp/oranslice_rig/framework/qoe_oran_framework/xapp/saclb_xapp.py --config /home/kmanojp/oranslice_rig/experiments/configs/saclb_campaign_v2.yaml --algorithm dqn --checkpoint /home/kmanojp/oranslice_rig/experiments/results/offline_v2/qoe/seed256/dqn/offline_closed_loop/rep_0/checkpoint.pt --gnb-id gnb-0 --episodes 2 --seed 975001 --run-id dqn_qoe_qoe_seed975_batch1 --omega-jsonl /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_qoe/qoe/rep_seed975/omega_log.jsonl --reward-mode qoe
+[dqn_qoe_qoe_seed975_batch1] talking to gNB E2 agent (listen=6600, gNB=6655)...
+
+Omega log: /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_qoe/qoe/rep_seed975/omega_log.jsonl
+{
+  "run_id": "dqn_qoe_qoe_seed975_batch1",
+  "algorithm": "dqn",
+  "mode": "live_testbed",
+  "seed": 975001,
+  "n_episodes": 2,
+  "mean_reward_per_step": 0.6070071284506053,
+  "mean_blocks_per_episode": 115.0,
+  "mean_urllc_blocks_per_episode": 37.5,
+  "blocks_per_episode": [
+    110,
+    120
+  ],
+  "blocks_per_episode_by_slice": [
+    {
+      "mmtc": 40,
+      "urllc": 33,
+      "embb": 37
+    },
+    {
+      "embb": 34,
+      "urllc": 42,
+      "mmtc": 44
+    }
+  ],
+  "mean_rho": null,
+  "omega_path": "/home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_qoe/qoe/rep_seed975/omega_log.jsonl",
+  "checkpoint_path": "",
+  "drift_flag": true,
+  "drift_reason": "mean URLLC block rate 37.50/episode exceeds 2x the 1.0/episode acceptance bar",
+  "sla_compliance_by_slice": {
+    "embb": 1.0,
+    "urllc": 1.0,
+    "mmtc": 1.0
+  },
+  "sla_compliance_all_slices": 1.0,
+  "sla_compliance_by_slice_per_episode": [
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    },
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    }
+  ],
+  "sla_margin_by_slice": {
+    "embb": 0.7374999982589467,
+    "urllc": 0.7173023134927891,
+    "mmtc": 0.7074986502954843
+  },
+  "sla_margin_by_slice_per_episode": [
+    {
+      "embb": 0.7749999965178931,
+      "urllc": 0.7346046269855777,
+      "mmtc": 0.7149973005909681
+    },
+    {
+      "embb": 0.7000000000000004,
+      "urllc": 0.7000000000000004,
+      "mmtc": 0.7000000000000004
+    }
+  ],
+  "mean_mos_by_slice": {
+    "embb": 2.1711455365022023,
+    "urllc": 3.391480960448583,
+    "mmtc": 4.757459044456482
+  },
+  "mean_cost": 0.015000000000000003,
+  "mean_sla_viol": 0.0
+}
+[orchestrator] === dqn_qoe rep_seed975 batch 2 (1 episodes, batch_seed=975002, 4/5 done so far) ===
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] FAIL: UE1 (embb) unreachable
+[health] FAIL: UE2 (mmtc) unreachable
+[health] FAIL: UE3 (urllc) unreachable
+[orchestrator] health check failed, restarting stack (attempt 1)
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh
+[restart] stopping all RAN processes and tmux sessions
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 23: 1146317 Killed                  sudo pkill -9 -f "nr-uesoftmodem" 2> /dev/null
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 24: 1146319 Killed                  sudo pkill -9 -f "nr-softmodem" 2> /dev/null
+[restart] confirmed clean: no RAN processes running
+[restart] launching gNB
+[restart] gNB up, E2 agent alive
+[restart] launching UE1 (embb, default netns)
+[restart] UE1 attached
+[restart] launching UE2 (mmtc, ue2ns)
+[restart] UE2 attached
+[restart] launching UE3 (urllc, ue3ns)
+[restart] UE3 attached
+[restart] verifying connectivity all 3 UEs
+[restart] SUCCESS: all 3 UEs attached and reachable
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] OK: all 3 UEs reachable, 16 RAN processes alive, no recent segfault
+[orchestrator] $ python3 /home/kmanojp/oranslice_rig/framework/qoe_oran_framework/xapp/saclb_xapp.py --config /home/kmanojp/oranslice_rig/experiments/configs/saclb_campaign_v2.yaml --algorithm dqn --checkpoint /home/kmanojp/oranslice_rig/experiments/results/offline_v2/qoe/seed256/dqn/offline_closed_loop/rep_0/checkpoint.pt --gnb-id gnb-0 --episodes 1 --seed 975002 --run-id dqn_qoe_qoe_seed975_batch2 --omega-jsonl /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_qoe/qoe/rep_seed975/omega_log.jsonl --reward-mode qoe
+[dqn_qoe_qoe_seed975_batch2] talking to gNB E2 agent (listen=6600, gNB=6655)...
+
+Omega log: /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_qoe/qoe/rep_seed975/omega_log.jsonl
+{
+  "run_id": "dqn_qoe_qoe_seed975_batch2",
+  "algorithm": "dqn",
+  "mode": "live_testbed",
+  "seed": 975002,
+  "n_episodes": 1,
+  "mean_reward_per_step": 0.6027638186481263,
+  "mean_blocks_per_episode": 108.0,
+  "mean_urllc_blocks_per_episode": 36.0,
+  "blocks_per_episode": [
+    108
+  ],
+  "blocks_per_episode_by_slice": [
+    {
+      "embb": 29,
+      "mmtc": 43,
+      "urllc": 36
+    }
+  ],
+  "mean_rho": null,
+  "omega_path": "/home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_qoe/qoe/rep_seed975/omega_log.jsonl",
+  "checkpoint_path": "",
+  "drift_flag": true,
+  "drift_reason": "mean URLLC block rate 36.00/episode exceeds 2x the 1.0/episode acceptance bar",
+  "sla_compliance_by_slice": {
+    "embb": 1.0,
+    "urllc": 1.0,
+    "mmtc": 1.0
+  },
+  "sla_compliance_all_slices": 1.0,
+  "sla_compliance_by_slice_per_episode": [
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    }
+  ],
+  "sla_margin_by_slice": {
+    "embb": 0.8649999961872924,
+    "urllc": 0.739499870029589,
+    "mmtc": 0.7199976294905149
+  },
+  "sla_margin_by_slice_per_episode": [
+    {
+      "embb": 0.8649999961872924,
+      "urllc": 0.739499870029589,
+      "mmtc": 0.7199976294905149
+    }
+  ],
+  "mean_mos_by_slice": {
+    "embb": 2.171138266722361,
+    "urllc": 3.380933960278829,
+    "mmtc": 4.765093596776326
+  },
+  "mean_cost": 0.03500000000000001,
+  "mean_sla_viol": 0.0
+}
+[orchestrator] DONE: 5/5 episodes completed for dqn_qoe rep_seed975. omega log: /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_qoe/qoe/rep_seed975/omega_log.jsonl
+=== 09:44:36 RETRY-DONE arm=dqn_qoe seed=975 (1724s) ===
+=== 09:44:36 RETRY arm=static_at_cap seed=975 ===
+[health] FAIL: UE1 (embb) unreachable
+[health] FAIL: UE2 (mmtc) unreachable
+[health] FAIL: UE3 (urllc) unreachable
+[restart] stopping all RAN processes and tmux sessions
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 23: 1149565 Killed                  sudo pkill -9 -f "nr-uesoftmodem" 2> /dev/null
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 24: 1149567 Killed                  sudo pkill -9 -f "nr-softmodem" 2> /dev/null
+[restart] confirmed clean: no RAN processes running
+[restart] launching gNB
+[restart] gNB up, E2 agent alive
+[restart] launching UE1 (embb, default netns)
+[restart] UE1 attached
+[restart] launching UE2 (mmtc, ue2ns)
+[restart] UE2 attached
+[restart] launching UE3 (urllc, ue3ns)
+[restart] UE3 attached
+[restart] verifying connectivity all 3 UEs
+[restart] SUCCESS: all 3 UEs attached and reachable
+     rnti=57795: mean=5.00 PRB  max=5.00  n=10
+
+Done. NEVER send SUBSCRIPTION-type messages: still assert(0!=0) in handle_subscription() on this OAI base (verified 2026-07-14).
+[orchestrator] === static_at_cap rep_seed975 batch 0 (2 episodes, batch_seed=975000, 0/5 done so far) ===
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] OK: all 3 UEs reachable, 16 RAN processes alive, no recent segfault
+[orchestrator] $ python3 /home/kmanojp/oranslice_rig/experiments/scripts/run_baseline_static.py --config /home/kmanojp/oranslice_rig/experiments/configs/saclb_campaign_static_at_cap_v2.yaml --gnb-id gnb-0 --episodes 2 --seed 975000 --run-id static_at_cap_sla_seed975_batch0 --omega-jsonl /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/static_at_cap/sla/rep_seed975/omega_log.jsonl --reward-mode sla
+[static_at_cap_sla_seed975_batch0] baseline_static: talking to gNB E2 agent (listen=6600, gNB=6655)...
+
+Omega log: /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/static_at_cap/sla/rep_seed975/omega_log.jsonl
+{
+  "run_id": "static_at_cap_sla_seed975_batch0",
+  "algorithm": "baseline_static",
+  "mode": "live_testbed",
+  "seed": 975000,
+  "n_episodes": 2,
+  "mean_reward_per_step": 5.074583333333335,
+  "mean_blocks_per_episode": 0.0,
+  "mean_urllc_blocks_per_episode": 0.0,
+  "blocks_per_episode": [
+    0,
+    0
+  ],
+  "blocks_per_episode_by_slice": [
+    {},
+    {}
+  ],
+  "mean_rho": null,
+  "omega_path": "/home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/static_at_cap/sla/rep_seed975/omega_log.jsonl",
+  "checkpoint_path": "",
+  "drift_flag": false,
+  "drift_reason": "",
+  "sla_compliance_by_slice": {
+    "embb": 1.0,
+    "urllc": 1.0,
+    "mmtc": 1.0
+  },
+  "sla_compliance_all_slices": 1.0,
+  "sla_compliance_by_slice_per_episode": [
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    },
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    }
+  ],
+  "sla_margin_by_slice": {
+    "embb": 0.99999999990085,
+    "urllc": 0.7374667643472403,
+    "mmtc": 0.7249997456725183
+  },
+  "sla_margin_by_slice_per_episode": [
+    {
+      "embb": 0.9999999998016998,
+      "urllc": 0.7749335286944802,
+      "mmtc": 0.7499994913450364
+    },
+    {
+      "embb": 1.0,
+      "urllc": 0.7000000000000004,
+      "mmtc": 0.7000000000000004
+    }
+  ],
+  "mean_mos_by_slice": {
+    "embb": 2.171316146850586,
+    "urllc": 4.175020285447439,
+    "mmtc": 4.768317504723867
+  },
+  "mean_cost": 0.3025,
+  "mean_sla_viol": 0.0
+}
+[orchestrator] === static_at_cap rep_seed975 batch 1 (2 episodes, batch_seed=975001, 2/5 done so far) ===
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] FAIL: UE2 (mmtc) unreachable
+[health] FAIL: UE3 (urllc) unreachable
+[orchestrator] health check failed, restarting stack (attempt 1)
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh
+[restart] stopping all RAN processes and tmux sessions
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 23: 1155219 Killed                  sudo pkill -9 -f "nr-uesoftmodem" 2> /dev/null
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 24: 1155221 Killed                  sudo pkill -9 -f "nr-softmodem" 2> /dev/null
+[restart] confirmed clean: no RAN processes running
+[restart] launching gNB
+[restart] gNB up, E2 agent alive
+[restart] launching UE1 (embb, default netns)
+[restart] UE1 attached
+[restart] launching UE2 (mmtc, ue2ns)
+[restart] UE2 attached
+[restart] launching UE3 (urllc, ue3ns)
+[restart] UE3 attached
+[restart] verifying connectivity all 3 UEs
+[restart] SUCCESS: all 3 UEs attached and reachable
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] OK: all 3 UEs reachable, 16 RAN processes alive, no recent segfault
+[orchestrator] $ python3 /home/kmanojp/oranslice_rig/experiments/scripts/run_baseline_static.py --config /home/kmanojp/oranslice_rig/experiments/configs/saclb_campaign_static_at_cap_v2.yaml --gnb-id gnb-0 --episodes 2 --seed 975001 --run-id static_at_cap_sla_seed975_batch1 --omega-jsonl /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/static_at_cap/sla/rep_seed975/omega_log.jsonl --reward-mode sla
+[static_at_cap_sla_seed975_batch1] baseline_static: talking to gNB E2 agent (listen=6600, gNB=6655)...
+
+Omega log: /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/static_at_cap/sla/rep_seed975/omega_log.jsonl
+{
+  "run_id": "static_at_cap_sla_seed975_batch1",
+  "algorithm": "baseline_static",
+  "mode": "live_testbed",
+  "seed": 975001,
+  "n_episodes": 2,
+  "mean_reward_per_step": 5.297083333333333,
+  "mean_blocks_per_episode": 0.0,
+  "mean_urllc_blocks_per_episode": 0.0,
+  "blocks_per_episode": [
+    0,
+    0
+  ],
+  "blocks_per_episode_by_slice": [
+    {},
+    {}
+  ],
+  "mean_rho": null,
+  "omega_path": "/home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/static_at_cap/sla/rep_seed975/omega_log.jsonl",
+  "checkpoint_path": "",
+  "drift_flag": false,
+  "drift_reason": "",
+  "sla_compliance_by_slice": {
+    "embb": 1.0,
+    "urllc": 1.0,
+    "mmtc": 1.0
+  },
+  "sla_compliance_all_slices": 1.0,
+  "sla_compliance_by_slice_per_episode": [
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    },
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    }
+  ],
+  "sla_margin_by_slice": {
+    "embb": 0.9999999982841297,
+    "urllc": 0.7197221500069528,
+    "mmtc": 0.7049990492022511
+  },
+  "sla_margin_by_slice_per_episode": [
+    {
+      "embb": 0.9999999965682592,
+      "urllc": 0.7394443000139053,
+      "mmtc": 0.7099980984045018
+    },
+    {
+      "embb": 1.0,
+      "urllc": 0.7000000000000004,
+      "mmtc": 0.7000000000000004
+    }
+  ],
+  "mean_mos_by_slice": {
+    "embb": 2.171316146850586,
+    "urllc": 3.1761069118976595,
+    "mmtc": 4.75587568283081
+  },
+  "mean_cost": 0.3025,
+  "mean_sla_viol": 0.0
+}
+[orchestrator] === static_at_cap rep_seed975 batch 2 (1 episodes, batch_seed=975002, 4/5 done so far) ===
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] FAIL: UE2 (mmtc) unreachable
+[health] FAIL: UE3 (urllc) unreachable
+[orchestrator] health check failed, restarting stack (attempt 1)
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh
+[restart] stopping all RAN processes and tmux sessions
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 23: 1160627 Killed                  sudo pkill -9 -f "nr-uesoftmodem" 2> /dev/null
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 24: 1160631 Killed                  sudo pkill -9 -f "nr-softmodem" 2> /dev/null
+[restart] confirmed clean: no RAN processes running
+[restart] launching gNB
+[restart] gNB up, E2 agent alive
+[restart] launching UE1 (embb, default netns)
+[restart] UE1 attached
+[restart] launching UE2 (mmtc, ue2ns)
+[restart] UE2 attached
+[restart] launching UE3 (urllc, ue3ns)
+[restart] UE3 attached
+[restart] verifying connectivity all 3 UEs
+[restart] SUCCESS: all 3 UEs attached and reachable
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] OK: all 3 UEs reachable, 16 RAN processes alive, no recent segfault
+[orchestrator] $ python3 /home/kmanojp/oranslice_rig/experiments/scripts/run_baseline_static.py --config /home/kmanojp/oranslice_rig/experiments/configs/saclb_campaign_static_at_cap_v2.yaml --gnb-id gnb-0 --episodes 1 --seed 975002 --run-id static_at_cap_sla_seed975_batch2 --omega-jsonl /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/static_at_cap/sla/rep_seed975/omega_log.jsonl --reward-mode sla
+[static_at_cap_sla_seed975_batch2] baseline_static: talking to gNB E2 agent (listen=6600, gNB=6655)...
+
+Omega log: /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/static_at_cap/sla/rep_seed975/omega_log.jsonl
+{
+  "run_id": "static_at_cap_sla_seed975_batch2",
+  "algorithm": "baseline_static",
+  "mode": "live_testbed",
+  "seed": 975002,
+  "n_episodes": 1,
+  "mean_reward_per_step": 5.255833333333334,
+  "mean_blocks_per_episode": 0.0,
+  "mean_urllc_blocks_per_episode": 0.0,
+  "blocks_per_episode": [
+    0
+  ],
+  "blocks_per_episode_by_slice": [
+    {}
+  ],
+  "mean_rho": null,
+  "omega_path": "/home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/static_at_cap/sla/rep_seed975/omega_log.jsonl",
+  "checkpoint_path": "",
+  "drift_flag": false,
+  "drift_reason": "",
+  "sla_compliance_by_slice": {
+    "embb": 1.0,
+    "urllc": 1.0,
+    "mmtc": 1.0
+  },
+  "sla_compliance_all_slices": 1.0,
+  "sla_compliance_by_slice_per_episode": [
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    }
+  ],
+  "sla_margin_by_slice": {
+    "embb": 0.9999999968757859,
+    "urllc": 0.7392377228414023,
+    "mmtc": 0.7249959781257318
+  },
+  "sla_margin_by_slice_per_episode": [
+    {
+      "embb": 0.9999999968757859,
+      "urllc": 0.7392377228414023,
+      "mmtc": 0.7249959781257318
+    }
+  ],
+  "mean_mos_by_slice": {
+    "embb": 2.171316146850586,
+    "urllc": 2.8262478987375896,
+    "mmtc": 4.768343989054362
+  },
+  "mean_cost": 0.3050000000000001,
+  "mean_sla_viol": 0.0
+}
+[orchestrator] DONE: 5/5 episodes completed for static_at_cap rep_seed975. omega log: /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/static_at_cap/sla/rep_seed975/omega_log.jsonl
+=== 10:15:12 RETRY-DONE arm=static_at_cap seed=975 (1711s) ===
+=== 10:15:12 RETRY arm=baseline seed=976 ===
+[health] FAIL: UE2 (mmtc) unreachable
+[health] FAIL: UE3 (urllc) unreachable
+[restart] stopping all RAN processes and tmux sessions
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 23: 1163863 Killed                  sudo pkill -9 -f "nr-uesoftmodem" 2> /dev/null
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 24: 1163865 Killed                  sudo pkill -9 -f "nr-softmodem" 2> /dev/null
+[restart] confirmed clean: no RAN processes running
+[restart] launching gNB
+[restart] gNB up, E2 agent alive
+[restart] launching UE1 (embb, default netns)
+[restart] UE1 attached
+[restart] launching UE2 (mmtc, ue2ns)
+[restart] UE2 attached
+[restart] launching UE3 (urllc, ue3ns)
+[restart] UE3 attached
+[restart] verifying connectivity all 3 UEs
+[restart] SUCCESS: all 3 UEs attached and reachable
+     rnti=53736: mean=5.00 PRB  max=5.00  n=10
+
+Done. NEVER send SUBSCRIPTION-type messages: still assert(0!=0) in handle_subscription() on this OAI base (verified 2026-07-14).
+[orchestrator] === baseline rep_seed976 batch 0 (2 episodes, batch_seed=976000, 0/5 done so far) ===
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] OK: all 3 UEs reachable, 16 RAN processes alive, no recent segfault
+[orchestrator] $ python3 /home/kmanojp/oranslice_rig/experiments/scripts/run_baseline_static.py --config /home/kmanojp/oranslice_rig/experiments/configs/saclb_campaign_baseline_v2.yaml --gnb-id gnb-0 --episodes 2 --seed 976000 --run-id baseline_sla_seed976_batch0 --omega-jsonl /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/baseline/sla/rep_seed976/omega_log.jsonl --reward-mode sla
+[baseline_sla_seed976_batch0] baseline_static: talking to gNB E2 agent (listen=6600, gNB=6655)...
+
+Omega log: /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/baseline/sla/rep_seed976/omega_log.jsonl
+{
+  "run_id": "baseline_sla_seed976_batch0",
+  "algorithm": "baseline_static",
+  "mode": "live_testbed",
+  "seed": 976000,
+  "n_episodes": 2,
+  "mean_reward_per_step": 5.522916666666667,
+  "mean_blocks_per_episode": 0.0,
+  "mean_urllc_blocks_per_episode": 0.0,
+  "blocks_per_episode": [
+    0,
+    0
+  ],
+  "blocks_per_episode_by_slice": [
+    {},
+    {}
+  ],
+  "mean_rho": null,
+  "omega_path": "/home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/baseline/sla/rep_seed976/omega_log.jsonl",
+  "checkpoint_path": "",
+  "drift_flag": false,
+  "drift_reason": "",
+  "sla_compliance_by_slice": {
+    "embb": 1.0,
+    "urllc": 1.0,
+    "mmtc": 1.0
+  },
+  "sla_compliance_all_slices": 1.0,
+  "sla_compliance_by_slice_per_episode": [
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    },
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    }
+  ],
+  "sla_margin_by_slice": {
+    "embb": 0.7774999998004857,
+    "urllc": 0.7074913144628715,
+    "mmtc": 0.7349996461530703
+  },
+  "sla_margin_by_slice_per_episode": [
+    {
+      "embb": 0.854999999600971,
+      "urllc": 0.7149826289257426,
+      "mmtc": 0.7699992923061402
+    },
+    {
+      "embb": 0.7000000000000004,
+      "urllc": 0.7000000000000004,
+      "mmtc": 0.7000000000000004
+    }
+  ],
+  "mean_mos_by_slice": {
+    "embb": 2.1711622893810274,
+    "urllc": 4.097000650564829,
+    "mmtc": 4.774675079186758
+  },
+  "mean_cost": 0.3025,
+  "mean_sla_viol": 0.0
+}
+[orchestrator] === baseline rep_seed976 batch 1 (2 episodes, batch_seed=976001, 2/5 done so far) ===
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] FAIL: UE1 (embb) unreachable
+[health] FAIL: UE2 (mmtc) unreachable
+[health] FAIL: UE3 (urllc) unreachable
+[orchestrator] health check failed, restarting stack (attempt 1)
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh
+[restart] stopping all RAN processes and tmux sessions
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 23: 1169636 Killed                  sudo pkill -9 -f "nr-uesoftmodem" 2> /dev/null
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 24: 1169638 Killed                  sudo pkill -9 -f "nr-softmodem" 2> /dev/null
+[restart] confirmed clean: no RAN processes running
+[restart] launching gNB
+[restart] gNB up, E2 agent alive
+[restart] launching UE1 (embb, default netns)
+[restart] UE1 attached
+[restart] launching UE2 (mmtc, ue2ns)
+[restart] UE2 attached
+[restart] launching UE3 (urllc, ue3ns)
+[restart] UE3 attached
+[restart] verifying connectivity all 3 UEs
+[restart] SUCCESS: all 3 UEs attached and reachable
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] OK: all 3 UEs reachable, 16 RAN processes alive, no recent segfault
+[orchestrator] $ python3 /home/kmanojp/oranslice_rig/experiments/scripts/run_baseline_static.py --config /home/kmanojp/oranslice_rig/experiments/configs/saclb_campaign_baseline_v2.yaml --gnb-id gnb-0 --episodes 2 --seed 976001 --run-id baseline_sla_seed976_batch1 --omega-jsonl /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/baseline/sla/rep_seed976/omega_log.jsonl --reward-mode sla
+[baseline_sla_seed976_batch1] baseline_static: talking to gNB E2 agent (listen=6600, gNB=6655)...
+
+Omega log: /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/baseline/sla/rep_seed976/omega_log.jsonl
+{
+  "run_id": "baseline_sla_seed976_batch1",
+  "algorithm": "baseline_static",
+  "mode": "live_testbed",
+  "seed": 976001,
+  "n_episodes": 2,
+  "mean_reward_per_step": 5.237916666666668,
+  "mean_blocks_per_episode": 0.0,
+  "mean_urllc_blocks_per_episode": 0.0,
+  "blocks_per_episode": [
+    0,
+    0
+  ],
+  "blocks_per_episode_by_slice": [
+    {},
+    {}
+  ],
+  "mean_rho": null,
+  "omega_path": "/home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/baseline/sla/rep_seed976/omega_log.jsonl",
+  "checkpoint_path": "",
+  "drift_flag": false,
+  "drift_reason": "",
+  "sla_compliance_by_slice": {
+    "embb": 1.0,
+    "urllc": 1.0,
+    "mmtc": 1.0
+  },
+  "sla_compliance_all_slices": 1.0,
+  "sla_compliance_by_slice_per_episode": [
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    },
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    }
+  ],
+  "sla_margin_by_slice": {
+    "embb": 0.7374999911832933,
+    "urllc": 0.7196912777734303,
+    "mmtc": 0.7099976978705884
+  },
+  "sla_margin_by_slice_per_episode": [
+    {
+      "embb": 0.7749999823665862,
+      "urllc": 0.7393825555468604,
+      "mmtc": 0.7199953957411763
+    },
+    {
+      "embb": 0.7000000000000004,
+      "urllc": 0.7000000000000004,
+      "mmtc": 0.7000000000000004
+    }
+  ],
+  "mean_mos_by_slice": {
+    "embb": 2.171145542462667,
+    "urllc": 3.0514283378918967,
+    "mmtc": 4.75913526614507
+  },
+  "mean_cost": 0.3025,
+  "mean_sla_viol": 0.0
+}
+[orchestrator] === baseline rep_seed976 batch 2 (1 episodes, batch_seed=976002, 4/5 done so far) ===
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] FAIL: UE1 (embb) unreachable
+[health] FAIL: UE2 (mmtc) unreachable
+[health] FAIL: UE3 (urllc) unreachable
+[orchestrator] health check failed, restarting stack (attempt 1)
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh
+[restart] stopping all RAN processes and tmux sessions
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 23: 1175052 Killed                  sudo pkill -9 -f "nr-uesoftmodem" 2> /dev/null
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 24: 1175054 Killed                  sudo pkill -9 -f "nr-softmodem" 2> /dev/null
+[restart] confirmed clean: no RAN processes running
+[restart] launching gNB
+[restart] gNB up, E2 agent alive
+[restart] launching UE1 (embb, default netns)
+[restart] UE1 attached
+[restart] launching UE2 (mmtc, ue2ns)
+[restart] UE2 attached
+[restart] launching UE3 (urllc, ue3ns)
+[restart] UE3 attached
+[restart] verifying connectivity all 3 UEs
+[restart] SUCCESS: all 3 UEs attached and reachable
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] OK: all 3 UEs reachable, 16 RAN processes alive, no recent segfault
+[orchestrator] $ python3 /home/kmanojp/oranslice_rig/experiments/scripts/run_baseline_static.py --config /home/kmanojp/oranslice_rig/experiments/configs/saclb_campaign_baseline_v2.yaml --gnb-id gnb-0 --episodes 1 --seed 976002 --run-id baseline_sla_seed976_batch2 --omega-jsonl /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/baseline/sla/rep_seed976/omega_log.jsonl --reward-mode sla
+[baseline_sla_seed976_batch2] baseline_static: talking to gNB E2 agent (listen=6600, gNB=6655)...
+
+Omega log: /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/baseline/sla/rep_seed976/omega_log.jsonl
+{
+  "run_id": "baseline_sla_seed976_batch2",
+  "algorithm": "baseline_static",
+  "mode": "live_testbed",
+  "seed": 976002,
+  "n_episodes": 1,
+  "mean_reward_per_step": 5.7008333333333345,
+  "mean_blocks_per_episode": 0.0,
+  "mean_urllc_blocks_per_episode": 0.0,
+  "blocks_per_episode": [
+    0
+  ],
+  "blocks_per_episode_by_slice": [
+    {}
+  ],
+  "mean_rho": null,
+  "omega_path": "/home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/baseline/sla/rep_seed976/omega_log.jsonl",
+  "checkpoint_path": "",
+  "drift_flag": false,
+  "drift_reason": "",
+  "sla_compliance_by_slice": {
+    "embb": 1.0,
+    "urllc": 1.0,
+    "mmtc": 1.0
+  },
+  "sla_compliance_all_slices": 1.0,
+  "sla_compliance_by_slice_per_episode": [
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    }
+  ],
+  "sla_margin_by_slice": {
+    "embb": 0.7599999908355554,
+    "urllc": 0.7340519305070247,
+    "mmtc": 0.7249931190409591
+  },
+  "sla_margin_by_slice_per_episode": [
+    {
+      "embb": 0.7599999908355554,
+      "urllc": 0.7340519305070247,
+      "mmtc": 0.7249931190409591
+    }
+  ],
+  "mean_mos_by_slice": {
+    "embb": 2.171094290415446,
+    "urllc": 2.257429293791453,
+    "mmtc": 4.768539881706237
+  },
+  "mean_cost": 0.3050000000000001,
+  "mean_sla_viol": 0.0
+}
+[orchestrator] DONE: 5/5 episodes completed for baseline rep_seed976. omega log: /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/baseline/sla/rep_seed976/omega_log.jsonl
+=== 10:45:51 RETRY-DONE arm=baseline seed=976 (1715s) ===
+=== 10:45:51 RETRY arm=dqn_sla seed=976 ===
+[health] FAIL: UE1 (embb) unreachable
+[health] FAIL: UE2 (mmtc) unreachable
+[health] FAIL: UE3 (urllc) unreachable
+[restart] stopping all RAN processes and tmux sessions
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 23: 1178280 Killed                  sudo pkill -9 -f "nr-uesoftmodem" 2> /dev/null
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 24: 1178282 Killed                  sudo pkill -9 -f "nr-softmodem" 2> /dev/null
+[restart] confirmed clean: no RAN processes running
+[restart] launching gNB
+[restart] gNB up, E2 agent alive
+[restart] launching UE1 (embb, default netns)
+[restart] UE1 attached
+[restart] launching UE2 (mmtc, ue2ns)
+[restart] UE2 attached
+[restart] launching UE3 (urllc, ue3ns)
+[restart] UE3 attached
+[restart] verifying connectivity all 3 UEs
+[restart] SUCCESS: all 3 UEs attached and reachable
+     rnti=14685: mean=5.00 PRB  max=5.00  n=10
+
+Done. NEVER send SUBSCRIPTION-type messages: still assert(0!=0) in handle_subscription() on this OAI base (verified 2026-07-14).
+[orchestrator] === dqn_sla rep_seed976 batch 0 (2 episodes, batch_seed=976000, 0/5 done so far) ===
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] OK: all 3 UEs reachable, 16 RAN processes alive, no recent segfault
+[orchestrator] $ python3 /home/kmanojp/oranslice_rig/framework/qoe_oran_framework/xapp/saclb_xapp.py --config /home/kmanojp/oranslice_rig/experiments/configs/saclb_campaign_v2.yaml --algorithm dqn --checkpoint /home/kmanojp/oranslice_rig/experiments/results/offline_v2/sla/seed256/dqn/offline_closed_loop/rep_0/checkpoint.pt --gnb-id gnb-0 --episodes 2 --seed 976000 --run-id dqn_sla_sla_seed976_batch0 --omega-jsonl /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_sla/sla/rep_seed976/omega_log.jsonl --reward-mode sla
+[dqn_sla_sla_seed976_batch0] talking to gNB E2 agent (listen=6600, gNB=6655)...
+
+Omega log: /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_sla/sla/rep_seed976/omega_log.jsonl
+{
+  "run_id": "dqn_sla_sla_seed976_batch0",
+  "algorithm": "dqn",
+  "mode": "live_testbed",
+  "seed": 976000,
+  "n_episodes": 2,
+  "mean_reward_per_step": 0.0,
+  "mean_blocks_per_episode": 121.0,
+  "mean_urllc_blocks_per_episode": 41.0,
+  "blocks_per_episode": [
+    122,
+    120
+  ],
+  "blocks_per_episode_by_slice": [
+    {
+      "mmtc": 42,
+      "urllc": 43,
+      "embb": 37
+    },
+    {
+      "embb": 44,
+      "mmtc": 37,
+      "urllc": 39
+    }
+  ],
+  "mean_rho": null,
+  "omega_path": "/home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_sla/sla/rep_seed976/omega_log.jsonl",
+  "checkpoint_path": "",
+  "drift_flag": true,
+  "drift_reason": "mean URLLC block rate 41.00/episode exceeds 2x the 1.0/episode acceptance bar",
+  "sla_compliance_by_slice": {
+    "embb": 1.0,
+    "urllc": 1.0,
+    "mmtc": 1.0
+  },
+  "sla_compliance_all_slices": 1.0,
+  "sla_compliance_by_slice_per_episode": [
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    },
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    }
+  ],
+  "sla_margin_by_slice": {
+    "embb": 0.7824999997921387,
+    "urllc": 0.7299733144393157,
+    "mmtc": 0.7274997738420834
+  },
+  "sla_margin_by_slice_per_episode": [
+    {
+      "embb": 0.864999999584277,
+      "urllc": 0.759946628878631,
+      "mmtc": 0.7549995476841664
+    },
+    {
+      "embb": 0.7000000000000004,
+      "urllc": 0.7000000000000004,
+      "mmtc": 0.7000000000000004
+    }
+  ],
+  "mean_mos_by_slice": {
+    "embb": 2.1711643834908805,
+    "urllc": 4.156218322118123,
+    "mmtc": 4.7699039578437805
+  },
+  "mean_cost": 0.0,
+  "mean_sla_viol": 0.0
+}
+[orchestrator] === dqn_sla rep_seed976 batch 1 (2 episodes, batch_seed=976001, 2/5 done so far) ===
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] FAIL: UE1 (embb) unreachable
+[health] FAIL: UE2 (mmtc) unreachable
+[health] FAIL: UE3 (urllc) unreachable
+[orchestrator] health check failed, restarting stack (attempt 1)
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh
+[restart] stopping all RAN processes and tmux sessions
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 23: 1183996 Killed                  sudo pkill -9 -f "nr-uesoftmodem" 2> /dev/null
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 24: 1183998 Killed                  sudo pkill -9 -f "nr-softmodem" 2> /dev/null
+[restart] confirmed clean: no RAN processes running
+[restart] launching gNB
+[restart] gNB up, E2 agent alive
+[restart] launching UE1 (embb, default netns)
+[restart] UE1 attached
+[restart] launching UE2 (mmtc, ue2ns)
+[restart] UE2 attached
+[restart] launching UE3 (urllc, ue3ns)
+[restart] UE3 attached
+[restart] verifying connectivity all 3 UEs
+[restart] SUCCESS: all 3 UEs attached and reachable
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] OK: all 3 UEs reachable, 16 RAN processes alive, no recent segfault
+[orchestrator] $ python3 /home/kmanojp/oranslice_rig/framework/qoe_oran_framework/xapp/saclb_xapp.py --config /home/kmanojp/oranslice_rig/experiments/configs/saclb_campaign_v2.yaml --algorithm dqn --checkpoint /home/kmanojp/oranslice_rig/experiments/results/offline_v2/sla/seed256/dqn/offline_closed_loop/rep_0/checkpoint.pt --gnb-id gnb-0 --episodes 2 --seed 976001 --run-id dqn_sla_sla_seed976_batch1 --omega-jsonl /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_sla/sla/rep_seed976/omega_log.jsonl --reward-mode sla
+[dqn_sla_sla_seed976_batch1] talking to gNB E2 agent (listen=6600, gNB=6655)...
+
+Omega log: /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_sla/sla/rep_seed976/omega_log.jsonl
+{
+  "run_id": "dqn_sla_sla_seed976_batch1",
+  "algorithm": "dqn",
+  "mode": "live_testbed",
+  "seed": 976001,
+  "n_episodes": 2,
+  "mean_reward_per_step": 0.0,
+  "mean_blocks_per_episode": 121.0,
+  "mean_urllc_blocks_per_episode": 36.0,
+  "blocks_per_episode": [
+    122,
+    120
+  ],
+  "blocks_per_episode_by_slice": [
+    {
+      "mmtc": 44,
+      "urllc": 36,
+      "embb": 42
+    },
+    {
+      "mmtc": 41,
+      "embb": 43,
+      "urllc": 36
+    }
+  ],
+  "mean_rho": null,
+  "omega_path": "/home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_sla/sla/rep_seed976/omega_log.jsonl",
+  "checkpoint_path": "",
+  "drift_flag": true,
+  "drift_reason": "mean URLLC block rate 36.00/episode exceeds 2x the 1.0/episode acceptance bar",
+  "sla_compliance_by_slice": {
+    "embb": 1.0,
+    "urllc": 1.0,
+    "mmtc": 1.0
+  },
+  "sla_compliance_all_slices": 1.0,
+  "sla_compliance_by_slice_per_episode": [
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    },
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    }
+  ],
+  "sla_margin_by_slice": {
+    "embb": 0.7299999929208925,
+    "urllc": 0.7123235277055455,
+    "mmtc": 0.7074986213432709
+  },
+  "sla_margin_by_slice_per_episode": [
+    {
+      "embb": 0.7599999858417845,
+      "urllc": 0.7246470554110908,
+      "mmtc": 0.7149972426865414
+    },
+    {
+      "embb": 0.7000000000000004,
+      "urllc": 0.7000000000000004,
+      "mmtc": 0.7000000000000004
+    }
+  ],
+  "mean_mos_by_slice": {
+    "embb": 2.171142401297887,
+    "urllc": 3.1492509722709654,
+    "mmtc": 4.757465247313181
+  },
+  "mean_cost": 0.0,
+  "mean_sla_viol": 0.0
+}
+[orchestrator] === dqn_sla rep_seed976 batch 2 (1 episodes, batch_seed=976002, 4/5 done so far) ===
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] FAIL: UE1 (embb) unreachable
+[health] FAIL: UE2 (mmtc) unreachable
+[health] FAIL: UE3 (urllc) unreachable
+[orchestrator] health check failed, restarting stack (attempt 1)
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh
+[restart] stopping all RAN processes and tmux sessions
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 23: 1189467 Killed                  sudo pkill -9 -f "nr-uesoftmodem" 2> /dev/null
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 24: 1189469 Killed                  sudo pkill -9 -f "nr-softmodem" 2> /dev/null
+[restart] confirmed clean: no RAN processes running
+[restart] launching gNB
+[restart] gNB up, E2 agent alive
+[restart] launching UE1 (embb, default netns)
+[restart] UE1 attached
+[restart] launching UE2 (mmtc, ue2ns)
+[restart] UE2 attached
+[restart] launching UE3 (urllc, ue3ns)
+[restart] UE3 attached
+[restart] verifying connectivity all 3 UEs
+[restart] SUCCESS: all 3 UEs attached and reachable
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] OK: all 3 UEs reachable, 16 RAN processes alive, no recent segfault
+[orchestrator] $ python3 /home/kmanojp/oranslice_rig/framework/qoe_oran_framework/xapp/saclb_xapp.py --config /home/kmanojp/oranslice_rig/experiments/configs/saclb_campaign_v2.yaml --algorithm dqn --checkpoint /home/kmanojp/oranslice_rig/experiments/results/offline_v2/sla/seed256/dqn/offline_closed_loop/rep_0/checkpoint.pt --gnb-id gnb-0 --episodes 1 --seed 976002 --run-id dqn_sla_sla_seed976_batch2 --omega-jsonl /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_sla/sla/rep_seed976/omega_log.jsonl --reward-mode sla
+[dqn_sla_sla_seed976_batch2] talking to gNB E2 agent (listen=6600, gNB=6655)...
+
+Omega log: /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_sla/sla/rep_seed976/omega_log.jsonl
+{
+  "run_id": "dqn_sla_sla_seed976_batch2",
+  "algorithm": "dqn",
+  "mode": "live_testbed",
+  "seed": 976002,
+  "n_episodes": 1,
+  "mean_reward_per_step": 0.0,
+  "mean_blocks_per_episode": 122.0,
+  "mean_urllc_blocks_per_episode": 47.0,
+  "blocks_per_episode": [
+    122
+  ],
+  "blocks_per_episode_by_slice": [
+    {
+      "mmtc": 40,
+      "urllc": 47,
+      "embb": 35
+    }
+  ],
+  "mean_rho": null,
+  "omega_path": "/home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_sla/sla/rep_seed976/omega_log.jsonl",
+  "checkpoint_path": "",
+  "drift_flag": true,
+  "drift_reason": "mean URLLC block rate 47.00/episode exceeds 2x the 1.0/episode acceptance bar",
+  "sla_compliance_by_slice": {
+    "embb": 1.0,
+    "urllc": 1.0,
+    "mmtc": 1.0
+  },
+  "sla_compliance_all_slices": 1.0,
+  "sla_compliance_by_slice_per_episode": [
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    }
+  ],
+  "sla_margin_by_slice": {
+    "embb": 0.7599999935508007,
+    "urllc": 0.729621523264796,
+    "mmtc": 0.7149981909269648
+  },
+  "sla_margin_by_slice_per_episode": [
+    {
+      "embb": 0.7599999935508007,
+      "urllc": 0.729621523264796,
+      "mmtc": 0.7149981909269648
+    }
+  ],
+  "mean_mos_by_slice": {
+    "embb": 2.171094290415446,
+    "urllc": 3.335337706406911,
+    "mmtc": 4.761914579073588
+  },
+  "mean_cost": 0.0,
+  "mean_sla_viol": 0.0
+}
+[orchestrator] DONE: 5/5 episodes completed for dqn_sla rep_seed976. omega log: /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_sla/sla/rep_seed976/omega_log.jsonl
+=== 11:16:43 RETRY-DONE arm=dqn_sla seed=976 (1727s) ===
+=== 11:16:43 RETRY arm=dqn_qoe seed=976 ===
+[health] FAIL: UE1 (embb) unreachable
+[health] FAIL: UE2 (mmtc) unreachable
+[health] FAIL: UE3 (urllc) unreachable
+[restart] stopping all RAN processes and tmux sessions
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 23: 1192742 Killed                  sudo pkill -9 -f "nr-uesoftmodem" 2> /dev/null
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 24: 1192744 Killed                  sudo pkill -9 -f "nr-softmodem" 2> /dev/null
+[restart] confirmed clean: no RAN processes running
+[restart] launching gNB
+[restart] gNB up, E2 agent alive
+[restart] launching UE1 (embb, default netns)
+[restart] UE1 attached
+[restart] launching UE2 (mmtc, ue2ns)
+[restart] UE2 attached
+[restart] launching UE3 (urllc, ue3ns)
+[restart] UE3 attached
+[restart] verifying connectivity all 3 UEs
+[restart] SUCCESS: all 3 UEs attached and reachable
+     rnti=49423: mean=5.00 PRB  max=5.00  n=10
+
+Done. NEVER send SUBSCRIPTION-type messages: still assert(0!=0) in handle_subscription() on this OAI base (verified 2026-07-14).
+[orchestrator] === dqn_qoe rep_seed976 batch 0 (2 episodes, batch_seed=976000, 0/5 done so far) ===
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] OK: all 3 UEs reachable, 16 RAN processes alive, no recent segfault
+[orchestrator] $ python3 /home/kmanojp/oranslice_rig/framework/qoe_oran_framework/xapp/saclb_xapp.py --config /home/kmanojp/oranslice_rig/experiments/configs/saclb_campaign_v2.yaml --algorithm dqn --checkpoint /home/kmanojp/oranslice_rig/experiments/results/offline_v2/qoe/seed256/dqn/offline_closed_loop/rep_0/checkpoint.pt --gnb-id gnb-0 --episodes 2 --seed 976000 --run-id dqn_qoe_qoe_seed976_batch0 --omega-jsonl /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_qoe/qoe/rep_seed976/omega_log.jsonl --reward-mode qoe
+[dqn_qoe_qoe_seed976_batch0] talking to gNB E2 agent (listen=6600, gNB=6655)...
+
+Omega log: /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_qoe/qoe/rep_seed976/omega_log.jsonl
+{
+  "run_id": "dqn_qoe_qoe_seed976_batch0",
+  "algorithm": "dqn",
+  "mode": "live_testbed",
+  "seed": 976000,
+  "n_episodes": 2,
+  "mean_reward_per_step": 0.6655337475074662,
+  "mean_blocks_per_episode": 113.5,
+  "mean_urllc_blocks_per_episode": 35.0,
+  "blocks_per_episode": [
+    107,
+    120
+  ],
+  "blocks_per_episode_by_slice": [
+    {
+      "mmtc": 39,
+      "embb": 37,
+      "urllc": 31
+    },
+    {
+      "embb": 44,
+      "mmtc": 37,
+      "urllc": 39
+    }
+  ],
+  "mean_rho": null,
+  "omega_path": "/home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_qoe/qoe/rep_seed976/omega_log.jsonl",
+  "checkpoint_path": "",
+  "drift_flag": true,
+  "drift_reason": "mean URLLC block rate 35.00/episode exceeds 2x the 1.0/episode acceptance bar",
+  "sla_compliance_by_slice": {
+    "embb": 1.0,
+    "urllc": 1.0,
+    "mmtc": 1.0
+  },
+  "sla_compliance_all_slices": 1.0,
+  "sla_compliance_by_slice_per_episode": [
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    },
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    }
+  ],
+  "sla_margin_by_slice": {
+    "embb": 0.7774999998004857,
+    "urllc": 0.7049931299612706,
+    "mmtc": 0.7224997167313121
+  },
+  "sla_margin_by_slice_per_episode": [
+    {
+      "embb": 0.854999999600971,
+      "urllc": 0.7099862599225408,
+      "mmtc": 0.7449994334626238
+    },
+    {
+      "embb": 0.7000000000000004,
+      "urllc": 0.7000000000000004,
+      "mmtc": 0.7000000000000004
+    }
+  ],
+  "mean_mos_by_slice": {
+    "embb": 2.1711622893810274,
+    "urllc": 4.093510293960572,
+    "mmtc": 4.766732386747996
+  },
+  "mean_cost": 0.018750000000000003,
+  "mean_sla_viol": 0.0
+}
+[orchestrator] === dqn_qoe rep_seed976 batch 1 (2 episodes, batch_seed=976001, 2/5 done so far) ===
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] FAIL: UE1 (embb) unreachable
+[health] FAIL: UE2 (mmtc) unreachable
+[health] FAIL: UE3 (urllc) unreachable
+[orchestrator] health check failed, restarting stack (attempt 1)
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh
+[restart] stopping all RAN processes and tmux sessions
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 23: 1198432 Killed                  sudo pkill -9 -f "nr-uesoftmodem" 2> /dev/null
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 24: 1198434 Killed                  sudo pkill -9 -f "nr-softmodem" 2> /dev/null
+[restart] confirmed clean: no RAN processes running
+[restart] launching gNB
+[restart] gNB up, E2 agent alive
+[restart] launching UE1 (embb, default netns)
+[restart] UE1 attached
+[restart] launching UE2 (mmtc, ue2ns)
+[restart] UE2 attached
+[restart] launching UE3 (urllc, ue3ns)
+[restart] UE3 attached
+[restart] verifying connectivity all 3 UEs
+[restart] SUCCESS: all 3 UEs attached and reachable
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] OK: all 3 UEs reachable, 16 RAN processes alive, no recent segfault
+[orchestrator] $ python3 /home/kmanojp/oranslice_rig/framework/qoe_oran_framework/xapp/saclb_xapp.py --config /home/kmanojp/oranslice_rig/experiments/configs/saclb_campaign_v2.yaml --algorithm dqn --checkpoint /home/kmanojp/oranslice_rig/experiments/results/offline_v2/qoe/seed256/dqn/offline_closed_loop/rep_0/checkpoint.pt --gnb-id gnb-0 --episodes 2 --seed 976001 --run-id dqn_qoe_qoe_seed976_batch1 --omega-jsonl /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_qoe/qoe/rep_seed976/omega_log.jsonl --reward-mode qoe
+[dqn_qoe_qoe_seed976_batch1] talking to gNB E2 agent (listen=6600, gNB=6655)...
+
+Omega log: /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_qoe/qoe/rep_seed976/omega_log.jsonl
+{
+  "run_id": "dqn_qoe_qoe_seed976_batch1",
+  "algorithm": "dqn",
+  "mode": "live_testbed",
+  "seed": 976001,
+  "n_episodes": 2,
+  "mean_reward_per_step": 0.588931280050013,
+  "mean_blocks_per_episode": 116.5,
+  "mean_urllc_blocks_per_episode": 33.5,
+  "blocks_per_episode": [
+    113,
+    120
+  ],
+  "blocks_per_episode_by_slice": [
+    {
+      "embb": 40,
+      "mmtc": 42,
+      "urllc": 31
+    },
+    {
+      "mmtc": 41,
+      "embb": 43,
+      "urllc": 36
+    }
+  ],
+  "mean_rho": null,
+  "omega_path": "/home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_qoe/qoe/rep_seed976/omega_log.jsonl",
+  "checkpoint_path": "",
+  "drift_flag": true,
+  "drift_reason": "mean URLLC block rate 33.50/episode exceeds 2x the 1.0/episode acceptance bar",
+  "sla_compliance_by_slice": {
+    "embb": 1.0,
+    "urllc": 1.0,
+    "mmtc": 1.0
+  },
+  "sla_compliance_all_slices": 1.0,
+  "sla_compliance_by_slice_per_episode": [
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    },
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    }
+  ],
+  "sla_margin_by_slice": {
+    "embb": 0.732499991490769,
+    "urllc": 0.7172559425731504,
+    "mmtc": 0.7049991442820399
+  },
+  "sla_margin_by_slice_per_episode": [
+    {
+      "embb": 0.7649999829815377,
+      "urllc": 0.7345118851463005,
+      "mmtc": 0.7099982885640794
+    },
+    {
+      "embb": 0.7000000000000004,
+      "urllc": 0.7000000000000004,
+      "mmtc": 0.7000000000000004
+    }
+  ],
+  "mean_mos_by_slice": {
+    "embb": 2.171143466234207,
+    "urllc": 3.1671854058901467,
+    "mmtc": 4.755846488475799
+  },
+  "mean_cost": 0.011250000000000003,
+  "mean_sla_viol": 0.0
+}
+[orchestrator] === dqn_qoe rep_seed976 batch 2 (1 episodes, batch_seed=976002, 4/5 done so far) ===
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] FAIL: UE1 (embb) unreachable
+[health] FAIL: UE2 (mmtc) unreachable
+[health] FAIL: UE3 (urllc) unreachable
+[orchestrator] health check failed, restarting stack (attempt 1)
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh
+[restart] stopping all RAN processes and tmux sessions
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 23: 1203889 Killed                  sudo pkill -9 -f "nr-uesoftmodem" 2> /dev/null
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 24: 1203891 Killed                  sudo pkill -9 -f "nr-softmodem" 2> /dev/null
+[restart] confirmed clean: no RAN processes running
+[restart] launching gNB
+[restart] gNB up, E2 agent alive
+[restart] launching UE1 (embb, default netns)
+[restart] UE1 attached
+[restart] launching UE2 (mmtc, ue2ns)
+[restart] UE2 attached
+[restart] launching UE3 (urllc, ue3ns)
+[restart] UE3 attached
+[restart] verifying connectivity all 3 UEs
+[restart] SUCCESS: all 3 UEs attached and reachable
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] OK: all 3 UEs reachable, 16 RAN processes alive, no recent segfault
+[orchestrator] $ python3 /home/kmanojp/oranslice_rig/framework/qoe_oran_framework/xapp/saclb_xapp.py --config /home/kmanojp/oranslice_rig/experiments/configs/saclb_campaign_v2.yaml --algorithm dqn --checkpoint /home/kmanojp/oranslice_rig/experiments/results/offline_v2/qoe/seed256/dqn/offline_closed_loop/rep_0/checkpoint.pt --gnb-id gnb-0 --episodes 1 --seed 976002 --run-id dqn_qoe_qoe_seed976_batch2 --omega-jsonl /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_qoe/qoe/rep_seed976/omega_log.jsonl --reward-mode qoe
+[dqn_qoe_qoe_seed976_batch2] talking to gNB E2 agent (listen=6600, gNB=6655)...
+
+Omega log: /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_qoe/qoe/rep_seed976/omega_log.jsonl
+{
+  "run_id": "dqn_qoe_qoe_seed976_batch2",
+  "algorithm": "dqn",
+  "mode": "live_testbed",
+  "seed": 976002,
+  "n_episodes": 1,
+  "mean_reward_per_step": 0.568386871854464,
+  "mean_blocks_per_episode": 110.0,
+  "mean_urllc_blocks_per_episode": 40.0,
+  "blocks_per_episode": [
+    110
+  ],
+  "blocks_per_episode_by_slice": [
+    {
+      "embb": 33,
+      "mmtc": 37,
+      "urllc": 40
+    }
+  ],
+  "mean_rho": null,
+  "omega_path": "/home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_qoe/qoe/rep_seed976/omega_log.jsonl",
+  "checkpoint_path": "",
+  "drift_flag": true,
+  "drift_reason": "mean URLLC block rate 40.00/episode exceeds 2x the 1.0/episode acceptance bar",
+  "sla_compliance_by_slice": {
+    "embb": 1.0,
+    "urllc": 1.0,
+    "mmtc": 1.0
+  },
+  "sla_compliance_all_slices": 1.0,
+  "sla_compliance_by_slice_per_episode": [
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    }
+  ],
+  "sla_margin_by_slice": {
+    "embb": 0.759999991752,
+    "urllc": 0.7343973890397082,
+    "mmtc": 0.719996386968581
+  },
+  "sla_margin_by_slice_per_episode": [
+    {
+      "embb": 0.759999991752,
+      "urllc": 0.7343973890397082,
+      "mmtc": 0.719996386968581
+    }
+  ],
+  "mean_mos_by_slice": {
+    "embb": 2.171094302336375,
+    "urllc": 2.9563539107640584,
+    "mmtc": 4.765194249153137
+  },
+  "mean_cost": 0.030000000000000006,
+  "mean_sla_viol": 0.0
+}
+[orchestrator] DONE: 5/5 episodes completed for dqn_qoe rep_seed976. omega log: /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/dqn_qoe/qoe/rep_seed976/omega_log.jsonl
+=== 11:47:34 RETRY-DONE arm=dqn_qoe seed=976 (1725s) ===
+=== 11:47:34 RETRY arm=static_at_cap seed=976 ===
+[health] FAIL: UE1 (embb) unreachable
+[health] FAIL: UE2 (mmtc) unreachable
+[health] FAIL: UE3 (urllc) unreachable
+[restart] stopping all RAN processes and tmux sessions
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 23: 1207149 Killed                  sudo pkill -9 -f "nr-uesoftmodem" 2> /dev/null
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 24: 1207151 Killed                  sudo pkill -9 -f "nr-softmodem" 2> /dev/null
+[restart] confirmed clean: no RAN processes running
+[restart] launching gNB
+[restart] gNB up, E2 agent alive
+[restart] launching UE1 (embb, default netns)
+[restart] UE1 attached
+[restart] launching UE2 (mmtc, ue2ns)
+[restart] UE2 attached
+[restart] launching UE3 (urllc, ue3ns)
+[restart] UE3 attached
+[restart] verifying connectivity all 3 UEs
+[restart] SUCCESS: all 3 UEs attached and reachable
+     rnti=47117: mean=5.00 PRB  max=5.00  n=10
+
+Done. NEVER send SUBSCRIPTION-type messages: still assert(0!=0) in handle_subscription() on this OAI base (verified 2026-07-14).
+[orchestrator] === static_at_cap rep_seed976 batch 0 (2 episodes, batch_seed=976000, 0/5 done so far) ===
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] OK: all 3 UEs reachable, 16 RAN processes alive, no recent segfault
+[orchestrator] $ python3 /home/kmanojp/oranslice_rig/experiments/scripts/run_baseline_static.py --config /home/kmanojp/oranslice_rig/experiments/configs/saclb_campaign_static_at_cap_v2.yaml --gnb-id gnb-0 --episodes 2 --seed 976000 --run-id static_at_cap_sla_seed976_batch0 --omega-jsonl /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/static_at_cap/sla/rep_seed976/omega_log.jsonl --reward-mode sla
+[static_at_cap_sla_seed976_batch0] baseline_static: talking to gNB E2 agent (listen=6600, gNB=6655)...
+
+Omega log: /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/static_at_cap/sla/rep_seed976/omega_log.jsonl
+{
+  "run_id": "static_at_cap_sla_seed976_batch0",
+  "algorithm": "baseline_static",
+  "mode": "live_testbed",
+  "seed": 976000,
+  "n_episodes": 2,
+  "mean_reward_per_step": 5.522916666666667,
+  "mean_blocks_per_episode": 0.0,
+  "mean_urllc_blocks_per_episode": 0.0,
+  "blocks_per_episode": [
+    0,
+    0
+  ],
+  "blocks_per_episode_by_slice": [
+    {},
+    {}
+  ],
+  "mean_rho": null,
+  "omega_path": "/home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/static_at_cap/sla/rep_seed976/omega_log.jsonl",
+  "checkpoint_path": "",
+  "drift_flag": false,
+  "drift_reason": "",
+  "sla_compliance_by_slice": {
+    "embb": 1.0,
+    "urllc": 1.0,
+    "mmtc": 1.0
+  },
+  "sla_compliance_all_slices": 1.0,
+  "sla_compliance_by_slice_per_episode": [
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    },
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    }
+  ],
+  "sla_margin_by_slice": {
+    "embb": 0.9999999998084448,
+    "urllc": 0.7074921830169725,
+    "mmtc": 0.7324996344810157
+  },
+  "sla_margin_by_slice_per_episode": [
+    {
+      "embb": 0.9999999996168896,
+      "urllc": 0.7149843660339444,
+      "mmtc": 0.7649992689620312
+    },
+    {
+      "embb": 1.0,
+      "urllc": 0.7000000000000004,
+      "mmtc": 0.7000000000000004
+    }
+  ],
+  "mean_mos_by_slice": {
+    "embb": 2.171316146850586,
+    "urllc": 4.099802748362223,
+    "mmtc": 4.773088033994039
+  },
+  "mean_cost": 0.3025,
+  "mean_sla_viol": 0.0
+}
+[orchestrator] === static_at_cap rep_seed976 batch 1 (2 episodes, batch_seed=976001, 2/5 done so far) ===
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] FAIL: UE2 (mmtc) unreachable
+[health] FAIL: UE3 (urllc) unreachable
+[orchestrator] health check failed, restarting stack (attempt 1)
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh
+[restart] stopping all RAN processes and tmux sessions
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 23: 1212799 Killed                  sudo pkill -9 -f "nr-uesoftmodem" 2> /dev/null
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 24: 1212801 Killed                  sudo pkill -9 -f "nr-softmodem" 2> /dev/null
+[restart] confirmed clean: no RAN processes running
+[restart] launching gNB
+[restart] gNB up, E2 agent alive
+[restart] launching UE1 (embb, default netns)
+[restart] UE1 attached
+[restart] launching UE2 (mmtc, ue2ns)
+[restart] UE2 attached
+[restart] launching UE3 (urllc, ue3ns)
+[restart] UE3 attached
+[restart] verifying connectivity all 3 UEs
+[restart] SUCCESS: all 3 UEs attached and reachable
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] OK: all 3 UEs reachable, 16 RAN processes alive, no recent segfault
+[orchestrator] $ python3 /home/kmanojp/oranslice_rig/experiments/scripts/run_baseline_static.py --config /home/kmanojp/oranslice_rig/experiments/configs/saclb_campaign_static_at_cap_v2.yaml --gnb-id gnb-0 --episodes 2 --seed 976001 --run-id static_at_cap_sla_seed976_batch1 --omega-jsonl /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/static_at_cap/sla/rep_seed976/omega_log.jsonl --reward-mode sla
+[static_at_cap_sla_seed976_batch1] baseline_static: talking to gNB E2 agent (listen=6600, gNB=6655)...
+
+Omega log: /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/static_at_cap/sla/rep_seed976/omega_log.jsonl
+{
+  "run_id": "static_at_cap_sla_seed976_batch1",
+  "algorithm": "baseline_static",
+  "mode": "live_testbed",
+  "seed": 976001,
+  "n_episodes": 2,
+  "mean_reward_per_step": 5.237916666666668,
+  "mean_blocks_per_episode": 0.0,
+  "mean_urllc_blocks_per_episode": 0.0,
+  "blocks_per_episode": [
+    0,
+    0
+  ],
+  "blocks_per_episode_by_slice": [
+    {},
+    {}
+  ],
+  "mean_rho": null,
+  "omega_path": "/home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/static_at_cap/sla/rep_seed976/omega_log.jsonl",
+  "checkpoint_path": "",
+  "drift_flag": false,
+  "drift_reason": "",
+  "sla_compliance_by_slice": {
+    "embb": 1.0,
+    "urllc": 1.0,
+    "mmtc": 1.0
+  },
+  "sla_compliance_all_slices": 1.0,
+  "sla_compliance_by_slice_per_episode": [
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    },
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    }
+  ],
+  "sla_margin_by_slice": {
+    "embb": 0.9999999941637483,
+    "urllc": 0.7196569753003621,
+    "mmtc": 0.7124975173614252
+  },
+  "sla_margin_by_slice_per_episode": [
+    {
+      "embb": 0.9999999883274965,
+      "urllc": 0.7393139506007239,
+      "mmtc": 0.7249950347228501
+    },
+    {
+      "embb": 1.0,
+      "urllc": 0.7000000000000004,
+      "mmtc": 0.7000000000000004
+    }
+  ],
+  "mean_mos_by_slice": {
+    "embb": 2.171316154797872,
+    "urllc": 2.920806058247884,
+    "mmtc": 4.760676960150401
+  },
+  "mean_cost": 0.3025,
+  "mean_sla_viol": 0.0
+}
+[orchestrator] === static_at_cap rep_seed976 batch 2 (1 episodes, batch_seed=976002, 4/5 done so far) ===
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] FAIL: UE2 (mmtc) unreachable
+[health] FAIL: UE3 (urllc) unreachable
+[orchestrator] health check failed, restarting stack (attempt 1)
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh
+[restart] stopping all RAN processes and tmux sessions
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 23: 1218191 Killed                  sudo pkill -9 -f "nr-uesoftmodem" 2> /dev/null
+/home/kmanojp/oranslice_rig/experiments/scripts/restart_ran_stack.sh: line 24: 1218193 Killed                  sudo pkill -9 -f "nr-softmodem" 2> /dev/null
+[restart] confirmed clean: no RAN processes running
+[restart] launching gNB
+[restart] gNB up, E2 agent alive
+[restart] launching UE1 (embb, default netns)
+[restart] UE1 attached
+[restart] launching UE2 (mmtc, ue2ns)
+[restart] UE2 attached
+[restart] launching UE3 (urllc, ue3ns)
+[restart] UE3 attached
+[restart] verifying connectivity all 3 UEs
+[restart] SUCCESS: all 3 UEs attached and reachable
+[orchestrator] $ bash /home/kmanojp/oranslice_rig/experiments/scripts/health_check.sh
+[health] OK: all 3 UEs reachable, 16 RAN processes alive, no recent segfault
+[orchestrator] $ python3 /home/kmanojp/oranslice_rig/experiments/scripts/run_baseline_static.py --config /home/kmanojp/oranslice_rig/experiments/configs/saclb_campaign_static_at_cap_v2.yaml --gnb-id gnb-0 --episodes 1 --seed 976002 --run-id static_at_cap_sla_seed976_batch2 --omega-jsonl /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/static_at_cap/sla/rep_seed976/omega_log.jsonl --reward-mode sla
+[static_at_cap_sla_seed976_batch2] baseline_static: talking to gNB E2 agent (listen=6600, gNB=6655)...
+
+Omega log: /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/static_at_cap/sla/rep_seed976/omega_log.jsonl
+{
+  "run_id": "static_at_cap_sla_seed976_batch2",
+  "algorithm": "baseline_static",
+  "mode": "live_testbed",
+  "seed": 976002,
+  "n_episodes": 1,
+  "mean_reward_per_step": 5.7008333333333345,
+  "mean_blocks_per_episode": 0.0,
+  "mean_urllc_blocks_per_episode": 0.0,
+  "blocks_per_episode": [
+    0
+  ],
+  "blocks_per_episode_by_slice": [
+    {}
+  ],
+  "mean_rho": null,
+  "omega_path": "/home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/static_at_cap/sla/rep_seed976/omega_log.jsonl",
+  "checkpoint_path": "",
+  "drift_flag": false,
+  "drift_reason": "",
+  "sla_compliance_by_slice": {
+    "embb": 1.0,
+    "urllc": 1.0,
+    "mmtc": 1.0
+  },
+  "sla_compliance_all_slices": 1.0,
+  "sla_compliance_by_slice_per_episode": [
+    {
+      "embb": 1.0,
+      "urllc": 1.0,
+      "mmtc": 1.0
+    }
+  ],
+  "sla_margin_by_slice": {
+    "embb": 0.9999999936133707,
+    "urllc": 0.7391530253396684,
+    "mmtc": 0.7249921882829987
+  },
+  "sla_margin_by_slice_per_episode": [
+    {
+      "embb": 0.9999999936133707,
+      "urllc": 0.7391530253396684,
+      "mmtc": 0.7249921882829987
+    }
+  ],
+  "mean_mos_by_slice": {
+    "embb": 2.171316146850586,
+    "urllc": 2.6729885816574095,
+    "mmtc": 4.76859233379364
+  },
+  "mean_cost": 0.3050000000000001,
+  "mean_sla_viol": 0.0
+}
+[orchestrator] DONE: 5/5 episodes completed for static_at_cap rep_seed976. omega log: /home/kmanojp/oranslice_rig/experiments/results/live_campaign_v2/static_at_cap/sla/rep_seed976/omega_log.jsonl
+=== 12:18:11 RETRY-DONE arm=static_at_cap seed=976 (1711s) ===
+=== 12:18:11 RETRY PASS COMPLETE ===

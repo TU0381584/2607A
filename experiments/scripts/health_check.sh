@@ -34,8 +34,18 @@ fi
 # unhealthy and burns restart attempts that can never fix a non-RAN
 # crash. Only a segfault naming nr-softmodem/nr-uesoftmodem indicates a
 # genuine RAN-stack problem this check should act on.
-if sudo dmesg | tail -200 | grep -iE "segfault|general protection" | grep -qiE "nr-softmodem|nr-uesoftmodem"; then
-  echo "[health] FAIL: segfault signature in recent dmesg (RAN process)"
+#
+# Time-windowed, not "last 200 lines" (2026-08-03 fix, Stage 15 n=128
+# campaign): a genuine RAN segfault followed by a clean restart_ran_
+# stack.sh left the OLD crash's dmesg line sitting in the unbounded
+# "last 200 lines" window for hours on this otherwise-quiet host (too
+# few unrelated kernel messages to push it out) -- every health check
+# after the restart kept failing on a crash that had already been fixed,
+# burning all 3 retry attempts and failing 9 live-eval blocks
+# (seeds 974-976) before this was caught. `--since` scopes the check to
+# only what's actually recent.
+if sudo dmesg -T --since "10 minutes ago" 2>/dev/null | grep -iE "segfault|general protection" | grep -qiE "nr-softmodem|nr-uesoftmodem"; then
+  echo "[health] FAIL: segfault signature in dmesg within the last 10 minutes (RAN process)"
   ok=0
 fi
 

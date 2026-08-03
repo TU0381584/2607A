@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
-"""Stage 5 v2 campaign metrics: 4 arms, fully powered at n=21 episodes/arm
+"""Stage 5 v2 campaign metrics: 4 arms, fully powered at n=128 episodes/arm
 each (experiments/results/live_campaign_v2), under the corrected MOS/SLA
 calibration + retrained checkpoints (docs/STAGE5_recalibration.md).
 Reuses metrics_stage2.py's exact helper functions (weighted_u,
 percentile_stats, fisher_exact_vs_baseline) -- nothing recomputed with
 different logic than the rest of this project's metrics pipeline.
 
-Reaches n=21/arm via the "top-up" pass (experiments/scripts/
-run_stage5_v2_topup.sh, 2026-07-30): all 4 arms now share the SAME
-seed set -- 950/951/952 at the 3h campaign's 2-episode depth, plus
-953/954/955 at the full 5-episode protocol -- 6 + 15 = 21 each. This is
-the deferred "full 3-seed x 5-episode x 4-arm" live re-evaluation user's
-own words: "we'll do the 6 hour one later" (docs/STAGE5_recalibration.md
-section 6).
+Reaches n=128/arm via the Stage 15 n=128 campaign (experiments/scripts/
+run_stage15_n128_campaign.sh + run_stage15_n128_retry_failed.sh,
+2026-08-01/03, docs/STAGE15_n128_campaign.md): 950-952 at 2 ep/seed,
+953-976 at 5 ep/seed, 977 at 2 ep/seed -- 6 + 120 + 2 = 128 per arm,
+all 4 arms sharing the same seed set. Verified before use: 112/112
+blocks DONE with no unresolved FAILED, zero duplicate (run_id, episode,
+step) rows across all 112 omega logs, exactly 128 episode-rollup rows
+per arm.
 
 Usage:
     python3 experiments/scripts/metrics_stage5_v2.py --out docs/stage5_v2_campaign_metrics_raw.json
@@ -29,13 +30,14 @@ from metrics_stage2 import (  # noqa: E402
 )
 
 ARM_REWARD_MODE = {"baseline": "sla", "dqn_sla": "sla", "dqn_qoe": "qoe", "static_at_cap": "sla"}
-# All 4 arms now share the same, consistent seed set (n=21 each) after
-# the 2026-07-30 top-up pass -- see module docstring.
+# All 4 arms share the same, consistent seed set (n=128 each) after the
+# 2026-08-03 Stage 15 n=128 campaign -- see module docstring.
+_ALL_SEEDS = list(range(950, 978))
 ARM_SEEDS = {
-    "baseline": [950, 951, 952, 953, 954, 955, 956, 957, 958, 959, 960],
-    "dqn_qoe": [950, 951, 952, 953, 954, 955, 956, 957, 958, 959, 960],
-    "dqn_sla": [950, 951, 952, 953, 954, 955, 956, 957, 958, 959, 960],
-    "static_at_cap": [950, 951, 952, 953, 954, 955, 956, 957, 958, 959, 960],
+    "baseline": list(_ALL_SEEDS),
+    "dqn_qoe": list(_ALL_SEEDS),
+    "dqn_sla": list(_ALL_SEEDS),
+    "static_at_cap": list(_ALL_SEEDS),
 }
 
 

@@ -1,0 +1,3 @@
+{"batch_index": 0, "run_id": "dqn_sla_sla_seed973_batch0", "batch_seed": 973000, "episodes_requested": 2, "wall_clock_start": 1785688318.808891, "elapsed_s": 608.0284910202026, "returncode": 0}
+{"batch_index": 1, "run_id": "dqn_sla_sla_seed973_batch1", "batch_seed": 973001, "episodes_requested": 2, "wall_clock_start": 1785689025.7413042, "elapsed_s": 608.0203642845154, "returncode": 0}
+{"batch_index": 2, "run_id": "dqn_sla_sla_seed973_batch2", "batch_seed": 973002, "episodes_requested": 1, "wall_clock_start": 1785689732.9743881, "elapsed_s": 307.8319351673126, "returncode": 0}
