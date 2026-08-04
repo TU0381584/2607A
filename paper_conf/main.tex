@@ -57,7 +57,7 @@
 
 \begin{document}
 
-\title{QoE-Aware DRL for Slice Admission Control: A Live Open RAN Testbed Validation}
+\title{QoE-Aware DRL for Live Open RAN Slice Admission Control}
 
 \author{
 \IEEEauthorblockN{Manoj Prasad Kunasegran}
@@ -197,7 +197,7 @@ future work (Section V).
 \cite{casparsen2025vroran} & 2025 & Open-loop RRM xApp & Meet per-slice latency target, min.\ over-provisioning & $-30\%$ over-provisioning; $0.6$\,ms latency offset & \textbf{OAI+RIC O-RAN --- testbed comparator} & \textbf{Live testbed}; unlearned (A) \\
 \cite{yeznabad2024clqdba} & 2024 & CLQDBA & Max.\ QoE, min.\ dev.\ (app-bitrate vs.\ MAC-tput), per slice & $\uparrow$ tput, QoE, cache-hit vs.\ baseline & QoE-driven RA (adaptive video) & Sim.; app-layer, greedy (A) \\
 \midrule
-\multicolumn{7}{@{}p{\dimexpr\textwidth-4pt\relax}@{}}{\scriptsize\textit{Note:} A = author-stated scope/limitation; I = inferred from evaluation scope; n/r = not reported. LR = learning rate; FC = fully-connected; PF = proportional-fair; GB = gradient boosting; tput = throughput. Hyperparameters and other method specifics appear in Section~II's prose; reward column gives the DRL reward where applicable, otherwise the optimisation objective/loss. Only Casparsen~\cite{casparsen2025vroran} validates on live O-RAN hardware; all others are simulation, prototype, or offline --- the deployment gap this paper addresses.} \\
+\multicolumn{7}{@{}p{\dimexpr\textwidth-4pt\relax}@{}}{\scriptsize\textit{Note:} A = author-stated scope/limitation; I = inferred from evaluation scope; n/r = not reported; GB = gradient boosting; tput = throughput. Hyperparameters and other method specifics appear in Section~II's prose; reward column gives the DRL reward where applicable, otherwise the optimisation objective/loss. Only Casparsen~\cite{casparsen2025vroran} validates on live O-RAN hardware; all others are simulation, prototype, or offline --- the deployment gap this paper addresses.} \\
 \bottomrule
 \end{tabular}
 \end{table*}
@@ -452,9 +452,10 @@ Each of the four arms was evaluated live across 28 random seeds, with
 frozen policy weights, reached in three extensions: an initial 3
 seeds at 2 episodes each, then 8 more at the full 5-episode protocol
 once a QoE-calibration issue (Section~IV-B) was corrected (46
-episodes/arm), then 17 more at the same protocol for the fully
-powered 128 episodes/arm reported here -- large enough that a tied
-Fisher exact test is a genuine null result, not merely underpowered.
+episodes/arm), then 17 more seeds, 16 at the same 5-episode protocol
+and one at 2 episodes, for the fully powered 128 episodes/arm reported
+here -- large enough that a tied Fisher exact test is a genuine null
+result, not merely underpowered.
 The static-at-cap arm reuses the static baseline's own control code,
 ceiling parameter changed only in configuration; training followed
 Section~III-C's procedure, 300 episodes per seed.
@@ -499,6 +500,13 @@ DQN (QoE reward) & \textbf{100.0} & \textbf{100.0} & \textbf{100.0} \\
 \label{fig:sla-vs-qoe-ceiling}
 \end{figure}
 
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.76\linewidth]{figures/fig2_sla_compliance.pdf}
+\caption{Per-episode SLA compliance (\%). (a) One point per episode. (b) Fraction of episodes fully SLA-compliant and worst single-episode compliance. Baseline, static-at-cap, and DQN under the SLA-only reward all show the same bimodal split; only DQN under the QoE-aware reward stays uniformly compliant.}
+\label{fig:compliance}
+\end{figure*}
+
 Since the paper's central comparison is DQN-QoE against DQN-SLA
 rather than the static baseline, Fig.~\ref{fig:sla-vs-qoe-ceiling}
 plots both directly on the one seed where DQN-SLA collapses: between
@@ -519,13 +527,6 @@ episodes/arm, but only DQN-QoE's gap is significant: raw $p=0.10$
 adjusting to $p=0.21$ and $p=0.021$ after Holm-Bonferroni correction
 across the three-arm family. The QoE-aware reward's advantage
 survives that correction; the SLA-only reward's does not.
-
-\begin{figure*}[t]
-\centering
-\includegraphics[width=0.76\linewidth]{figures/fig2_sla_compliance.pdf}
-\caption{Per-episode SLA compliance (\%). (a) One point per episode. (b) Fraction of episodes fully SLA-compliant and worst single-episode compliance. Baseline, static-at-cap, and DQN under the SLA-only reward all show the same bimodal split; only DQN under the QoE-aware reward stays uniformly compliant.}
-\label{fig:compliance}
-\end{figure*}
 
 Fig.~\ref{fig:compliance} shows this episode-by-episode: DQN under the
 QoE-aware reward sits at exactly 100\% in every episode, while the
