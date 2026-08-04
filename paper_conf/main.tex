@@ -1,10 +1,12 @@
 \documentclass[conference]{IEEEtran}
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
+\usepackage{array}
 \usepackage{booktabs}
 \usepackage{multirow}
 \usepackage{url}
 \usepackage{xcolor}
+\usepackage{enumitem}
 \usepackage{algorithm}
 \usepackage{algorithmic}
 \usepackage{tikz}
@@ -80,24 +82,25 @@ gNodeB (gNB) across three network slices (eMBB, URLLC, mMTC), and
 compare it against a static baseline, the SLA-only reward of our
 prior work, and a best-possible static-at-cap policy. After
 identifying and correcting a calibration issue in our QoE estimation,
-a fully powered live re-evaluation (128 episodes per arm) shows DQN
-under the QoE-aware reward sustaining 100\% SLA compliance
-throughout, significantly ahead of the static baseline (Fisher exact
-$p=0.0070$, $p=0.021$ after Holm-Bonferroni correction). The
-SLA-only reward and the static-at-cap arm converge to a statistically
-indistinguishable rate (126 of 128 episodes each) that remains only
-numerically, not significantly, above the static baseline's 120 of
-128: the collapse-avoidance edge our earlier, smaller-sample
-evaluation suggested for the SLA-only reward does not hold at this
-larger scale. Checking five further independently-trained SLA-reward
+a fully powered live re-evaluation of 128 episodes per arm shows DQN
+under the QoE-aware reward sustaining 100 percent SLA compliance
+throughout, significantly ahead of the static baseline with a Fisher
+exact p-value of 0.0070, or 0.021 after Holm-Bonferroni correction.
+The SLA-only reward and the static-at-cap arm converge to a
+statistically indistinguishable rate of 126 out of 128 episodes
+each, remaining only numerically, not significantly, above the
+static baseline's rate of 120 out of 128. This shows that the
+collapse-avoidance edge our earlier, smaller-sample evaluation
+suggested for the SLA-only reward does not hold at this larger
+scale. Checking five further independently-trained SLA-reward
 checkpoints shows live robustness varies substantially by training
 seed despite equivalent offline convergence, traced in part to the
 offline training environment's fidelity to real traffic. We
-additionally live-evaluate a congested, URLLC-preservation scenario:
-unlike its offline counterpart, where DQN measurably trades eMBB
+additionally live-evaluate a congested, URLLC-preservation scenario.
+Unlike its offline counterpart, where DQN measurably trades eMBB
 compliance for URLLC under an imposed resource constraint, every arm
-is fully SLA-compliant live at this rig's traffic scale, though, at a
-single-seed, 2-episode pilot, the QoE-aware reward still yields a
+is fully SLA-compliant live at this rig's traffic scale, though at a
+single-seed, two-episode pilot the QoE-aware reward still yields a
 materially higher URLLC Mean Opinion Score at the same compliance
 level. We also report the control-loop latency and model footprint
 needed for practical deployment. These findings demonstrate the
@@ -126,20 +129,19 @@ Our prior work applied DRL to SAC under gNodeB (gNB) congestion,
 using SLA-driven reward shaping to prioritise URLLC traffic, and
 later extended this to a third slice (mMTC) with a load-balancing
 objective across multiple gNBs \cite{mecon-paper1,icraie-paper2},
-both validated only in simulation. Our systematic review of the
-2024--2026 literature organises this space into three evidence tiers
--- literature-supported, our own preliminary simulated studies, and a
-proposed, not-yet-validated graph-attention multi-agent
-federated-learning (GAT-MARL-FL) framework -- and identifies
-validated deployment as one of the field's persistent gaps
-\cite{survey-paper3}. This paper closes that gap for our own
-formulation: we realise the same admission-control problem on a real
-OAI gNB over its native E2 control interface, with the radio channel
-still simulated (rfsim), and centre the evaluation on QoE rather than
-SLA compliance alone.
+both validated only in simulation. Our systematic review organises
+this space into three evidence tiers, literature-supported, our own
+preliminary simulated studies, and a proposed, not-yet-validated
+graph-attention multi-agent federated-learning (GAT-MARL-FL)
+framework, and identifies validated deployment as one of the field's
+persistent gaps \cite{survey-paper3}. This paper closes that gap for
+our own formulation, realising the same admission-control problem on
+a real OAI gNB over its native E2 control interface, radio channel
+still simulated (rfsim), centred on QoE rather than SLA compliance
+alone.
 
 This paper makes the following contributions:
-\begin{enumerate}
+\begin{enumerate}[itemsep=1pt,topsep=2pt,parsep=0pt,partopsep=0pt]
 \item We deploy a DRL-based SAC policy on a real O-RAN E2 control
 loop and identify a structural difference from our earlier simulated
 work: only a per-slice resource ceiling is exposed, not a per-flow
@@ -151,35 +153,105 @@ live hardware, isolating genuine admission timing from simply a more
 generous fixed allocation.
 \item We report the control-loop latency and model size a real
 deployment needs, a QoE-calibration bug found and fixed, and the
-fully powered re-evaluation it enabled.
-\item We evaluate a congested, multi-slice scenario offline and, at a
-smaller scale, live, showing where the offline scarcity mechanism
-does and does not carry over to real hardware.
+re-evaluation it enabled.
+\item We evaluate a congested, multi-slice scenario both offline and,
+at a smaller scale, live, showing where the offline scarcity
+mechanism does and does not carry over to real hardware.
 \item We show live robustness varies substantially across
 independently-trained checkpoints despite equivalent offline
 convergence, identifying a corresponding offline-environment
 limitation.
+\enlargethispage{3\baselineskip}
 \item This single-agent, single-gNB deployment validates the live
-control loop our systematic review's proposed GAT-MARL-FL framework
-would extend, a deliberate reduced case rather than an omission
-\cite{survey-paper3}.
+control loop our proposed GAT-MARL-FL framework would extend, a
+reduced case, not an omission \cite{survey-paper3}.
 \end{enumerate}
 
-The remainder of this paper is organised as follows: Section II
-reviews related work on DRL-driven SAC. Section III describes the
-live testbed, the problem formulation, and the reward function.
-Section IV presents and discusses the results. Section V concludes
-the paper and outlines future work.
+The remainder of this paper reviews related work (Section II),
+describes the live testbed and problem formulation (Section III),
+presents and discusses results (Section IV), and concludes with
+future work (Section V).
 
 \section{Literature Review}
-\authorTODO{Literature review to be added here, following the style
-of Section II in our prior conference papers~\cite{mecon-paper1,icraie-paper2}
-(narrative summary of $\sim$8--10 related DRL-driven SAC / real-testbed
-studies, each introduced with ``The authors in [X] proposed...''),
-concluding with a short paragraph positioning this paper against that
-related work. Candidate sources are already screened in our
-systematic review~\cite{survey-paper3}. Keep this to about half a
-column given the 4.5-page budget.}
+% Requires: \usepackage{array,booktabs} (already loaded above)
+\newcolumntype{C}[1]{>{\raggedright\arraybackslash}p{#1}}
+
+\begin{table*}[t]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2pt}\renewcommand{\arraystretch}{1.05}
+\caption{Evidence matrix of the ten QoE-focused works reviewed in Section~II, from \cite{survey-paper3}'s verified-eligible pool.}
+\label{tab:qoe_evidence_matrix}
+\begin{tabular}{c c C{2.3cm} C{4.4cm} C{2.9cm} C{3.0cm} C{2.2cm}}
+\toprule
+\textbf{Ref.} & \textbf{Yr.} & \textbf{Method} & \textbf{Obj.\ / reward} & \textbf{Results} & \textbf{Relevance} & \textbf{Limitation / Scope} \\
+\midrule
+\cite{wang2025usercentric} & 2025 & AH-Dueling DQN & Max.\ exp.\ discounted reward = user satisfaction (latency + tput) & $\downarrow$ latency, $\uparrow$ tput vs.\ DQN/AH-DQN; faster conv. & DQN-family QoE-driven alloc. --- method sibling & Sim.\ only; satisfaction proxy (A) \\
+\cite{lai2024multiresource} & 2024 & DRL-MQS & Step score by QoS-satisfaction ratio vs.\ 0.5 \& trend; penalty prop.\ to shortfall & $+10.5\%$ QoS-satisfaction ratio vs.\ DRL-MRU & QoS-ratio $\approx$ SLA-compliance; closest comparator & Sim.\ only (A) \\
+\cite{kougioumtzidis2025drlvr} & 2025 & IMADDPG & Max.\ discounted reward: tput + fairness $-$ interference & Higher transmission-QoE vs.\ RA (near-Pareto) & DRL QoE reward design (immersive) & MATLAB sim; VR-specific (A) \\
+\cite{chen2026qoeslicing} & 2026 & CNN-LSTM + Lyapunov & Max.\ summed utility (QoE + pref.), drift-plus-penalty, queue-stable & Enhances QoE/stability vs.\ SOTA (\% n/r) & Closed-loop QoE-aware slicing (non-DRL) & Sim.; dataset-driven (I) \\
+\cite{yin2026qoestin} & 2026 & MAPPO & Max.\ QoE utility s.t.\ per-service QoS & Superior QoE vs.\ 3 benchmarks & Multi-agent QoE --- toward MARL roadmap & Sim.; sat.-terrestrial (A) \\
+\cite{sun2025qoeric} & 2025 & Transformer (TTPP) & Min.\ QoE-prediction error (MAE) & MAE $\downarrow\,12.5$--$44\%$ vs.\ baseline & RAN-side QoE inference --- grounds MOS estimator & Prototype; pred.\ only, no control (I) \\
+\cite{gonzalez2025qoeoran} & 2025 & ML regressors (GB) & QoE est.\ from network-only data & $R^2\,0.986$, RMSE $0.091$ & O-RAN-embedded QoE est. & Offline/dataset; est.\ only (A) \\
+\cite{anand2024qoexapp} & 2024 & MLCIMO & Classify users by interference $\to$ max.\ QoE & $\uparrow$ VMAF/R-Factor/RUMSI vs.\ SOTA & O-RAN QoE xApp --- deployment surface & NS-3 sim; classif., not admission (I) \\
+\cite{casparsen2025vroran} & 2025 & Open-loop RRM xApp & Meet per-slice latency target, min.\ over-provisioning & $-30\%$ over-provisioning; $0.6$\,ms latency offset & \textbf{OAI+RIC O-RAN --- testbed comparator} & \textbf{Live testbed}; unlearned (A) \\
+\cite{yeznabad2024clqdba} & 2024 & CLQDBA & Max.\ QoE, min.\ dev.\ (app-bitrate vs.\ MAC-tput), per slice & $\uparrow$ tput, QoE, cache-hit vs.\ baseline & QoE-driven RA (adaptive video) & Sim.; app-layer, greedy (A) \\
+\midrule
+\multicolumn{7}{@{}p{\dimexpr\textwidth-4pt\relax}@{}}{\scriptsize\textit{Note:} A = author-stated scope/limitation; I = inferred from evaluation scope; n/r = not reported. LR = learning rate; FC = fully-connected; PF = proportional-fair; GB = gradient boosting; tput = throughput. Hyperparameters and other method specifics appear in Section~II's prose; reward column gives the DRL reward where applicable, otherwise the optimisation objective/loss. Only Casparsen~\cite{casparsen2025vroran} validates on live O-RAN hardware; all others are simulation, prototype, or offline --- the deployment gap this paper addresses.} \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+Table~\ref{tab:qoe_evidence_matrix} summarises the ten works reviewed
+in this section along a common evidence tuple (method,
+objective/reward, results, relevance, limitation), discussed next.
+
+Recent DRL-driven slicing work has moved from SLA/QoS objectives toward
+explicit QoE. The authors in \cite{wang2025usercentric} proposed a
+hierarchical dueling DQN (300-128-64 fully-connected, LR $0.001$,
+$\gamma=0.9$) for user-centric bandwidth allocation, maximising user
+satisfaction under stochastic slice requests while lowering latency. The
+authors in \cite{lai2024multiresource} formulated multi-resource slicing as a
+DRL problem (DRL-MQS, LR $0.01$, $10^5$ episodes) maximising a delay-derived
+QoS-satisfaction ratio, reporting a 10.5\% improvement over a
+utilisation-maximising baseline. The authors in \cite{kougioumtzidis2025drlvr}
+trained a hierarchical multi-agent DDPG (IMADDPG, MATLAB) to maximise a
+transmission-level QoE value for wireless VR over 5G NR. The authors in
+\cite{chen2026qoeslicing} combined CNN-LSTM demand prediction with
+Lyapunov-stable, preference-aware allocation in a closed-loop QoE-driven
+framework. The authors in \cite{yin2026qoestin} used multi-agent PPO (MAPPO,
+actor LR $3\times10^{-4}$, 40 UEs) to jointly optimise user association and
+bandwidth for QoE across satellite-terrestrial services.
+
+A parallel thread infers QoE from network-side signals. The authors in
+\cite{sun2025qoeric} proposed a Transformer encoder-decoder (TTPP) that
+estimates real-time-video QoE from low-level RAN information on a prototype,
+reducing mean absolute error by 12.5--44\%. The authors in
+\cite{gonzalez2025qoeoran} embedded a gradient-boosting QoE-estimation model,
+trained on network-side features, directly in the 5G O-RAN, letting the
+operator score session QoE without application-layer access from the service
+provider.
+
+Closest to the present setting, several works place QoE control inside the
+O-RAN loop. The authors in \cite{anand2024qoexapp} deployed an ML-based xApp
+(MLCIMO, NS-3 mmWave) that classifies users by interference to raise QoE
+(VMAF, R-Factor) in 5G HetNets. The authors in \cite{casparsen2025vroran}
+experimentally demonstrated near-real-time xApp RAN slicing (an open-loop RRM
+policy, OAI + FlexRIC testbed, $10$--$16.67$\,ms latency targets) of variable
+VR traffic with latency guarantees, cutting overprovisioning by 30\%. At the
+application layer, the authors in \cite{yeznabad2024clqdba} proposed a
+cross-layer, QoE-driven bitrate-allocation algorithm (CLQDBA, online greedy
+heuristic) for MEC-supported adaptive video across slices.
+
+Across this literature, QoE is emerging as the primary objective and DRL as the
+dominant method, with O-RAN xApps as the deployment surface; yet validation
+remains overwhelmingly simulation-based, and even the O-RAN and experimental
+works \cite{gonzalez2025qoeoran,anand2024qoexapp,casparsen2025vroran} do not
+deploy a \emph{learned} QoE-aware admission policy on a real gNB over the live
+E2 control loop. This paper closes that gap for our own formulation, extending
+the SLA-only simulated SAC of \cite{mecon-paper1,icraie-paper2} with a QoE-aware
+reward and instantiating, on real OAI hardware, the validated-deployment
+evidence tier our systematic review \cite{survey-paper3} identified as scarce.
 
 \section{Methodology}
 Fig.~\ref{fig:pipeline} summarises the pipeline detailed in this
@@ -520,31 +592,31 @@ QoE-aware reward nonetheless produced a materially higher URLLC MOS
 \section{Conclusion and Future Work}
 This paper moved our prior simulated DRL-based slice admission
 control work \cite{mecon-paper1,icraie-paper2} onto a real OAI gNB
-over its native E2 control loop, radio channel still simulated. After
-correcting a QoE-calibration issue, a fully powered live re-evaluation
-(128 episodes/arm) showed the QoE-aware reward sustaining 100\% SLA
-compliance, now significantly ahead of the static baseline; the
-SLA-only reward and static-at-cap remained statistically
-indistinguishable from each other and only numerically ahead of the
-baseline, revising our earlier, smaller-sample finding of a
-significant SLA-only edge. Control-loop latency and model overhead
-were negligible. An offline congested-traffic evaluation showed the
-learned policy can prioritise URLLC, though not yet as a clear win
-once priorities are weighted; live, no arm was forced into that
-tradeoff, though the QoE-aware reward still gave URLLC a materially
-better experience score.
+over its native E2 control loop, with the radio channel still
+simulated. After correcting a QoE-calibration issue, a fully powered
+live re-evaluation of 128 episodes per arm showed the QoE-aware
+reward sustaining 100 percent SLA compliance, now significantly
+ahead of the static baseline. The SLA-only reward and static-at-cap
+remained statistically indistinguishable from each other and only
+numerically ahead of the baseline, revising our earlier,
+smaller-sample finding of a significant SLA-only edge. Control-loop
+latency and model overhead were negligible. An offline
+congested-traffic evaluation showed the learned policy can
+prioritise URLLC, though not yet as a clear win once priorities are
+weighted. Live, no arm was forced into that tradeoff, though the
+QoE-aware reward still gave URLLC a materially better experience
+score.
 
 Our future work will improve the offline training environment's
-fidelity to real traffic (Section~III-C) and extend this
-single-agent, single-gNB deployment toward the topology-aware,
+fidelity to real traffic, discussed in Section~III-C, and extend
+this single-agent, single-gNB deployment toward the topology-aware,
 multi-agent, federated GAT-MARL-FL framework proposed in our
 systematic review \cite{survey-paper3}. This paper substantially
-advances two of that review's five validation directions --
-calibrating QoE against real operating points, and O-RAN execution on
-a validated live testbed; the remaining topology-scalability,
-FL/privacy, and disruption-resilience directions are our planned next
-paper (\#5), building directly on the live control loop validated
-here.
+advances two of that review's five validation directions, namely
+calibrating QoE against real operating points and O-RAN execution on
+a validated live testbed. The remaining topology-scalability, FL and
+privacy, and disruption-resilience directions are our planned next
+paper, building directly on the live control loop validated here.
 
 \section*{Acknowledgment}
 This research was supported by the Ministry of Higher Education
