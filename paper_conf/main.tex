@@ -130,10 +130,10 @@ using SLA-driven reward shaping to prioritise URLLC traffic, and
 later extended this to a third slice (mMTC) with a load-balancing
 objective across multiple gNBs \cite{mecon-paper1,icraie-paper2},
 both validated only in simulation. Our systematic review organises
-this space into three evidence tiers, literature-supported, our own
-preliminary simulated studies, and a proposed, not-yet-validated
+this space into three evidence tiers -- literature-supported work, our
+own preliminary simulated studies, and a proposed, not-yet-validated
 graph-attention multi-agent federated-learning (GAT-MARL-FL)
-framework, and identifies validated deployment as one of the field's
+framework -- and identifies validated deployment as one of the field's
 persistent gaps \cite{survey-paper3}. This paper closes that gap for
 our own formulation, realising the same admission-control problem on
 a real OAI gNB over its native E2 control interface, radio channel
@@ -443,9 +443,9 @@ can look indistinguishable offline from one that fails live, traced
 in part to a simulator parameter (the backlog capacity) never
 validated against real SLA-margin magnitude. Offline training itself
 still produces competent policies, but cannot presently be used to
-rank or pre-select which checkpoint will -- every number in this
-paper's Results is therefore a live measurement, not an offline
-projection.
+rank or pre-select which checkpoint will succeed live -- every number
+in this paper's Results is therefore a live measurement, not an
+offline projection.
 
 \subsection{Evaluation Setup}
 Each of the four arms was evaluated live across 28 random seeds, with
@@ -539,8 +539,9 @@ above, we trained 5 more and live-evaluated all six at a reduced
 21-episode protocol (the full 128-episode protocol on all six would
 cost roughly six times this paper's live-evaluation budget). Despite
 indistinguishable offline convergence, live records varied
-substantially (3/5 perfect, one matching the original 19/21, one
-collapsing to 13/21, worse than baseline): live robustness is not
+substantially across the five new checkpoints (3/5 perfect, one
+matching the original's 19/21, one collapsing to 13/21, worse than
+baseline): live robustness is not
 predictable from offline convergence alone, the practical face of the
 offline-environment limitation noted in Section~III-C.
 

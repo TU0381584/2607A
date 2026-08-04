@@ -76,7 +76,7 @@ def main() -> None:
         ax.set_ylim(top=cap * 1.25)
     axes[-1].set_xlabel("Step (within episode)")
     axes[0].legend(loc="upper right", frameon=False)
-    fig.suptitle("Commanded PRB ceiling: DQN-SLA vs.\\ DQN-QoE, seed 955 ep.\\ 1", fontsize=9)
+    fig.suptitle("Commanded PRB ceiling: DQN-SLA vs. DQN-QoE, seed 955 ep. 1", fontsize=9)
 
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
