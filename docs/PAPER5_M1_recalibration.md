@@ -125,6 +125,104 @@ continuing on this axis:
    untouched by M1, which only reweighted noise around the same fixed
    point-probe means.
 
+## Block B — loss/backlog structural-coupling experiment (bounded, gated)
+
+One further, time-boxed experiment testing hypothesis 1 above directly,
+per an explicit decision gate (rho >= 0.4: pursue the structural fix;
+rho < 0.4: stop, do not iterate further).
+
+**Data-availability constraint, stated plainly:** live `omega_log.jsonl`
+does not log raw backlog occupancy or raw loss/bler values.
+`kpm_adapter.py` computes `raw_queue_len_norm` and `loss_proxy`
+internally, and `reward.py`'s `check_violations` folds them into a single
+`margin = min(queue_margin, loss_margin)` before logging -- only that
+final combined value survives to the log (confirmed by direct inspection;
+no other live artifact exists). A literal raw joint (loss, backlog)
+scatter cannot be reconstructed from anything this project has recorded.
+This experiment therefore fits the same available target as M1's main
+attempt -- the live pooled per-slice margin distribution (mean, std) --
+rather than inventing a raw joint-distribution number no log actually
+contains.
+
+**Method:** new, additive `LossBacklogCoupledKpmSource`
+(`experiments/scripts/m1b_loss_backlog_coupled_source.py`), extending
+`RecalibratedClosedLoopKpmSource` unchanged except for one thing: `bler`
+gets an independent, optionally AR(1)-persistent noise term added on top
+of the existing `0.02 + 0.3*backlog_frac` formula, instead of being a
+pure zero-variance function of backlog. `loss_noise_std=0` reproduces the
+parent bit-for-bit (verified, 20-step check). Grid: `loss_noise_std` in
+{0, 0.05, 0.1, 0.2} x `loss_noise_ar1` in {0, 0.5, 0.85}, 12 configs,
+demand-side parameters held fixed at M1's own best-fit
+(`backlog_capacity=3200, drift_coef=0.1, offered_volatility=0.04`).
+
+**Result: adding independent loss noise made the fit monotonically
+worse at every tested magnitude** (loss 1.542 at std=0 -> 1.579 -> 1.603
+-> 1.632 as std increases to 0.2, holding ar1 fixed; the same monotonic
+pattern holds across all three ar1 values). The best-scoring configuration
+is `loss_noise_std=0` -- i.e. no addition to the existing deterministic
+coupling improves the fit at all. Since that configuration's RNG draw
+sequence is verified identical to M1's own recalibrated run (the extra
+`rng.normal()` call is skipped entirely when `loss_noise_std=0`), the
+held-out evaluation under it is bit-identical to M1's already-computed
+result by construction -- re-running it would test nothing new.
+
+**Spearman rho = 0.097 (p = 0.855) -- unchanged from M1, gate not met
+(rho < 0.4). Stopping per the gate; not iterating further.**
+
+The reason independent noise cannot help is itself informative: eMBB's
+offline margin mean is already off by a full unit (-0.09 vs. live's
++0.71) under the best demand-side fit. Adding zero-mean variance around
+an already-wrong mean cannot close a location error -- it can only widen
+the spread around the wrong center, which is exactly the monotonic
+loss-worsening observed. A real fix to this specific hypothesis would
+need to also correct the mean (e.g. decoupling `loss_margin`'s central
+tendency from `queue_margin`'s, not just adding noise around the same
+shared backlog-driven mean) -- out of scope for this bounded experiment.
+
+### Characterizing the fidelity gap
+
+Two distinct problems, not one, are now separable given both M1 and Block
+B's results:
+
+**(a) An identifiability problem.** Live compliance across the six
+checkpoints is 95.7 / 61.9 / 100 / 100 / 90.5 / 100 percent -- four of
+six at or above 90.5%, three of six tied at exactly 100%, and only one
+checkpoint (257) genuinely differentiated from the rest. At n=6 with the
+live signal this compressed near ceiling, no offline proxy -- however
+well calibrated -- can be expected to produce a statistically convincing
+rank correlation: there is barely a rank to recover in the live data
+itself once ties are accounted for. This rig's live traffic scale
+apparently never drives four of the six checkpoints into genuine
+contention, so their near-identical near-perfect live scores carry very
+little discriminating information for any correlation statistic to
+detect. This is a sample-size-and-range problem, independent of how
+accurate the offline environment is.
+
+**(b) A loss-channel coupling problem.** Independently of (a), the
+offline environment's `queue_margin` and `loss_margin` are both
+deterministic functions of the same single backlog state variable, so
+they cannot vary independently the way two physically-distinct RF
+channels (queue occupancy vs. radio-level loss) presumably do live. Block
+B shows this cannot be fixed by simply adding variance around the
+existing coupling; the mean itself is wrong, and no live artifact
+records the raw signals needed to fit the mean independently either.
+
+### Conclusion: what the offline environment is for
+
+**Given both (a) and (b), the offline environment should be used as a
+live-anchored stress environment for the contention regime -- not as a
+live-rank predictor.** Its legitimate role, borne out by paper #4 itself,
+is exercising conditions (the congested, multi-slice scenario of Section
+IV-C) that this rig's live traffic scale does not reach, using demand
+means anchored to real probes even though their variance/coupling
+structure isn't live-validated -- not screening or ranking which
+checkpoint will perform best live before spending live rig time. Any
+future paper #5 arm (single- or multi-agent) trained or pre-screened
+against this offline family should be evaluated live before any claim
+about its relative quality is made, exactly as paper #4 already does for
+its single-agent arms, rather than treated as validated because it
+offline-outperforms a sibling checkpoint.
+
 ## What this means for paper #5
 
 Nothing in `paper_conf/main.tex` changes -- this is exploratory work for a
@@ -152,3 +250,15 @@ that traces to the demand/loss model, not to single-agent-ness.
       until something looked better by chance.
 - [x] Named a sharper, motivated next hypothesis (bler/backlog coupling)
       rather than leaving "investigate further" vague.
+- [x] Block B: tested the named hypothesis directly rather than leaving it
+      unexplored, within an explicit time-box (one experiment, one gate).
+- [x] Block B: stated the live-data availability limit plainly (no raw
+      loss/backlog telemetry logged anywhere) instead of fitting an
+      unverifiable joint distribution or inventing numbers no log contains.
+- [x] Block B: honored the decision gate (rho < 0.4 -> stop) rather than
+      continuing to iterate on the grid after the bounded experiment
+      returned a clear answer.
+- [x] Separated the identifiability problem (n=6, live compressed near
+      ceiling) from the loss-coupling problem (deterministic shared
+      backlog dependence) rather than treating the negative result as one
+      undifferentiated "it didn't work."
