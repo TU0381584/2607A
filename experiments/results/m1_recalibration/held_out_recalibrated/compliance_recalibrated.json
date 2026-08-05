@@ -1,0 +1,41 @@
+{
+  "tag": "recalibrated",
+  "params": {
+    "backlog_capacity": 3200.0,
+    "drift_coef": 0.1,
+    "offered_volatility": 0.04,
+    "ar1_coef": 0.0
+  },
+  "compliance": {
+    "256": {
+      "n_compliant": 9,
+      "n_total": 100,
+      "pct": 9.0
+    },
+    "257": {
+      "n_compliant": 9,
+      "n_total": 100,
+      "pct": 9.0
+    },
+    "258": {
+      "n_compliant": 14,
+      "n_total": 100,
+      "pct": 14.0
+    },
+    "259": {
+      "n_compliant": 13,
+      "n_total": 100,
+      "pct": 13.0
+    },
+    "260": {
+      "n_compliant": 20,
+      "n_total": 100,
+      "pct": 20.0
+    },
+    "261": {
+      "n_compliant": 9,
+      "n_total": 100,
+      "pct": 9.0
+    }
+  }
+}
