@@ -127,9 +127,20 @@ class GatCtdeMarlPolicy:
     so it plugs into the same experiment-running patterns."""
 
     def __init__(self, n_agents: int, node_feat_dim: int, context_dim: int, action_dim: int,
-                 adjacency: np.ndarray, learning_rate: float = 1e-4, gamma: float = 0.99,
-                 epsilon_start: float = 1.0, epsilon_end: float = 0.05, epsilon_decay: float = 0.995,
-                 device: str = "cpu"):
+                 adjacency: np.ndarray, learning_rate: float = 1e-4, gamma: float = 0.95,
+                 epsilon_start: float = 1.0, epsilon_end: float = 0.05, epsilon_decay: float = 0.985,
+                 target_sync_every_episodes: int = 10, device: str = "cpu"):
+        """gamma/epsilon_decay default to paper #4's own tuned schedule
+        (qoe_oran_framework.policies.dqn_admission.PAPER_TABLE_I_DQN_DEFAULTS),
+        matching single_agent_dqn's DQNAdmissionPolicy exactly -- fixed
+        during M2 hardening after a real hyperparameter-parity bug was
+        found (this class originally used the raw DQNPolicy-style
+        defaults, gamma=0.99 and a per-train_step-call epsilon decay that
+        collapses to the exploration floor within ~10 episodes of a
+        300-episode run -- see independent_dqn_ablation.py's identical
+        fix for the full explanation). epsilon now decays ONLY via
+        on_episode_end(), called explicitly by
+        marl_training.run_episodes_marl at episode boundaries."""
         self.n_agents = n_agents
         self.node_feat_dim = node_feat_dim
         self.context_dim = context_dim
@@ -137,7 +148,9 @@ class GatCtdeMarlPolicy:
         self.gamma = gamma
         self.epsilon = epsilon_start
         self.epsilon_end = epsilon_end
-        self.epsilon_decay = epsilon_decay
+        self._per_episode_epsilon_decay = epsilon_decay
+        self._target_sync_every_episodes = target_sync_every_episodes
+        self._episode_count = 0
         self.device = torch.device(device)
         self.adjacency = torch.tensor(adjacency, dtype=torch.float32, device=self.device)
 
@@ -148,6 +161,12 @@ class GatCtdeMarlPolicy:
 
         self.optimizer = torch.optim.Adam(self.online.parameters(), lr=learning_rate)
         self.train_step_count = 0
+
+    def on_episode_end(self) -> None:
+        self._episode_count += 1
+        self.epsilon = max(self.epsilon_end, self.epsilon * self._per_episode_epsilon_decay)
+        if self._episode_count % self._target_sync_every_episodes == 0:
+            self.target.load_state_dict(self.online.state_dict())
 
     def select_actions(self, node_features: np.ndarray, requests: List[Tuple[int, np.ndarray]],
                         training: bool = False) -> List[int]:
@@ -238,7 +257,10 @@ class GatCtdeMarlPolicy:
         self.optimizer.step()
 
         self.train_step_count += 1
-        self.epsilon = max(self.epsilon_end, self.epsilon * self.epsilon_decay)
+        # epsilon decay happens ONLY in on_episode_end() now (see __init__
+        # docstring) -- this per-100-train-step target sync stays as a
+        # harmless safety net on top of on_episode_end()'s per-episode
+        # sync, matching DQNAdmissionPolicy's own documented convention.
         if self.train_step_count % 100 == 0:
             self.target.load_state_dict(self.online.state_dict())
 

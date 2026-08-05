@@ -195,7 +195,83 @@ All data in this section was generated fresh this session under
 `experiments/results/m2_gat_ctde/` -- no checkpoint, config, or log
 here originates from any prior campaign, old-rig or otherwise.
 
-## 7. Acceptance status
+## 8. M2 hardening (Block E, task 1) — independent-DQN floor, diagnosed
+
+**Question:** is `independent_dqn`'s near-zero compliance (section 3) a
+real coordination effect, or a config/training artifact?
+
+**Step 1 -- hyperparameter parity check (not assumed, checked directly):**
+found a real mismatch. `single_agent_dqn` runs via
+`qoe_oran_framework.policies.dqn_admission.DQNAdmissionPolicy`, which
+overrides the raw `DQNPolicy` defaults with paper #4's own tuned Table I
+schedule: `gamma=0.95`, and epsilon decay applied **once per episode**
+(0.985, via an explicit `on_episode_end()` hook reaching the exploration
+floor around episode ~200 of 300), plus a target-network sync every 10
+episodes. Both `gat_ctde` and `independent_dqn` had instead been left on
+the raw `DQNPolicy` defaults (`gamma=0.99`, epsilon decaying 0.995 **per
+train_step() call**) -- `dqn_admission.py`'s own module docstring already
+documents this exact granularity mistake as a known bug pattern ("epsilon
+hits its floor after ~600 steps, under 10 of a 300-episode run... ~97%
+of training happens post-floor, nearly greedy the whole time"). **Fixed**
+in both `IndependentPerGnbDqnPolicy` and `GatCtdeMarlPolicy`: added a
+matching `on_episode_end()` (gamma default changed to 0.95, epsilon decay
+moved to per-episode, target sync every 10 episodes), wired into
+`marl_training.run_episodes_marl` exactly where `mc_runner.run_single`
+calls it for `algorithm in ("dqn", "rainbow")`.
+
+**Step 2 -- re-ran with matched hyperparameters (3 seeds, same protocol):**
+partial, seed-dependent improvement -- `independent_dqn` seed 900 jumped
+0.008 -> 0.240 (now tied with `gat_ctde`'s own seed-900 result), but
+seeds 901/902 stayed flat near-zero (0.004). The hyperparameter mismatch
+was real and contributed, but does not fully explain the gap.
+
+**Step 3 -- instrumentation (per-agent commanded ceilings from the
+existing `ceilings` field already in every omega-log step, no new
+logging needed):** this directly refutes the "over-claiming, shared-pool
+contention spikes" hypothesis as literally stated -- and reveals the real
+mechanism. Comparing seed 901's eval logs, `gat_ctde` and `independent_dqn`
+command **near-identical eMBB and URLLC ceilings** (eMBB: 65.74 vs 65.74;
+URLLC: 32.92 vs 32.92, mean `max_ratio`). The entire difference is mmtc:
+`gat_ctde` holds mmtc's ceiling near its **maximum** (mean 10.97, cap=11),
+while `independent_dqn` holds it near its **floor** (mean 5.12-5.25,
+floor=5) -- the opposite of over-claiming; `independent_dqn` has learned
+to persistently reject mmtc, not over-accept it. mmtc's `priority_weight`
+is deliberately the lowest of the three (0.3, per this config's own
+tuning history, calibrated to be "reject-optimal under congestion" from a
+single-step reward-maximization view) -- an uncoordinated, per-gNB-local
+learner has every local incentive to reject it and never discovers that
+doing so permanently drives mmtc's own margin negative (an under-served
+ceiling can't clear its offered demand, so backlog saturates toward
+`backlog_capacity` regardless of how much reject-triggered relief is
+applied), which zeroes the compound "all three slices simultaneously
+compliant" metric every episode. `gat_ctde`'s centrally-trained, shared
+representation apparently does discover that keeping mmtc's ceiling up is
+worth it for the compound-compliance objective, despite mmtc's
+individually-small reward weight -- direct behavioral evidence for the
+GAT/CTDE contribution, not the mechanism originally hypothesized.
+
+**Verdict: neither hypothesis exactly as posed.** Confirmed real per (1)
+above: a genuine hyperparameter-parity artifact existed and has been
+fixed, and is not the whole story. Confirmed real per (2): a genuine
+uncoordinated-learning effect exists, directly evidenced in the commanded-
+ceiling data -- but its mechanism is under-serving/abandoning the
+lowest-priority slice (mmtc pinned near its floor), not over-claiming a
+shared PRB pool (which this specific `ClosedLoopKpmSource` doesn't
+mechanically model as a literal shared-capacity contention in the first
+place -- each slice serves against its own ceiling independently; the
+only real cross-slice coupling is the reward's cluster-wide
+`congestion_term`, not a physical resource collision). `independent_dqn`'s
+floor is real, not a bug artifact, once the hyperparameter mismatch is
+controlled for -- and it is now the correctly-tuned baseline the section-9
+seed campaign uses.
+
+## 9. M2 hardening (Block E, task 2) — seed campaign
+
+TODO(MEASURE): to be filled in once the campaign run (>=10 seeds, >=3
+runs/seed, all three arms, matched hyperparameters per section 8) has
+produced results -- see experiments/results/m2_campaign/ once it exists.
+
+## 10. Acceptance status
 
 - [x] Reconciled scope against `experiments/REWORK_PLAN.md` R5 (and
       R3/R4/R6) before writing any code, reporting concrete differences.
@@ -217,3 +293,13 @@ here originates from any prior campaign, old-rig or otherwise.
       explicit caveats about sample size, not oversold as a finished
       ablation.
 - [x] No old-rig artifacts anywhere in this pass.
+- [x] Block E task 1: checked hyperparameter parity directly rather than
+      assuming it, found and fixed a real gamma/epsilon-schedule mismatch.
+- [x] Block E task 1: instrumented and inspected per-agent commanded
+      ceilings (reusing existing omega-log fields, no new logging
+      infrastructure needed) before asserting a verdict, rather than
+      guessing between the two hypotheses.
+- [x] Block E task 1: reported the verdict as neither hypothesis exactly
+      as posed, once the evidence pointed somewhere more specific
+      (mmtc-abandonment, not shared-pool over-claiming), rather than
+      forcing the finding into one of the two offered boxes.

@@ -153,6 +153,9 @@ def run_episodes_marl(
             if result.done:
                 break
 
+        if training and hasattr(policy, "on_episode_end"):
+            policy.on_episode_end()
+
         episode_steps = step_idx
         episode_sla_by_slice = {
             s: (compliant_steps_by_slice.get(s, 0) / episode_steps if episode_steps else 1.0)

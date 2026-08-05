@@ -28,21 +28,50 @@ from oranslice_drl.drl_policy import DQNPolicy  # noqa: E402
 class IndependentPerGnbDqnPolicy:
     """Owns n_agents separate DQNPolicy instances, addressed by gNB index.
     No cross-agent communication anywhere -- each policy's select_action/
-    train_step call only ever sees that one agent's own local state."""
+    train_step call only ever sees that one agent's own local state.
+
+    Hyperparameters default to paper #4's own tuned schedule
+    (qoe_oran_framework.policies.dqn_admission.PAPER_TABLE_I_DQN_DEFAULTS:
+    gamma=0.95, epsilon_decay=0.985 applied ONCE PER EPISODE via
+    on_episode_end(), not per train_step() call), matching
+    single_agent_dqn's DQNAdmissionPolicy exactly -- fixed here after a
+    real hyperparameter-parity bug was found during M2 hardening: this
+    class originally left the base DQNPolicy's raw defaults in place
+    (gamma=0.99, epsilon_decay=0.995 applied per train_step() call, which
+    this project's own dqn_admission.py module docstring already
+    documents collapses epsilon to its floor within ~600 steps -- under
+    10 episodes of a 300-episode run, leaving ~97% of training nearly
+    greedy with no real exploration). GatCtdeMarlPolicy had the identical
+    bug and was fixed the same way. Passing epsilon_decay=1.0 to the
+    underlying DQNPolicy freezes its own per-call decay; the real decay
+    happens in on_episode_end() below, called explicitly by
+    marl_training.run_episodes_marl at episode boundaries -- mirroring
+    mc_runner.run_single's identical explicit on_episode_end() call for
+    algorithm in ("dqn", "rainbow")."""
 
     def __init__(self, n_agents: int, node_feat_dim: int, context_dim: int, action_dim: int,
-                 learning_rate: float = 1e-3, gamma: float = 0.99,
-                 epsilon_start: float = 1.0, epsilon_end: float = 0.05, epsilon_decay: float = 0.995,
-                 device: str = "cpu"):
+                 learning_rate: float = 1e-3, gamma: float = 0.95,
+                 epsilon_start: float = 1.0, epsilon_end: float = 0.05, epsilon_decay: float = 0.985,
+                 target_sync_every_episodes: int = 10, device: str = "cpu"):
         self.n_agents = n_agents
         self.state_dim = node_feat_dim + context_dim
         self.action_dim = action_dim
+        self._per_episode_epsilon_decay = epsilon_decay
+        self._target_sync_every_episodes = target_sync_every_episodes
+        self._episode_count = 0
         self.agents: List[DQNPolicy] = [
             DQNPolicy(self.state_dim, action_dim, n_branches=1, learning_rate=learning_rate,
                       gamma=gamma, epsilon_start=epsilon_start, epsilon_end=epsilon_end,
-                      epsilon_decay=epsilon_decay, device=device)
+                      epsilon_decay=1.0, device=device)
             for _ in range(n_agents)
         ]
+
+    def on_episode_end(self) -> None:
+        self._episode_count += 1
+        for agent in self.agents:
+            agent.epsilon = max(agent.epsilon_end, agent.epsilon * self._per_episode_epsilon_decay)
+            if self._episode_count % self._target_sync_every_episodes == 0:
+                agent.target_network.load_state_dict(agent.q_network.state_dict())
 
     def select_actions(self, node_features: np.ndarray, requests: List[Tuple[int, np.ndarray]],
                         training: bool = False) -> List[int]:
