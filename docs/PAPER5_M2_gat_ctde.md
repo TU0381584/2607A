@@ -267,9 +267,61 @@ seed campaign uses.
 
 ## 9. M2 hardening (Block E, task 2) — seed campaign
 
-TODO(MEASURE): to be filled in once the campaign run (>=10 seeds, >=3
-runs/seed, all three arms, matched hyperparameters per section 8) has
-produced results -- see experiments/results/m2_campaign/ once it exists.
+Full campaign: 10 seed-groups x 3 runs = 30 independent (fresh network
+init, independently-seeded env) runs per arm, seeds 900-929 (fixed list,
+`experiments/scripts/m2_seed_campaign.py`), matched hyperparameters
+(section 8's fix applied to all three arms), 300 train + 50 eval
+episodes/run, offline stress-regime environment (section 1). Wall clock:
+9341s (~2.6h). Analysis: `experiments/scripts/m2_campaign_analysis.py`,
+95% CIs via 10,000-resample bootstrap (not a normal approximation --
+compliance is bounded [0,1] and empirically right-skewed, not normal),
+paired comparison via Wilcoxon signed-rank (matching this project's own
+preference for nonparametric tests over normal-approximation methods,
+e.g. Fisher exact elsewhere).
+
+| Arm | n | mean | 95% bootstrap CI | median | std |
+|---|---|---|---|---|---|
+| `gat_ctde` | 30 | **0.399** | **[0.353, 0.448]** | 0.393 | 0.133 |
+| `single_agent_dqn` | 30 | 0.115 | [0.061, 0.176] | 0.026 | 0.163 |
+| `independent_dqn` | 30 | 0.049 | [0.013, 0.093] | 0.008 | 0.115 |
+
+**`gat_ctde`'s 95% CI does not overlap either ablation's CI.** Both
+ablations are heavily right-skewed (median far below mean: a handful of
+seeds happen to land in a good regime -- e.g. `single_agent_dqn` seeds
+902/904/915/918 above 0.38, `independent_dqn` seeds 915/928 above 0.43 --
+while most seeds sit near zero), consistent with the seed-fragility
+`docs/STAGE11_checkpoint_sensitivity.md` already documented for paper
+#4's own single-gNB case. `gat_ctde` is the only arm whose median tracks
+its mean closely (0.393 vs 0.399), i.e. the only arm that is reliably
+good rather than occasionally good.
+
+**Paired comparison (`gat_ctde` vs `single_agent_dqn`, same 30 seeds,
+same env realization per seed across arms):**
+
+- Mean paired difference: **+0.284**, 95% bootstrap CI **[0.214, 0.355]**
+  (does not cross zero).
+- Wilcoxon signed-rank: **W=0.0, p<0.0001**.
+- `gat_ctde` wins on **27/30 seeds**, ties on 3 (seeds 902, 908, 912 --
+  verified as genuine exact ties, both arms landing on identical
+  compliance to 6 decimal places for those specific seeds, not a
+  measurement artifact; plausibly both policies converge to the same
+  greedy behaviour on env realizations that don't stress the
+  mmtc-priority tradeoff much), **loses on 0**.
+
+**This crosses the line from preliminary signal to a defensible paper
+claim.** At n=30, matched hyperparameters, non-overlapping CIs, and a
+Wilcoxon p<0.0001 with zero losses, the collapse-avoidance/coordination
+advantage section 4's 3-seed pilot suggested is now tested, not
+asserted. The mechanism identified in section 8 (mmtc-abandonment by
+uncoordinated learners vs. `gat_ctde` learning to keep it served) is a
+plausible causal account consistent with this result, though this
+campaign itself tests the outcome (compliance), not the mechanism
+directly -- section 8's ceiling-trajectory evidence is what supports the
+mechanism.
+
+Raw data: `experiments/results/m2_campaign/campaign_results.json`
+(per-seed, per-arm compliance) plus per-seed `omega_log.jsonl` (eval) and
+`checkpoint.pt` under the same directory tree.
 
 ## 10. Acceptance status
 
