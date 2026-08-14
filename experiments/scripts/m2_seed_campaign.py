@@ -20,6 +20,17 @@ SEEDS: 30 total, groups of 3: [900,901,902], [903,904,905], ...,
 Offline stress-regime environment only (see docs/PAPER5_M1_recalibration.md's
 conclusion) -- no live claim anywhere in this campaign.
 
+Merge-safe re-run support: if campaign_results.json already exists at
+--out-dir, its "results" dict is loaded first and only the arms passed via
+--arms are (re-)run and overwritten -- arms not listed are carried over
+unchanged. Added to re-run gat_ctde alone after the GATEncoder
+normalization fix (docs/PAPER5_M2_gat_ctde.md's collapse root-cause
+section) without disturbing independent_dqn/single_agent_dqn's already-
+valid results, which don't use GATEncoder and don't need re-running:
+    cd framework && ../venv/bin/python3 \
+        ../experiments/scripts/m2_seed_campaign.py \
+        --out-dir ../experiments/results/m2_campaign --arms gat_ctde
+
 Usage (from repo root, cwd=framework/ required):
     cd framework && ../venv/bin/python3 \
         ../experiments/scripts/m2_seed_campaign.py \
@@ -50,8 +61,18 @@ def main() -> None:
     sd_for_slice = {sid: spec.sd for sid, spec in cfg.slice_by_id.items()}
     print(f"[campaign] {len(ALL_SEEDS)} seeds ({len(SEED_GROUPS)} groups of 3): {ALL_SEEDS}")
 
-    t0 = time.time()
+    out_path = Path(args.out_dir) / "campaign_results.json"
     all_results = {}
+    if out_path.exists():
+        with open(out_path) as fh:
+            existing = json.load(fh)
+        assert existing["seed_groups"] == SEED_GROUPS, "resumed campaign seed_groups mismatch"
+        all_results = existing["results"]
+        print(f"[campaign] merging into existing {out_path}: "
+              f"carrying over {[a for a in all_results if a not in args.arms]}, "
+              f"(re-)running {args.arms}")
+
+    t0 = time.time()
     for arm in args.arms:
         print(f"[campaign] === arm: {arm} ===")
         if arm == "gat_ctde":

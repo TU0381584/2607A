@@ -147,6 +147,15 @@ three arms).
 
 ## 4. Interpretation (preliminary -- see caveats)
 
+**Superseded by section 11**: this 3-seed pilot's `gat_ctde` checkpoints
+predate the `GATEncoder` normalization fix and likely exhibit the same
+always-accept collapse section 11 found universally in the later 30-seed
+campaign — its "most seed-consistent" reading below is consistent with
+that (a collapsed policy is trivially consistent across seeds, since it
+makes the same no-op decision regardless of state). Kept as the
+historical record of the reasoning at the time, not re-run individually,
+since section 11's full campaign re-run supersedes it either way.
+
 - **`gat_ctde` beats both ablations on mean, and is the most
   seed-consistent of the three** (0.240-0.601, a ~2.5x spread) vs.
   `single_agent_dqn`'s far wider spread (0.012-0.601, ~50x) at the same
@@ -265,7 +274,7 @@ floor is real, not a bug artifact, once the hyperparameter mismatch is
 controlled for -- and it is now the correctly-tuned baseline the section-9
 seed campaign uses.
 
-## 9. M2 hardening (Block E, task 2) — seed campaign
+## 9. M2 hardening (Block E, task 2) — seed campaign (original pass, since superseded — see section 11)
 
 Full campaign: 10 seed-groups x 3 runs = 30 independent (fresh network
 init, independently-seeded env) runs per arm, seeds 900-929 (fixed list,
@@ -308,20 +317,135 @@ same env realization per seed across arms):**
   greedy behaviour on env realizations that don't stress the
   mmtc-priority tradeoff much), **loses on 0**.
 
-**This crosses the line from preliminary signal to a defensible paper
-claim.** At n=30, matched hyperparameters, non-overlapping CIs, and a
-Wilcoxon p<0.0001 with zero losses, the collapse-avoidance/coordination
-advantage section 4's 3-seed pilot suggested is now tested, not
-asserted. The mechanism identified in section 8 (mmtc-abandonment by
-uncoordinated learners vs. `gat_ctde` learning to keep it served) is a
-plausible causal account consistent with this result, though this
-campaign itself tests the outcome (compliance), not the mechanism
-directly -- section 8's ceiling-trajectory evidence is what supports the
-mechanism.
+**At the time this was written, this was read as crossing the line from
+preliminary signal to a defensible paper claim.** That reading turned out
+to be incomplete — section 11 found this entire campaign's result rests
+on an architecture-level training collapse, discovered incidentally while
+building M3. This section is kept as the historical record of what was
+believed and reported before that discovery, not deleted or silently
+corrected; do not cite the numbers in this section 9 table without
+reading section 11's revised numbers first.
+
+## 11. Collapse discovery, root cause, and fix (post-Block-E, found while building M3)
+
+**How this was found:** while building M3's federated variant (which
+reuses `GATEncoder`), σ=0.0/0.5/1.0/2.0 privacy-sweep runs produced
+bit-identical eval compliance across every seed — impossible by chance
+for a stochastic training process. Tracing it back: `gat_ctde`'s eval
+policy blocks **zero requests across all 50 eval episodes**, for **every
+one of the 30 campaign seeds** in section 9's committed data. `admission
+decision = accept, unconditionally` is a functional no-op, so any policy
+that reaches it produces byte-identical environment trajectories for a
+given seed regardless of network internals — which is what actually
+produced section 9's numbers, not smarter admission decisions.
+
+**Was "always accept" the correct/reward-optimal policy here?** No —
+checked directly, not assumed. `saclb_offline_dqn.yaml`'s own reward-
+tuning comments document that `congestion_coeff=1.5` was specifically
+calibrated and **verified via direct Q-value inspection** to make
+"differentiated shedding" the correct outcome (urllc always-accept, embb
+mostly-accept, **mmtc reject-optimal under congestion**), and name the
+exact failure signature this was fixing: "Q(accept) > Q(reject) by 5-14
+for all three slices... converged to always-accept" under the old,
+already-diagnosed-broken `congestion_coeff=0.5`. A direct Q-value probe
+on `gat_ctde`'s own section-9 checkpoint, under a synthetic congested
+state, reproduced that exact broken signature — Q(accept) − Q(reject) =
++10.7 (urllc), +8.6 (embb), **+7.8 (mmtc)** — accept dominant everywhere,
+including mmtc, under the *current*, verified-correct reward weights.
+`single_agent_dqn` (27/30 seeds show real blocking) and `independent_dqn`
+(29/30) both largely reach the intended differentiated behavior; only
+`gat_ctde` collapsed to the old broken signature, universally.
+
+**Root cause, isolated mechanistically:** `independent_dqn` feeds the
+*exact same raw per-agent features* `gat_ctde`'s Q-head consumes — the
+only structural difference is `gat_ctde` passes them through
+`GATEncoder` first. Comparing that encoder's embedding for a synthetic
+idle vs. congested state on the same checkpoint: raw input difference
+L2-norm 2.55, embedding difference L2-norm 19.6 (looks amplified) — but
+**cosine similarity between the two embeddings is 0.99997**. The encoder
+was encoding congestion almost entirely as embedding *magnitude*, not
+*direction/pattern* — no normalization existed anywhere in
+`GATEncoder`/`GATLayer` to prevent this. Since the downstream Q-head is a
+roughly-linear function of its input, larger magnitude pushed Q(accept)
+up faster than Q(reject) as congestion increased: mmtc's accept-reject
+gap *widened* from +5.1 (idle) to +6.8 (congested) on the probe — the
+opposite of the intended relationship.
+
+**Fix:** added a per-layer `nn.LayerNorm` to `GATEncoder`
+(`framework/qoe_oran_framework/marl/gat_encoder.py`), applied to each
+`GATLayer`'s raw output before its nonlinearity — constrains every node's
+embedding to zero-mean/unit-variance regardless of input magnitude,
+directly removing the "magnitude carries the signal" pathway. Verified
+before trusting it: fresh-network forward pass (shapes correct), then a
+3-seed training pilot (300 episodes, matching the campaign's own budget).
+
+**Calibration passes tried, both checked rather than assumed:**
+1. More training (300 → 600 episodes) on the same 3 pilot seeds: **no
+   effect** — bit-identical outcomes to 4 decimal places, including
+   per-slice mmtc compliance, despite the underlying block count
+   differing (3470 → 738 for the one seed that showed real blocking).
+   Ruled out training duration as the lever, consistent with this
+   project's own prior finding (section 2) that this failure class
+   doesn't respond to extended budgets.
+2. `elementwise_affine=False` on the same LayerNorm layers (hypothesis:
+   the default learnable per-feature scale/shift could partially
+   reconstruct a magnitude-like bias downstream of normalization): made
+   it **worse**, not better, on the same 3 pilot seeds (0/3 seeds showed
+   any blocking, vs. 1/3 with the default `affine=True`). Reverted;
+   `affine=True` (LayerNorm's own default) is the final architecture.
+
+**Full 30-seed re-run with the fix** (`independent_dqn`/`single_agent_dqn`
+don't use `GATEncoder` and were not re-run — their section-9 results
+stand unchanged):
+
+| Arm | n | mean | 95% bootstrap CI | median | std |
+|---|---|---|---|---|---|
+| `gat_ctde` (fixed) | 30 | **0.353** | **[0.296, 0.412]** | 0.332 | 0.163 |
+| `single_agent_dqn` | 30 | 0.115 | [0.061, 0.176] | 0.026 | 0.163 |
+| `independent_dqn` | 30 | 0.049 | [0.013, 0.093] | 0.008 | 0.115 |
+
+**Collapse rate: 30/30 → 27/30 seeds still reach the old "always accept"
+signature.** 3 seeds (904, 911, 929) now show genuine, correctly-targeted
+differentiated shedding (100% of their blocks on mmtc specifically,
+matching the reward calibration's intent exactly) — and their compliance
+dropped sharply as a direct, expected consequence (0.013, 0.051, 0.073):
+blocking mmtc does not rescue mmtc's SLA in this stress regime (its
+backlog/loss margin stays negative regardless, per section 8's own
+under-served-ceiling mechanism), it just stops being served for free.
+This is the fix working as intended, not a regression.
+
+**Paired comparison, re-run on the fixed data (`gat_ctde` vs
+`single_agent_dqn`, same 30 seeds):**
+
+- Mean paired difference: **+0.238**, 95% bootstrap CI **[0.150, 0.325]**
+  (still does not cross zero, narrower than section 9's +0.284).
+- Wilcoxon signed-rank: **W=24.0, p=0.0001**.
+- `gat_ctde` wins on **25/30 seeds**, ties on 3, **loses on 2** (new —
+  section 9's version had zero losses; the 2 losses are presumably among
+  the 3 now-differentiated seeds, where correctly blocking mmtc costs
+  compliance against a baseline that happened to accept-collapse on that
+  same seed).
+
+**Honest revised claim: the statistical comparison survives the fix, but
+the mechanism does not mean what section 9 implied.** `gat_ctde` still
+beats both baselines with a real, significant margin — this is not an
+artifact of the collapse alone, since the collapse rate dropped and the
+comparison still holds. But the win is still driven overwhelmingly (27/30
+seeds) by the *same* accept-everything collapse as before, just slightly
+less universal than section 9's data suggested. The defensible claim is
+**"`gat_ctde`'s shared, centrally-trained representation collapses to a
+safe never-reject policy more reliably than uncoordinated baselines,
+which fail in a worse way (evidenced by their own frequent near-zero-
+compliance seeds, consistent with section 8's mmtc-abandonment
+mechanism)"** — not "`gat_ctde` learns smarter coordinated admission
+decisions." The latter is only directly evidenced for 3/30 seeds.
 
 Raw data: `experiments/results/m2_campaign/campaign_results.json`
-(per-seed, per-arm compliance) plus per-seed `omega_log.jsonl` (eval) and
-`checkpoint.pt` under the same directory tree.
+(overwritten in place for the `gat_ctde` key only, via
+`m2_seed_campaign.py`'s new merge-safe `--arms gat_ctde` re-run mode;
+`independent_dqn`/`single_agent_dqn` entries are untouched from section
+9). Pre-fix `gat_ctde` data is not in the working tree but remains fully
+recoverable from git history (commit `a756044`).
 
 ## 10. Acceptance status
 
@@ -355,3 +479,31 @@ Raw data: `experiments/results/m2_campaign/campaign_results.json`
       as posed, once the evidence pointed somewhere more specific
       (mmtc-abandonment, not shared-pool over-claiming), rather than
       forcing the finding into one of the two offered boxes.
+- [x] Section 11: found the campaign-wide collapse by direct evidence
+      (30/30 zero-block seeds, cross-checked against a completely
+      independent codebase/checkpoint run weeks apart), not asserted from
+      a hunch, and did not proceed to build M3 on top of unexamined
+      ground once found.
+- [x] Section 11: verified the reward calibration's own documented
+      ground truth (`saclb_offline_dqn.yaml`'s congestion_coeff comments)
+      before concluding the collapse was a bug rather than a legitimate
+      discovered optimum -- confirmed via a direct Q-value probe, not
+      inferred from block counts alone.
+- [x] Section 11: isolated the root cause mechanistically (cosine-
+      similarity probe on the encoder's own embeddings) rather than
+      guessing at a fix; verified the fix's direction on a fresh network
+      and a 3-seed pilot before committing to the full 30-seed campaign's
+      compute budget.
+- [x] Section 11: tried and honestly reported a calibration lever that
+      didn't help (more training episodes: no effect) and one that made
+      things worse (`elementwise_affine=False`), reverting the latter,
+      rather than only reporting the change that was kept.
+- [x] Section 11: re-ran the full campaign rather than extrapolating from
+      pilot seeds, and reported the honest post-fix mechanism (still
+      collapse-driven for 27/30 seeds) rather than overselling the 3
+      genuinely-fixed seeds as proof the architecture now works as
+      intended.
+- [ ] M3 (federated variant, `docs/PAPER5_M3_fl_dp.md`) reuses this same
+      `GATEncoder` and was re-run with the fix once this section's
+      verification was complete -- see that document for whether the
+      same collapse/fix pattern held there too.

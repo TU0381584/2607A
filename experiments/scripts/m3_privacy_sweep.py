@@ -16,10 +16,18 @@ Same training budget as Block E's campaign (300 train / 50 eval episodes)
 for direct comparability -- not the smaller smoke-test budget
 m3_run_experiment.py defaults to.
 
+Resumable: if campaign_results.json already exists at --out-dir (e.g. an
+earlier run was deliberately stopped partway through the noise-multiplier
+grid), its "results" dict is loaded first and this run's levels are
+merged in -- already-completed sigma levels are kept, not clobbered, so
+`--noise-multipliers 1.0 2.0 4.0` after an earlier 0.0/0.5-only run adds
+to the same file rather than overwriting it.
+
 Usage (from repo root, cwd=framework/ required):
     cd framework && ../venv/bin/python3 \
         ../experiments/scripts/m3_privacy_sweep.py \
-        --out-dir ../experiments/results/m3_campaign
+        --out-dir ../experiments/results/m3_campaign \
+        --noise-multipliers 1.0 2.0 4.0
 """
 import argparse
 import json
@@ -48,9 +56,25 @@ def main() -> None:
     print(f"[privacy_sweep] {len(SEEDS)} seeds x {len(args.noise_multipliers)} noise levels: "
           f"{SEEDS} x {args.noise_multipliers}")
 
-    t0 = time.time()
+    out_path = Path(args.out_dir) / "campaign_results.json"
     all_results = {}
+    all_noise_multipliers = list(args.noise_multipliers)
+    if out_path.exists():
+        with open(out_path) as fh:
+            existing = json.load(fh)
+        assert existing["seeds"] == SEEDS, "resumed campaign seed list mismatch"
+        assert existing["train_episodes"] == args.train_episodes, "resumed campaign train_episodes mismatch"
+        assert existing["eval_episodes"] == args.eval_episodes, "resumed campaign eval_episodes mismatch"
+        all_results = existing["results"]
+        already_done = [float(k) for k in all_results]
+        print(f"[privacy_sweep] resuming: {already_done} already in {out_path}, adding {args.noise_multipliers}")
+        all_noise_multipliers = sorted(set(already_done) | set(args.noise_multipliers))
+
+    t0 = time.time()
     for sigma in args.noise_multipliers:
+        if str(sigma) in all_results:
+            print(f"[privacy_sweep] sigma={sigma} already done, skipping")
+            continue
         tag = f"fl_gat_ctde_sigma{sigma}"
         print(f"[privacy_sweep] === noise_multiplier={sigma} ===")
         res = m3.run_fl_arm(
@@ -61,14 +85,13 @@ def main() -> None:
         all_results[str(sigma)] = res
         elapsed = time.time() - t0
         print(f"[privacy_sweep] sigma={sigma} done, cumulative elapsed {elapsed:.0f}s")
-        out_path = Path(args.out_dir) / "campaign_results.json"
         out_path.parent.mkdir(parents=True, exist_ok=True)
         with open(out_path, "w") as fh:
-            json.dump({"seeds": SEEDS, "noise_multipliers": args.noise_multipliers,
+            json.dump({"seeds": SEEDS, "noise_multipliers": all_noise_multipliers,
                        "train_episodes": args.train_episodes, "eval_episodes": args.eval_episodes,
                        "local_steps_per_round": args.local_steps_per_round, "results": all_results}, fh, indent=2)
 
-    print(f"[privacy_sweep] wrote {args.out_dir}/campaign_results.json, total elapsed {time.time()-t0:.0f}s")
+    print(f"[privacy_sweep] wrote {out_path}, total elapsed {time.time()-t0:.0f}s")
 
 
 if __name__ == "__main__":

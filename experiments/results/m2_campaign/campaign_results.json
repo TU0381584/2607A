@@ -70,7 +70,7 @@
         "n_episodes": 50
       },
       "904": {
-        "sla_compliance_all_slices": 0.44566666666666666,
+        "sla_compliance_all_slices": 0.013333333333333332,
         "n_episodes": 50
       },
       "905": {
@@ -98,7 +98,7 @@
         "n_episodes": 50
       },
       "911": {
-        "sla_compliance_all_slices": 0.512,
+        "sla_compliance_all_slices": 0.050666666666666665,
         "n_episodes": 50
       },
       "912": {
@@ -170,7 +170,7 @@
         "n_episodes": 50
       },
       "929": {
-        "sla_compliance_all_slices": 0.5556666666666668,
+        "sla_compliance_all_slices": 0.07333333333333333,
         "n_episodes": 50
       }
     },
