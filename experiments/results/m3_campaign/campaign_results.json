@@ -52,7 +52,7 @@
         "dp_clip_norm": 1.0
       },
       "902": {
-        "sla_compliance_all_slices": 0.6006666666666667,
+        "sla_compliance_all_slices": 0.004,
         "n_episodes": 50,
         "dp_step_count_per_client": [
           0,
@@ -66,7 +66,7 @@
         "dp_clip_norm": 1.0
       },
       "903": {
-        "sla_compliance_all_slices": 0.010333333333333335,
+        "sla_compliance_all_slices": 0.44233333333333325,
         "n_episodes": 50,
         "dp_step_count_per_client": [
           0,
@@ -80,7 +80,7 @@
         "dp_clip_norm": 1.0
       },
       "904": {
-        "sla_compliance_all_slices": 0.44566666666666666,
+        "sla_compliance_all_slices": 0.008,
         "n_episodes": 50,
         "dp_step_count_per_client": [
           0,
@@ -94,7 +94,7 @@
         "dp_clip_norm": 1.0
       },
       "905": {
-        "sla_compliance_all_slices": 0.423,
+        "sla_compliance_all_slices": 0.006666666666666666,
         "n_episodes": 50,
         "dp_step_count_per_client": [
           0,
@@ -108,7 +108,7 @@
         "dp_clip_norm": 1.0
       },
       "906": {
-        "sla_compliance_all_slices": 0.6783333333333335,
+        "sla_compliance_all_slices": 0.005666666666666666,
         "n_episodes": 50,
         "dp_step_count_per_client": [
           0,
@@ -122,7 +122,7 @@
         "dp_clip_norm": 1.0
       },
       "907": {
-        "sla_compliance_all_slices": 0.5206666666666667,
+        "sla_compliance_all_slices": 0.004666666666666667,
         "n_episodes": 50,
         "dp_step_count_per_client": [
           0,
@@ -136,7 +136,7 @@
         "dp_clip_norm": 1.0
       },
       "908": {
-        "sla_compliance_all_slices": 0.278,
+        "sla_compliance_all_slices": 0.2793333333333333,
         "n_episodes": 50,
         "dp_step_count_per_client": [
           0,
@@ -150,7 +150,7 @@
         "dp_clip_norm": 1.0
       },
       "909": {
-        "sla_compliance_all_slices": 0.10266666666666667,
+        "sla_compliance_all_slices": 0.004666666666666667,
         "n_episodes": 50,
         "dp_step_count_per_client": [
           0,
@@ -194,7 +194,7 @@
         "dp_clip_norm": 1.0
       },
       "902": {
-        "sla_compliance_all_slices": 0.6006666666666667,
+        "sla_compliance_all_slices": 0.004,
         "n_episodes": 50,
         "dp_step_count_per_client": [
           17969,
@@ -236,7 +236,7 @@
         "dp_clip_norm": 1.0
       },
       "905": {
-        "sla_compliance_all_slices": 0.423,
+        "sla_compliance_all_slices": 0.006666666666666666,
         "n_episodes": 50,
         "dp_step_count_per_client": [
           17969,
@@ -250,7 +250,7 @@
         "dp_clip_norm": 1.0
       },
       "906": {
-        "sla_compliance_all_slices": 0.6783333333333335,
+        "sla_compliance_all_slices": 0.005666666666666666,
         "n_episodes": 50,
         "dp_step_count_per_client": [
           17969,
@@ -264,7 +264,7 @@
         "dp_clip_norm": 1.0
       },
       "907": {
-        "sla_compliance_all_slices": 0.5206666666666667,
+        "sla_compliance_all_slices": 0.004666666666666667,
         "n_episodes": 50,
         "dp_step_count_per_client": [
           17969,
@@ -278,7 +278,7 @@
         "dp_clip_norm": 1.0
       },
       "908": {
-        "sla_compliance_all_slices": 0.2793333333333333,
+        "sla_compliance_all_slices": 0.006666666666666666,
         "n_episodes": 50,
         "dp_step_count_per_client": [
           17969,
@@ -350,7 +350,7 @@
         "dp_clip_norm": 1.0
       },
       "903": {
-        "sla_compliance_all_slices": 0.44233333333333325,
+        "sla_compliance_all_slices": 0.005333333333333333,
         "n_episodes": 50,
         "dp_step_count_per_client": [
           17969,
@@ -364,7 +364,7 @@
         "dp_clip_norm": 1.0
       },
       "904": {
-        "sla_compliance_all_slices": 0.44566666666666666,
+        "sla_compliance_all_slices": 0.008,
         "n_episodes": 50,
         "dp_step_count_per_client": [
           17969,
@@ -378,7 +378,7 @@
         "dp_clip_norm": 1.0
       },
       "905": {
-        "sla_compliance_all_slices": 0.423,
+        "sla_compliance_all_slices": 0.006666666666666666,
         "n_episodes": 50,
         "dp_step_count_per_client": [
           17969,
@@ -420,7 +420,7 @@
         "dp_clip_norm": 1.0
       },
       "908": {
-        "sla_compliance_all_slices": 0.2793333333333333,
+        "sla_compliance_all_slices": 0.006666666666666666,
         "n_episodes": 50,
         "dp_step_count_per_client": [
           17969,
@@ -434,7 +434,7 @@
         "dp_clip_norm": 1.0
       },
       "909": {
-        "sla_compliance_all_slices": 0.4746666666666666,
+        "sla_compliance_all_slices": 0.004666666666666667,
         "n_episodes": 50,
         "dp_step_count_per_client": [
           17969,
@@ -450,7 +450,7 @@
     },
     "2.0": {
       "900": {
-        "sla_compliance_all_slices": 0.24,
+        "sla_compliance_all_slices": 0.006,
         "n_episodes": 50,
         "dp_step_count_per_client": [
           17969,
@@ -478,7 +478,7 @@
         "dp_clip_norm": 1.0
       },
       "902": {
-        "sla_compliance_all_slices": 0.6006666666666667,
+        "sla_compliance_all_slices": 0.004,
         "n_episodes": 50,
         "dp_step_count_per_client": [
           17969,
@@ -492,7 +492,7 @@
         "dp_clip_norm": 1.0
       },
       "903": {
-        "sla_compliance_all_slices": 0.44233333333333325,
+        "sla_compliance_all_slices": 0.005333333333333333,
         "n_episodes": 50,
         "dp_step_count_per_client": [
           17969,
@@ -506,7 +506,7 @@
         "dp_clip_norm": 1.0
       },
       "904": {
-        "sla_compliance_all_slices": 0.44566666666666666,
+        "sla_compliance_all_slices": 0.009333333333333334,
         "n_episodes": 50,
         "dp_step_count_per_client": [
           17969,
@@ -520,7 +520,7 @@
         "dp_clip_norm": 1.0
       },
       "905": {
-        "sla_compliance_all_slices": 0.423,
+        "sla_compliance_all_slices": 0.114,
         "n_episodes": 50,
         "dp_step_count_per_client": [
           17969,
@@ -534,7 +534,7 @@
         "dp_clip_norm": 1.0
       },
       "906": {
-        "sla_compliance_all_slices": 0.6783333333333335,
+        "sla_compliance_all_slices": 0.005666666666666666,
         "n_episodes": 50,
         "dp_step_count_per_client": [
           17969,
@@ -548,7 +548,7 @@
         "dp_clip_norm": 1.0
       },
       "907": {
-        "sla_compliance_all_slices": 0.5206666666666667,
+        "sla_compliance_all_slices": 0.004666666666666667,
         "n_episodes": 50,
         "dp_step_count_per_client": [
           17969,
@@ -562,7 +562,7 @@
         "dp_clip_norm": 1.0
       },
       "908": {
-        "sla_compliance_all_slices": 0.2793333333333333,
+        "sla_compliance_all_slices": 0.006666666666666666,
         "n_episodes": 50,
         "dp_step_count_per_client": [
           17969,
@@ -576,7 +576,7 @@
         "dp_clip_norm": 1.0
       },
       "909": {
-        "sla_compliance_all_slices": 0.4746666666666666,
+        "sla_compliance_all_slices": 0.42,
         "n_episodes": 50,
         "dp_step_count_per_client": [
           17969,
@@ -592,7 +592,7 @@
     },
     "4.0": {
       "900": {
-        "sla_compliance_all_slices": 0.24,
+        "sla_compliance_all_slices": 0.006,
         "n_episodes": 50,
         "dp_step_count_per_client": [
           17969,
@@ -634,7 +634,7 @@
         "dp_clip_norm": 1.0
       },
       "903": {
-        "sla_compliance_all_slices": 0.44233333333333325,
+        "sla_compliance_all_slices": 0.38166666666666665,
         "n_episodes": 50,
         "dp_step_count_per_client": [
           17969,
@@ -648,7 +648,7 @@
         "dp_clip_norm": 1.0
       },
       "904": {
-        "sla_compliance_all_slices": 0.44566666666666666,
+        "sla_compliance_all_slices": 0.37233333333333335,
         "n_episodes": 50,
         "dp_step_count_per_client": [
           17969,
@@ -676,7 +676,7 @@
         "dp_clip_norm": 1.0
       },
       "906": {
-        "sla_compliance_all_slices": 0.6783333333333335,
+        "sla_compliance_all_slices": 0.005666666666666666,
         "n_episodes": 50,
         "dp_step_count_per_client": [
           17969,
@@ -690,7 +690,7 @@
         "dp_clip_norm": 1.0
       },
       "907": {
-        "sla_compliance_all_slices": 0.5206666666666667,
+        "sla_compliance_all_slices": 0.004666666666666667,
         "n_episodes": 50,
         "dp_step_count_per_client": [
           17969,
@@ -718,7 +718,7 @@
         "dp_clip_norm": 1.0
       },
       "909": {
-        "sla_compliance_all_slices": 0.4746666666666666,
+        "sla_compliance_all_slices": 0.004666666666666667,
         "n_episodes": 50,
         "dp_step_count_per_client": [
           17969,

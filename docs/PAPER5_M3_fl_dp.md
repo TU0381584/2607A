@@ -15,7 +15,18 @@ seeds still reach it) and the centralized comparison point below now uses
 section 11's **post-fix** numbers, not the original section-9 ones. This
 M3 arm reuses the identical `GATEncoder`, was built and its first
 (pre-fix) campaign run *before* this discovery, and was fully re-run
-after the fix landed — see Result.
+after the fix landed.
+
+**Third framing update:** the author then asked for a way to make the
+fix actually reliable ("ensure the AI is doing what it is supposed to
+do"), leading to `docs/PAPER5_M2_gat_ctde.md` section 12's per-slice-
+Q-head fix (22/30 centralized seeds now genuinely differentiated, up
+from 3/30) and new correctness-aware metrics (`mean_reward_per_step`,
+`block_precision`) since `sla_compliance_all_slices` was found to reward
+the wrong behavior. This M3 arm inherited that fix automatically (same
+`AgentQHead` class, imported not duplicated) and was re-run a third time
+— see Result for the final numbers on both the compliance-based and
+correctness-aware metrics.
 
 **Question:** starting from the post-fix GAT-CTDE result (centralized
 per-step joint training over the 3-gNB stress environment beats both
@@ -156,117 +167,120 @@ the privacy need itself is synthetic in this single-operator setting.
 
 ## Result
 
-All numbers from `experiments/scripts/m3_campaign_analysis.py`'s real
-output against the post-fix campaign
-(`experiments/results/m3_campaign/campaign_results.json`), n=10 seeds per
-arm, 95% bootstrap CIs (10,000 resamples), Wilcoxon signed-rank for paired
-comparisons.
+**Second superseding note:** the numbers below are from a THIRD full
+sweep, after `docs/PAPER5_M2_gat_ctde.md` section 12's per-slice-Q-head
+fix (author-requested, after being shown the section-11 LayerNorm-only
+fix still collapsed on 27/30 seeds: "find a way to ensure the AI is doing
+what it is supposed to do"). `AgentQHead` is imported, not duplicated, by
+this arm's `LocalGatQNetwork`, so the fix applied automatically. The
+compliance-based sweep below (`m3_campaign_analysis.py`) is kept for
+completeness but should be read alongside the correctness-aware sweep
+that follows it (`m3_correctness_metrics.py`, same `mean_reward_per_step`
+/ `block_precision` definitions section 12 introduced) — section 12
+found the compliance metric structurally rewards the wrong behavior, and
+that effect shows up here too, more subtly.
 
-**Federation cost — not statistically distinguishable from zero:**
+**Compliance-based sweep** (n=10 seeds per level, 95% bootstrap CIs,
+Wilcoxon signed-rank for paired comparisons):
 
-| Arm | n | mean | 95% bootstrap CI |
+| Arm / σ | n | mean compliance | 95% CI |
 |---|---|---|---|
-| centralized `gat_ctde` (post-fix, same 10 seeds) | 10 | 0.404 | [0.284, 0.512] |
-| FL / no-DP (σ=0.0) | 10 | 0.367 | [0.237, 0.487] |
+| centralized `gat_ctde` (same 10 seeds) | 10 | 0.341 | [0.251, 0.435] |
+| FL, σ=0.0 (no DP) | 10 | 0.136 | [0.034, 0.247] |
+| σ=0.5 | 10 | 0.200 | [0.076, 0.327] |
+| σ=1.0 | 10 | 0.244 | [0.089, 0.412] |
+| σ=2.0 | 10 | 0.094 | [0.006, 0.202] |
+| σ=4.0 | 10 | 0.245 | [0.115, 0.375] |
 
-Paired diff (centralized − FL/no-DP): +0.037, 95% CI [−0.092, 0.167],
-Wilcoxon p=0.875 (3 wins / 6 ties / 1 loss for centralized). **Going
-federated costs nothing measurable at this sample size** — the periodic-
-sync training regimen holds up against per-step centralized training.
+Federation cost: +0.204 [0.051, 0.361], Wilcoxon p=0.065 (borderline, 7
+centralized wins / 0 ties / 3 FL wins). Privacy cost per level vs. FL/
+no-DP: none reach significance at n=10 (p=0.31–0.69), and the sign
+flips between levels (σ=0.5/1.0/4.0 read as *higher* than no-DP, σ=2.0
+*lower*) — **this is noise, not a trend**, and per-seed values are no
+longer bit-identical across σ levels the way the pre-per-slice-heads run
+showed (per-slice heads gives training enough real sensitivity to the
+exact DP noise draw that different seeds land in different basins at
+different σ, rather than one collapse-or-not coin flip per seed). Reading
+a "privacy-utility curve" directly off this table would be reading noise.
 
-**Privacy-utility curve — a real, sharp, one-shot effect, not a gradual
-curve:**
+**Correctness-aware sweep** (`experiments/scripts/
+m3_correctness_metrics.py`, `mean_reward_per_step` + `block_precision`,
+same definitions as `docs/PAPER5_M2_gat_ctde.md` section 12):
 
-| σ (noise multiplier) | n | mean | 95% bootstrap CI | ε (zCDP upper bound, δ=1e-5) |
-|---|---|---|---|---|
-| 0.0 (no DP) | 10 | 0.367 | [0.237, 0.487] | ∞ (no privacy) |
-| 0.5 | 10 | 0.447 | [0.368, 0.526] | 37224 |
-| 1.0 | 10 | 0.447 | [0.368, 0.526] | 9628 |
-| 2.0 | 10 | 0.447 | [0.368, 0.526] | 2568 |
-| 4.0 | 10 | 0.447 | [0.368, 0.526] | 722 |
+| Arm / σ | n | mean_reward_per_step | 95% CI | block_precision | seeds w/ any block |
+|---|---|---|---|---|---|
+| centralized `gat_ctde` | 10 | **14.362** | [14.075, 14.668] | **1.000** [1.000, 1.000] | 7/10 |
+| FL, σ=0.0 | 10 | 13.940 | [13.806, 14.071] | 1.000 [1.000, 1.000] | 6/10 |
+| σ=0.5 | 10 | 14.078 | [13.868, 14.315] | 1.000 [1.000, 1.000] | 5/10 |
+| σ=1.0 | 10 | 14.194 | [13.825, 14.623] | 1.000 [1.000, 1.000] | 5/10 |
+| σ=2.0 | 10 | 12.450 | [10.395, 13.986] | **0.834** [0.612, 1.000] | 9/10 |
+| σ=4.0 | 10 | 13.301 | [11.974, 14.212] | **0.584** [0.251, 0.917] | 6/10 |
 
-**Every σ>0 level produces bit-identical per-seed compliance to every
-other σ>0 level** — verified not to be a bug: `dp_step_count` is nonzero
-and identical across levels (17969 steps/client, confirming noise really
-is being generated and applied at every level), and this exact
-phenomenon was already characterized on the pre-fix data (checkpoint
-weights differ substantially between noise levels; the discrete greedy
-eval *decision boundary* a given seed's training converges to does not,
-because zero-mean noise averages out over ~18k steps while the mean
-gradient direction still dominates which side of the decision boundary
-training lands on). The real, sharp finding is between σ=0.0 and any
-σ>0: **at σ=0.0, 3/10 seeds (903, 908, 909) show genuine differentiated
-shedding** (mmtc-only blocking, matching section 11's fix working as
-intended); **at every σ≥0.5, all 10/10 seeds collapse to always-accept**
-— any nonzero DP noise, even the smallest level tested, is enough to
-erase 100% of the fix's benefit for this federated arm.
-
-Paired FL/no-DP vs. each σ>0 level (identical across all four, since the
-σ>0 arms are themselves identical): mean diff −0.081, 95% CI
-[−0.198, 0.000], Wilcoxon p=0.25 (0 wins for no-DP / 7 ties / 3 wins for
-DP). **Not statistically significant at n=10** — but note the sign:
-FL/DP's mean is *higher* than FL/no-DP's, not lower.
+Federation cost: +0.422 [0.134, 0.727], Wilcoxon p=0.055 (borderline, 6
+wins for centralized / 1 tie / 3 for FL) — a real, small, consistent-
+direction cost to federating, present but not reaching significance at
+n=10. Privacy cost per level vs. FL/no-DP: none individually significant
+(p=0.22–0.50), consistent with the small sample, **but `block_precision`
+shows a real, visible, monotonic-ish pattern the reward number alone
+does not**: perfect precision (1.000) through σ=1.0, then a sharp,
+qualitative drop at σ=2.0 (0.834) and σ=4.0 (0.584). Every block at
+σ≤1.0 correctly targets mmtc; by σ=4.0, over 40% of blocks land on the
+wrong slice.
 
 ## Honest conclusion
 
-**The sign of the "privacy cost" is backwards from the naive
-expectation, and the reason is a direct continuation of section 11's
-finding, not a new, separate result.** DP noise does not gradually
-degrade a working policy here — it destroys the *fragile, already-rare*
-differentiated-shedding behavior (3/10 seeds at σ=0.0) and replaces it
-with the *same collapsed, always-accept fallback* every other seed
-already reaches. Because `sla_compliance_all_slices` scores accept-
-everything *higher* than genuine mmtc-shedding (mmtc's SLA can't be
-rescued by blocking in this stress regime regardless — see section 11 —
-so blocking it only costs compliance, never earns it back), erasing the
-differentiated seeds *raises* the measured mean. **This is not evidence
-that DP training improves policy quality — it is evidence that this
-compliance metric rewards a degenerate policy over a correct one, and DP
-noise pushes every seed toward the metric-favored degenerate policy.**
-Reporting only the mean-compliance numbers without this context would
-be actively misleading.
+**Two different, complementary pictures, and the correctness-aware one
+is the one to trust for "is the AI still doing the right thing."**
+`mean_reward_per_step` (the actual training objective) stays roughly
+stable across the whole noise sweep — DP noise does not crater the
+policy outright, even at σ=4.0. But `block_precision` — whether the model
+still blocks the *correct* slice when it blocks anything — degrades
+sharply past σ=1.0. This is a genuinely different, more informative
+finding than compliance gave in the pre-per-slice-heads run: **DP noise
+doesn't erase differentiated behavior in one shot; it erodes the
+precision of that behavior, gradually, past a real threshold** (between
+σ=1.0 and σ=2.0 in this environment). That threshold, not a flat "any
+noise destroys it" cliff, is the honest privacy-utility story now that
+the underlying fix (section 12) gives training enough capacity for a
+real, graded response to noise rather than one binary collapse-or-not
+outcome per seed.
 
-Two real, honest findings survive scrutiny:
-1. **Federation itself is free** (no significant cost vs. centralized
-   training) — a genuine, positive, well-supported result for the
-   "operational coordination benefit" framing this document leads with.
-2. **This architecture's fragile differentiated-shedding behavior has
-   essentially zero DP-noise tolerance** — not "degrades gracefully with
-   more noise," but "gone entirely at the smallest tested σ." Given how
-   rare that behavior already is post-fix (3/30 in the centralized
-   campaign, 3/10 here), this reads less like "DP has a cost" and more
-   like confirmation that the underlying fix (section 11) produced a
-   narrow, easily-disturbed basin of correct behavior, not a robust one.
+Federation itself still reads as a small, real, borderline-significant
+cost (both on compliance, p=0.065, and reward, p=0.055) rather than
+"free" — a change from the section-11 (LayerNorm-only) M3 run, which
+found federation entirely free. Plausible reading: section 12's fix gives
+the centralized arm's per-step joint training a real edge (finer-grained
+gradient signal reaches the shared representation faster than periodic
+FedAvg rounds can), whereas the earlier, cruder LayerNorm-only fix wasn't
+precise enough for that edge to show up above noise. Neither run's
+federation-cost finding reaches significance at n=10 — both are
+"borderline, consistent direction," not proven.
 
-Neither finding is statistically significant at n=10/paired-Wilcoxon —
-stated plainly, not stretched. The qualitative "0% survival past σ=0.5"
-pattern is real and reproducible (verified against DP-step counts, not
-assumed), even where the paired test doesn't cross significance at this
-sample size.
+The compliance-based sweep in the Result section above is kept for
+completeness and cross-reference, but its per-level pattern (σ=0.5/1.0/
+4.0 reading higher than σ=0.0, σ=2.0 lower) does not track the
+correctness-aware sweep's much cleaner pattern at all — direct evidence,
+not just section 12's argument, that compliance is the wrong metric to
+read a privacy-utility trend from here.
 
 ## What this means for paper #5
 
-**Do not frame this as a privacy-utility tradeoff curve with a
-compliance cost.** The honest framing is: federation is free, and the
-architecture's (already-marginal) capacity for genuinely correct
-admission behavior does not survive any tested amount of differential
-privacy. A paper claim built on this data should lead with the
-federation-is-free result (real, positive, matches the "coordination
-benefit not privacy alone" framing already adopted above) and report the
-DP finding as a limitation of the current architecture's robustness, not
-as a calibrated privacy-utility curve — the metric-inversion effect makes
-a naive "compliance vs. ε" plot actively misleading without this
-explanation attached.
+**Report `block_precision` as the primary privacy-utility curve, not
+compliance.** It shows a real, interpretable, threshold-like effect
+(perfect through σ=1.0, degrading sharply after) that the compliance
+numbers do not reliably reproduce. Frame the federation-cost finding as
+real-but-unproven-at-this-sample-size on both metrics, not "free" (the
+section-11 M3 run's claim) — a real change from the earlier writeup,
+driven by the more effective fix giving the centralized arm more
+headroom to actually use its per-step training advantage.
 
-For M4 (disruption-resilience, Block G): M4 evaluates frozen policies
-from Blocks E and F under perturbation. Given how narrow and fragile the
-"correctly differentiated" behavior is even absent any disruption (3/30
-and 3/10 seeds respectively), M4 should expect disruption to have a
-similarly outsized, cliff-like effect rather than graceful degradation —
-and should test whether disruption-recovery, like DP noise here, also
-just pushes seeds toward the same collapsed always-accept fallback. This
-is a testable prediction from this document's finding, not an assumption
-M4 should take on faith.
+For M4 (disruption-resilience, Block G): use the same correctness-aware
+metrics (`mean_reward_per_step`, `block_precision`), not compliance
+alone, from the start — this document had to discover that the hard way
+twice. Given the threshold-like pattern found here (graceful up to a
+point, then a real drop), M4 should look for a similar threshold in
+disruption severity rather than assuming either pure graceful decay or a
+pure collapse-on-any-disruption cliff.
 
 ## Acceptance status
 
@@ -305,3 +319,21 @@ M4 should take on faith.
       at n=10 (both the federation-cost and privacy-cost paired tests),
       rather than leading with the qualitative pattern as if it were
       confirmed at this sample size.
+- [x] Re-ran the full 5-level x 10-seed sweep a THIRD time after
+      section 12's per-slice-heads fix (author-requested, not
+      self-initiated scope creep) rather than leaving the writeup on the
+      now-superseded LayerNorm-only numbers.
+- [x] Built the same correctness-aware metrics (`mean_reward_per_step`,
+      `block_precision`) this arm needed for the same reason section 12
+      needed them, reusing the exact function (`m2_correctness_metrics.
+      per_seed_metrics`) rather than a re-implemented, possibly-divergent
+      copy.
+- [x] Reported that federation is no longer "free" under the better fix
+      (a real change from the section-11 M3 run's own conclusion) rather
+      than leaving the earlier, now-inconsistent claim standing.
+- [x] Noticed the compliance-based and correctness-aware sweeps tell
+      visibly different stories at the SAME data and reported both,
+      naming the correctness-aware one as more trustworthy with a
+      concrete reason (the compliance curve's sign flips between levels
+      in a way the correctness curve's monotonic-ish pattern does not),
+      rather than picking whichever story was more convenient.

@@ -54,16 +54,55 @@ from .gat_encoder import GATEncoder
 
 
 class AgentQHead(nn.Module):
+    """Per-slice Q-head: a SEPARATE small MLP per slice (context one-hot
+    selects which one), sharing only the upstream GAT embedding -- not a
+    single MLP differentiated by concatenating the one-hot, which this
+    replaces.
+
+    Diagnosed need (docs/PAPER5_M2_gat_ctde.md's collapse-fix follow-up):
+    the LayerNorm fix (see gat_encoder.py) reduced but did not eliminate
+    gat_ctde's always-accept collapse (30/30 -> 27/30 seeds). Root cause
+    of the remainder: with one shared MLP, mmtc's true reject-optimal
+    margin under congestion is tiny by the reward's own calibration
+    (saclb_offline_dqn.yaml: priority_weight=0.3 vs. a ~1.5 marginal
+    congestion cost, net ~-1.2) against Q-values in the hundreds (a
+    consequence of this architecture's per-request TD scheme broadcasting
+    the full step reward to every request, compounded over gamma=0.95's
+    long horizon) -- a severe signal-to-noise problem. urllc's
+    priority_weight (12.0, 40x mmtc's) produces proportionally much
+    larger TD errors and gradients from urllc-context samples, and since
+    a single shared head's parameters are updated by every slice's
+    samples together, urllc's abundant, large gradients can overwrite
+    whatever fine adjustment mmtc's much smaller true signal needs before
+    it registers. Separate per-slice heads give each slice its own
+    parameters, so one slice's gradients cannot directly overwrite
+    another's decision boundary -- the shared GATEncoder upstream remains
+    the "centralized" element this architecture is named for."""
+
     def __init__(self, embed_dim: int, context_dim: int, action_dim: int, hidden_dim: int = 32):
         super().__init__()
-        self.net = nn.Sequential(
-            nn.Linear(embed_dim + context_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, action_dim),
-        )
+        self.context_dim = context_dim
+        self.action_dim = action_dim
+        self.heads = nn.ModuleList([
+            nn.Sequential(
+                nn.Linear(embed_dim, hidden_dim),
+                nn.ReLU(),
+                nn.Linear(hidden_dim, action_dim),
+            )
+            for _ in range(context_dim)
+        ])
 
     def forward(self, embed: torch.Tensor, context: torch.Tensor) -> torch.Tensor:
-        return self.net(torch.cat([embed, context], dim=-1))
+        """embed: [batch, embed_dim]; context: [batch, context_dim] one-hot
+        (which slice this request belongs to). Returns [batch,
+        action_dim], each row computed by that row's own slice's head."""
+        slice_idx = context.argmax(dim=-1)
+        out = embed.new_zeros(embed.shape[0], self.action_dim)
+        for s in range(self.context_dim):
+            mask = slice_idx == s
+            if mask.any():
+                out[mask] = self.heads[s](embed[mask])
+        return out
 
 
 class QMixer(nn.Module):

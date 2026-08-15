@@ -55,6 +55,12 @@ def main() -> None:
     ap.add_argument("--train-episodes", type=int, default=300)
     ap.add_argument("--eval-episodes", type=int, default=50)
     ap.add_argument("--arms", nargs="+", default=["gat_ctde", "independent_dqn", "single_agent_dqn"])
+    ap.add_argument("--resume-seeds", action="store_true",
+                     help="Skip seeds that already have a checkpoint+eval-log pair under --out-dir "
+                          "(reload their compliance from the existing eval log instead of retraining). "
+                          "Only safe when resuming an interrupted run of the SAME script/architecture -- "
+                          "not a general artifact-reuse flag, see m2_run_experiment.py's "
+                          "_reload_eval_compliance docstring.")
     args = ap.parse_args()
 
     cfg = m2.load_saclb_config(m2.CONFIG_PATH)
@@ -77,7 +83,8 @@ def main() -> None:
         print(f"[campaign] === arm: {arm} ===")
         if arm == "gat_ctde":
             res = m2.run_gat_ctde_arm(cfg, sd_for_slice, ALL_SEEDS, args.train_episodes,
-                                       args.eval_episodes, args.out_dir, arm)
+                                       args.eval_episodes, args.out_dir, arm,
+                                       resume_seeds=args.resume_seeds)
         elif arm == "independent_dqn":
             res = m2.run_independent_dqn_arm(cfg, sd_for_slice, ALL_SEEDS, args.train_episodes,
                                               args.eval_episodes, args.out_dir, arm)

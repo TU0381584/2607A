@@ -48,6 +48,8 @@ import sys
 import time
 from pathlib import Path
 
+import torch
+
 sys.path.insert(0, "/home/kmanojp/oranslice_rig/experiments/scripts")
 from live_scale_offline_env import MEAN_OFFERED_RATIO  # noqa: E402
 from qoe_oran_framework.config import load_saclb_config  # noqa: E402
@@ -78,7 +80,47 @@ def make_kpm_source_factory(cfg, sd_for_slice):
     return factory
 
 
-def run_gat_ctde_arm(cfg, sd_for_slice, seeds, train_episodes, eval_episodes, out_dir, tag):
+def _reload_eval_compliance(eval_omega_path: str):
+    """Recompute sla_compliance_all_slices from an already-written eval
+    omega_log.jsonl's rollup records -- the same quantity
+    run_episodes_marl returns, reconstructed without re-running eval."""
+    import json
+    values = []
+    with open(eval_omega_path) as fh:
+        for line in fh:
+            rec = json.loads(line)
+            ev = rec.get("evidence", rec)
+            if isinstance(ev, dict) and ev.get("rollup"):
+                values.append(ev["episode_sla_compliance_all_slices"])
+    if not values:
+        return None
+    return {"sla_compliance_all_slices": sum(values) / len(values), "n_episodes": len(values)}
+
+
+def _checkpoint_matches_current_architecture(ckpt_path: str, probe_policy: "GatCtdeMarlPolicy") -> bool:
+    """True iff ckpt_path's state_dict keys/shapes match probe_policy's
+    CURRENT network exactly (torch's own strict-load check, not a
+    timestamp or file-existence proxy). Real bug this guards against: a
+    resumed run's --out-dir can contain checkpoints from an earlier,
+    architecturally-different campaign at the identical seed path (e.g.
+    the pre-per-slice-heads AgentQHead's shared q_head.net vs. the
+    current q_head.heads.N per-slice ModuleList) -- file-existence alone
+    silently reused one such stale checkpoint's eval results as if they
+    were the current architecture's, discovered when a 30-seed resume
+    showed ALL 30 seeds as "already done" despite only 16 having actually
+    been retrained. This function is the fix: load_state_dict(strict=True)
+    IS the ground truth for "does this checkpoint fit this model," not a
+    proxy for it."""
+    try:
+        ckpt = torch.load(ckpt_path, map_location=probe_policy.device, weights_only=True)
+        probe_policy.online.load_state_dict(ckpt["online"], strict=True)
+        return True
+    except (RuntimeError, KeyError):
+        return False
+
+
+def run_gat_ctde_arm(cfg, sd_for_slice, seeds, train_episodes, eval_episodes, out_dir, tag,
+                      resume_seeds=False):
     n_agents = len(cfg.gnb_ids)
     node_dim = node_feature_dim(cfg)
     ctx_dim = request_context_dim(cfg)
@@ -87,6 +129,21 @@ def run_gat_ctde_arm(cfg, sd_for_slice, seeds, train_episodes, eval_episodes, ou
 
     results = {}
     for seed in seeds:
+        ckpt_path = f"{out_dir}/{tag}/seed{seed}/train/checkpoint.pt"
+        eval_omega_path = f"{out_dir}/{tag}/seed{seed}/eval/omega_log.jsonl"
+        if resume_seeds and Path(ckpt_path).exists() and Path(eval_omega_path).exists():
+            probe = GatCtdeMarlPolicy(n_agents, node_dim, ctx_dim, ACTION_DIM, adj)
+            if _checkpoint_matches_current_architecture(ckpt_path, probe):
+                reloaded = _reload_eval_compliance(eval_omega_path)
+                if reloaded is not None:
+                    results[seed] = reloaded
+                    print(f"[m2:{tag}] seed={seed}: RESUMED (already trained, architecture verified), "
+                          f"eval sla_compliance_all_slices={reloaded['sla_compliance_all_slices']:.3f}")
+                    continue
+            else:
+                print(f"[m2:{tag}] seed={seed}: on-disk checkpoint does NOT match current architecture "
+                      f"(stale from a different run) -- retraining, not resuming")
+
         policy = GatCtdeMarlPolicy(n_agents, node_dim, ctx_dim, ACTION_DIM, adj)
         env = RANEnv(cfg, kpm_factory(seed), seed=seed, reward_mode="sla")
         train_dir = f"{out_dir}/{tag}/seed{seed}/train"
