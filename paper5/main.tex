@@ -378,12 +378,18 @@ nonparametric methods.
 \begin{figure*}[t]
 \centering
 \includegraphics[width=0.92\textwidth]{figures/fig3_m2_campaign.pdf}
-\caption{30-seed campaign, three arms. (a) The established SLA-compliance
-metric, where GAT-CTDE's advantage is present but statistically noisy.
-(b) Mean reward per step, the correctness-aware metric
-(Section~\ref{sec:correctness-metrics}): GAT-CTDE's advantage is
-tighter and more decisive on the metric that reflects the actual
-training objective.}
+\caption{30-seed campaign, per-seed evidence for mean reward per step,
+the correctness-aware metric (Section~\ref{sec:correctness-metrics}).
+(a) Paired per-seed comparison against single-agent DQN: each line is
+one seed, colored by whether GAT-CTDE scored higher (green, 23),
+tied (gray, 2), or lower (red, 5) than the baseline on that seed --
+the same paired unit the Wilcoxon test is computed over. (b) Full
+per-seed distribution for all three arms; GAT-CTDE is split into seeds
+that learned genuine differentiated shedding (blue, 22) versus seeds
+still stuck at the always-accept collapse (gray $\times$, 8) -- shown
+without claiming the split predicts reward, since several
+still-collapsed seeds score among the arm's highest (always accepting
+never pays the reject cost).}
 \label{fig:m2-campaign}
 \end{figure*}
 
@@ -424,13 +430,18 @@ Single-agent & 0.115 [0.061, 0.176] & 13.867 [13.69, 14.05] & 0.987 \\
 \begin{figure*}[t]
 \centering
 \includegraphics[width=0.92\textwidth]{figures/fig4_m3_privacy.pdf}
-\caption{Federated GAT-CTDE. (a) Federation cost on mean reward per
-step: centralized training retains a small, borderline-significant
-edge over federated training with no privacy noise. (b) Privacy-utility
-curve using block precision, the metric that survives the
-compliance-based curve's non-monotonic, uninterpretable pattern at the
-same noise levels: precision is perfect through $\sigma=1.0$ and drops
-sharply by $\sigma=4.0$.}
+\caption{Federated GAT-CTDE, per-seed evidence. (a) Paired per-seed
+federation cost on mean reward per step (same 10 seeds): centralized
+training scores higher on 6 seeds, federated on 3, with 1 tie --
+a real but borderline-significant edge (Wilcoxon $p=0.055$), shown as
+individual seed trajectories rather than two independent bars, since
+the significance test itself is paired. (b) Privacy-utility curve
+using block precision, the metric that survives the compliance-based
+curve's non-monotonic, uninterpretable pattern at the same noise
+levels: individual seed values (light dots) are shown behind the mean,
+along with the seed count that ever blocked anything at each $\sigma$
+(precision is undefined otherwise) -- precision is perfect through
+$\sigma=1.0$ and drops sharply by $\sigma=4.0$.}
 \label{fig:m3-privacy}
 \end{figure*}
 

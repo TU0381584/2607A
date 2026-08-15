@@ -36,14 +36,13 @@
 \@writefile{toc}{\contentsline {section}{\numberline {V}Experimental Setup}{4}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {VI}Results: Centralized GAT-CTDE Campaign}{4}{}\protected@file@percent }
 \newlabel{sec:results-m2}{{VI}{4}{}{}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces 30-seed campaign, three arms. (a) The established SLA-compliance metric, where GAT-CTDE's advantage is present but statistically noisy. (b) Mean reward per step, the correctness-aware metric (Section~\ref {sec:correctness-metrics}): GAT-CTDE's advantage is tighter and more decisive on the metric that reflects the actual training objective.}}{5}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces 30-seed campaign, per-seed evidence for mean reward per step, the correctness-aware metric (Section~\ref {sec:correctness-metrics}). (a) Paired per-seed comparison against single-agent DQN: each line is one seed, colored by whether GAT-CTDE scored higher (green, 23), tied (gray, 2), or lower (red, 5) than the baseline on that seed -- the same paired unit the Wilcoxon test is computed over. (b) Full per-seed distribution for all three arms; GAT-CTDE is split into seeds that learned genuine differentiated shedding (blue, 22) versus seeds still stuck at the always-accept collapse (gray $\times $, 8) -- shown without claiming the split predicts reward, since several still-collapsed seeds score among the arm's highest (always accepting never pays the reject cost).}}{5}{}\protected@file@percent }
 \newlabel{fig:m2-campaign}{{3}{5}{}{}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {VII}Results: Federated Training and Differential Privacy}{5}{}\protected@file@percent }
 \newlabel{sec:results-m3}{{VII}{5}{}{}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-A}}Federation Cost}{5}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-B}}Privacy Cost: A Threshold, Not a Smooth Curve}{5}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {VIII}Discussion}{5}{}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {IX}Conclusion and Future Work}{5}{}\protected@file@percent }
 \bibstyle{IEEEtran}
 \bibdata{refs}
 \bibcite{mecon-paper1}{1}
@@ -53,7 +52,8 @@
 \bibcite{fedprox}{5}
 \bibcite{dpsgd}{6}
 \bibcite{zcdp}{7}
-\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Federated GAT-CTDE. (a) Federation cost on mean reward per step: centralized training retains a small, borderline-significant edge over federated training with no privacy noise. (b) Privacy-utility curve using block precision, the metric that survives the compliance-based curve's non-monotonic, uninterpretable pattern at the same noise levels: precision is perfect through $\sigma =1.0$ and drops sharply by $\sigma =4.0$.}}{6}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Federated GAT-CTDE, per-seed evidence. (a) Paired per-seed federation cost on mean reward per step (same 10 seeds): centralized training scores higher on 6 seeds, federated on 3, with 1 tie -- a real but borderline-significant edge (Wilcoxon $p=0.055$), shown as individual seed trajectories rather than two independent bars, since the significance test itself is paired. (b) Privacy-utility curve using block precision, the metric that survives the compliance-based curve's non-monotonic, uninterpretable pattern at the same noise levels: individual seed values (light dots) are shown behind the mean, along with the seed count that ever blocked anything at each $\sigma $ (precision is undefined otherwise) -- precision is perfect through $\sigma =1.0$ and drops sharply by $\sigma =4.0$.}}{6}{}\protected@file@percent }
 \newlabel{fig:m3-privacy}{{4}{6}{}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {IX}Conclusion and Future Work}{6}{}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{References}{6}{}\protected@file@percent }
 \gdef \@abspage@last{6}

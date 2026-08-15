@@ -55,6 +55,15 @@ M3_STYLE: Dict[str, dict] = {
     "curve":       {"color": "#2a78d6", "marker": "o", "label": "Federated GAT-CTDE"},
 }
 
+# Fixed (never themed) status roles, dataviz skill palette.md -- used for
+# paired win/tie/loss outcome coloring, never for series identity, so a
+# status color never impersonates an arm's own categorical hue.
+STATUS_COLORS: Dict[str, str] = {
+    "good": "#0ca30c",
+    "critical": "#d03b3b",
+    "neutral": "#898781",
+}
+
 
 def bootstrap_ci(values, n_boot: int = 10000, alpha: float = 0.05, seed: int = 0) -> Tuple[float, float]:
     rng = np.random.RandomState(seed)
