@@ -1,0 +1,59 @@
+\relax 
+\citation{mecon-paper1}
+\citation{icraie-paper2}
+\citation{gat}
+\@writefile{toc}{\contentsline {section}{\numberline {I}Introduction}{1}{}\protected@file@percent }
+\citation{gat}
+\citation{fedavg}
+\citation{fedprox}
+\@writefile{toc}{\contentsline {section}{\numberline {II}System Model and Problem Formulation}{2}{}\protected@file@percent }
+\newlabel{sec:system-model}{{II}{2}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-A}}Cluster Topology and Admission Decisions}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-B}}Reward and the Differentiated-Shedding Regime}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-C}}Offline Stress-Regime Environment}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {III}Methodology}{2}{}\protected@file@percent }
+\newlabel{sec:methodology}{{III}{2}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-A}}GAT-CTDE: Shared Encoder, Decentralized Q-Heads}{2}{}\protected@file@percent }
+\newlabel{sec:methodology-perslice}{{\mbox  {III-A}1}{2}{}{}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {\mbox  {III-A}1}Per-Slice Q-Heads}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-B}}Federated Training with Differential Privacy}{2}{}\protected@file@percent }
+\citation{dpsgd}
+\citation{zcdp}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces GAT-CTDE architecture. (a) A shared Graph Attention encoder over the fully-connected 3-gNB topology produces one embedding per node; per-slice Q-heads, each with its own parameters, consume that node's own embedding row at action-selection time (decentralized execution). (b) The federated training variant: each gNB is a client with a private copy of the same network, synchronized via periodic FedAvg with an optional per-client DP-SGD clip-and-noise step.}}{3}{}\protected@file@percent }
+\newlabel{fig:architecture}{{1}{3}{}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {IV}A Training Collapse, Diagnosed and Fixed}{3}{}\protected@file@percent }
+\newlabel{sec:collapse}{{IV}{3}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-A}}Discovery}{3}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-B}}This Was Not the Reward-Optimal Policy}{3}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-C}}Root Cause: Magnitude, Not Pattern}{3}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Fraction of the 30 campaign seeds reaching genuine, correctly-targeted differentiated shedding (mMTC-only blocking under congestion), across the original unnormalized encoder and the two fixes described in Section~\ref {sec:collapse}.}}{4}{}\protected@file@percent }
+\newlabel{fig:collapse}{{2}{4}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-D}}Fixes}{4}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-E}}Correctness-Aware Metrics}{4}{}\protected@file@percent }
+\newlabel{sec:correctness-metrics}{{\mbox  {IV-E}}{4}{}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces M2 campaign results, 30 seeds/arm, 95\% bootstrap CIs.}}{4}{}\protected@file@percent }
+\newlabel{tab:m2-results}{{I}{4}{}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {V}Experimental Setup}{4}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {VI}Results: Centralized GAT-CTDE Campaign}{4}{}\protected@file@percent }
+\newlabel{sec:results-m2}{{VI}{4}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces 30-seed campaign, three arms. (a) The established SLA-compliance metric, where GAT-CTDE's advantage is present but statistically noisy. (b) Mean reward per step, the correctness-aware metric (Section~\ref {sec:correctness-metrics}): GAT-CTDE's advantage is tighter and more decisive on the metric that reflects the actual training objective.}}{5}{}\protected@file@percent }
+\newlabel{fig:m2-campaign}{{3}{5}{}{}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {VII}Results: Federated Training and Differential Privacy}{5}{}\protected@file@percent }
+\newlabel{sec:results-m3}{{VII}{5}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-A}}Federation Cost}{5}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {VII-B}}Privacy Cost: A Threshold, Not a Smooth Curve}{5}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {VIII}Discussion}{5}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {IX}Conclusion and Future Work}{5}{}\protected@file@percent }
+\bibstyle{IEEEtran}
+\bibdata{refs}
+\bibcite{mecon-paper1}{1}
+\bibcite{icraie-paper2}{2}
+\bibcite{gat}{3}
+\bibcite{fedavg}{4}
+\bibcite{fedprox}{5}
+\bibcite{dpsgd}{6}
+\bibcite{zcdp}{7}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Federated GAT-CTDE. (a) Federation cost on mean reward per step: centralized training retains a small, borderline-significant edge over federated training with no privacy noise. (b) Privacy-utility curve using block precision, the metric that survives the compliance-based curve's non-monotonic, uninterpretable pattern at the same noise levels: precision is perfect through $\sigma =1.0$ and drops sharply by $\sigma =4.0$.}}{6}{}\protected@file@percent }
+\newlabel{fig:m3-privacy}{{4}{6}{}{}{}}
+\@writefile{toc}{\contentsline {section}{References}{6}{}\protected@file@percent }
+\gdef \@abspage@last{6}
