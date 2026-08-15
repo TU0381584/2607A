@@ -11,6 +11,7 @@ normally need) -- chosen deliberately conservative since these 3 arms
 are directly compared throughout the results section.
 """
 import json
+import sys
 from pathlib import Path
 from typing import Dict, List, Tuple
 
@@ -18,6 +19,11 @@ import matplotlib as mpl
 import numpy as np
 
 from common import IEEE_COLUMN_WIDTH_IN  # noqa: F401 -- re-exported for figure scripts
+
+_SCRIPTS_DIR = str(Path(__file__).resolve().parent.parent / "scripts")
+if _SCRIPTS_DIR not in sys.path:
+    sys.path.insert(0, _SCRIPTS_DIR)
+from m2_correctness_metrics import bootstrap_ci  # noqa: E402,F401 -- re-exported for figure scripts, not reimplemented
 
 mpl.rcParams.update({
     "figure.figsize": (IEEE_COLUMN_WIDTH_IN, IEEE_COLUMN_WIDTH_IN * 0.75),
@@ -63,14 +69,6 @@ STATUS_COLORS: Dict[str, str] = {
     "critical": "#d03b3b",
     "neutral": "#898781",
 }
-
-
-def bootstrap_ci(values, n_boot: int = 10000, alpha: float = 0.05, seed: int = 0) -> Tuple[float, float]:
-    rng = np.random.RandomState(seed)
-    values = np.asarray(values)
-    boot_means = np.array([rng.choice(values, size=len(values), replace=True).mean() for _ in range(n_boot)])
-    lo, hi = np.percentile(boot_means, [100 * alpha / 2, 100 * (1 - alpha / 2)])
-    return float(lo), float(hi)
 
 
 def load_m2_campaign(results_path: str) -> Tuple[List[int], Dict[str, Dict[str, dict]]]:

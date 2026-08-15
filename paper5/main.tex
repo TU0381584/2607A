@@ -1,14 +1,8 @@
 \documentclass[journal]{IEEEtran}
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
-\usepackage{array}
 \usepackage{booktabs}
-\usepackage{multirow}
-\usepackage{url}
 \usepackage{xcolor}
-\usepackage{enumitem}
-\usepackage{algorithm}
-\usepackage{algorithmic}
 
 % Visible TODO marker for content the author (not Claude) still needs to
 % fill in or decide -- same convention as paper_conf/main.tex.
@@ -413,6 +407,7 @@ under the LayerNorm-only fix and 0/30 originally.
 \caption{M2 campaign results, 30 seeds/arm, 95\% bootstrap CIs.}
 \label{tab:m2-results}
 \centering
+\resizebox{\columnwidth}{!}{%
 \begin{tabular}{lccc}
 \toprule
 Arm & Compliance & Mean reward/step & Block precision \\
@@ -421,7 +416,8 @@ GAT-CTDE & 0.230 [0.169, 0.293] & \textbf{14.309} [14.17, 14.45] & 0.955 \\
 Indep. DQN & 0.049 [0.013, 0.093] & 12.601 [11.30, 13.49] & 0.901 \\
 Single-agent & 0.115 [0.061, 0.176] & 13.867 [13.69, 14.05] & 0.987 \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
 \section{Results: Federated Training and Differential Privacy}
