@@ -21,9 +21,12 @@ Usage (from repo root, cwd=framework/ required):
 """
 import argparse
 import json
+import shutil
 import sys
 import time
 from pathlib import Path
+
+import torch
 
 sys.path.insert(0, "/home/kmanojp/oranslice_rig/experiments/scripts")
 from live_scale_offline_env import MEAN_OFFERED_RATIO  # noqa: E402
@@ -65,6 +68,17 @@ def run_fl_arm(cfg, sd_for_slice, seeds, train_episodes, eval_episodes, out_dir,
 
     results = {}
     for seed in seeds:
+        # Clear before any fresh run -- same fix as m2_run_experiment.py's
+        # _clear_seed_dir (docs/PAPER5_M2_gat_ctde.md section 14): OmegaLogger
+        # appends and never truncates, so a re-run at the same (tag, seed)
+        # path would silently stack onto stale eval episodes otherwise. M3's
+        # own committed logs were verified clean (this was never actually
+        # triggered in practice), but the script had no guard against it.
+        shutil.rmtree(f"{out_dir}/{tag}/seed{seed}", ignore_errors=True)
+        # torch.manual_seed BEFORE constructing the policy -- see
+        # m2_run_experiment.py's run_gat_ctde_arm for why the ordering
+        # matters (weight init happens synchronously at construction).
+        torch.manual_seed(seed)
         policy = FederatedGatPolicy(
             n_agents, node_dim, ctx_dim, ACTION_DIM, adj,
             aggregator=aggregator, fedprox_mu=fedprox_mu,

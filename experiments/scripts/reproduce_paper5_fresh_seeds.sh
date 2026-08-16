@@ -25,7 +25,10 @@
 #   OUT_ROOT defaults to experiments/results/fresh_seed_retrain
 #   SEED_BASE defaults to 1000 (disjoint from 900-929)
 
-set -uo pipefail
+set -euo pipefail
+# -e: see reproduce_paper5_full.sh's identical comment -- a killed/failed
+# stage must stop this script, not silently continue into the next stage
+# against incomplete prior output.
 
 REPO_ROOT="/home/kmanojp/oranslice_rig"
 OUT_ROOT="${1:-${REPO_ROOT}/experiments/results/fresh_seed_retrain}"

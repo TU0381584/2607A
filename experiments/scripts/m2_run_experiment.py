@@ -165,6 +165,16 @@ def run_gat_ctde_arm(cfg, sd_for_slice, seeds, train_episodes, eval_episodes, ou
                       f"(stale from a different run) -- retraining, not resuming")
 
         _clear_seed_dir(out_dir, tag, seed)
+        # torch.manual_seed BEFORE constructing the policy, not after --
+        # weight init (nn.init.xavier_uniform_ in GATLayer, nn.Linear's own
+        # default reset_parameters in AgentQHead) happens synchronously at
+        # construction time, so seeding any later than this line has no
+        # effect on it. mc_runner.py's own set_seeds() achieves the same
+        # thing implicitly for single_agent_dqn (that path is unaffected by
+        # this fix); this run_episodes_marl-based path had no torch seeding
+        # at all before this fix -- see docs/PAPER5_REPRODUCIBILITY.md's
+        # torch-seeding-gap section for how this was found and confirmed.
+        torch.manual_seed(seed)
         policy = GatCtdeMarlPolicy(n_agents, node_dim, ctx_dim, ACTION_DIM, adj)
         env = RANEnv(cfg, kpm_factory(seed), seed=seed, reward_mode="sla")
         train_dir = f"{out_dir}/{tag}/seed{seed}/train"
@@ -198,6 +208,7 @@ def run_independent_dqn_arm(cfg, sd_for_slice, seeds, train_episodes, eval_episo
     results = {}
     for seed in seeds:
         _clear_seed_dir(out_dir, tag, seed)
+        torch.manual_seed(seed)  # see run_gat_ctde_arm's comment -- must precede policy construction
         policy = IndependentPerGnbDqnPolicy(n_agents, node_dim, ctx_dim, ACTION_DIM)
         env = RANEnv(cfg, kpm_factory(seed), seed=seed, reward_mode="sla")
         train_dir = f"{out_dir}/{tag}/seed{seed}/train"

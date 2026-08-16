@@ -17,6 +17,7 @@ import time
 from typing import Any, Dict, List, Optional
 
 import numpy as np
+import torch
 
 from ..config import SacLbExperimentConfig
 from ..env import RANEnv
@@ -94,6 +95,11 @@ def run_episodes_marl(
     kind="churn" and must expose the same select_actions(...) interface as
     `policy`."""
     np.random.seed(seed)
+    torch.manual_seed(seed)  # defense in depth: the policy's own weight init must already be seeded by
+    # the CALLER before construction (this runs after that, too late to affect it) -- see
+    # m2_run_experiment.py's run_gat_ctde_arm for where that actually happens. This call only covers any
+    # torch randomness consumed later, during this function's own training/eval loop (e.g. dropout, if
+    # ever enabled -- currently 0.0/off by default in GATEncoder).
     extra_limitations = extra_limitations or []
     replay_buffer = JointReplayBuffer(capacity=replay_capacity, seed=seed) if training else None
     base_arrivals_per_step = cfg.arrivals.synthetic_arrivals_per_step

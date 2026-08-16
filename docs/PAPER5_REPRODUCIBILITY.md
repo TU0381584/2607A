@@ -87,11 +87,17 @@ codebase is expected to reproduce **exactly** (bit-identical
 `sla_compliance_all_slices`), not just approximately -- confirmed
 already for M1 (`m1_extract_live_traces.py`'s own live-compliance
 numbers reproduce the milestone doc's numbers exactly on a fresh
-extraction) and for M4 (`m2_reeval_gat_ctde.py`'s clean eval re-run of
-`gat_ctde` reproduced the independently-derived "true last block"
-numbers exactly, seed for seed, twice over, during the eval-log
-contamination fix in `docs/PAPER5_M2_gat_ctde.md` section 14). Any
-divergence found by this comparison is a real finding to investigate,
+extraction), for `single_agent_dqn` (eval-only re-runs, e.g.
+`m2_reeval_gat_ctde.py`'s clean eval re-run of `gat_ctde` reproduced the
+independently-derived "true last block" numbers exactly, seed for seed,
+twice over, during the eval-log contamination fix in
+`docs/PAPER5_M2_gat_ctde.md` section 14), and now, after the torch-
+seeding fix documented in the section immediately below, for full
+training runs of `gat_ctde`/`independent_dqn`/the federated arm too --
+running the committed campaigns as they stood *before* that fix would
+NOT have matched exactly for those three arms, which is exactly how the
+bug was found. Any divergence found by this comparison against a
+post-fix run is a real finding to investigate,
 not noise to average away.
 
 ## Provenance table
@@ -112,6 +118,74 @@ not noise to average away.
 | Fig. 4 (federation-cost slope + privacy-utility curve) | same M3 data | `experiments/plots/paper5_fig4_m3_privacy.py` | n/a | 900-909 |
 | M4 dropout/churn/spike per-condition results (`docs/PAPER5_M4_disruption.md`'s result tables) | `experiments/results/m4_campaign/<arm>/<kind>_sev<N>/seed{900-909}/eval/omega_log.jsonl`, checkpoints from M2/M3 above (never retrained) | `experiments/scripts/m4_seed_campaign.py` -> `experiments/scripts/m4_correctness_metrics.py` | `saclb_offline_dqn.yaml` | 900-909 |
 | Fig. 1 (architecture diagram) | n/a -- hand-authored TikZ, not data-driven | `paper5/figures/fig1_gat_ctde_fl_architecture.tex` | n/a | n/a |
+
+## A real reproducibility bug, found by actually running the reproduction
+
+Running `reproduce_paper5_full.sh` end to end and diffing it against the
+committed numbers (`compare_reproduction.py`) found a genuine bug, not
+just confirmed the pipeline works: M1 (grid search + held-out eval
+against frozen checkpoints, no training) and M2's `single_agent_dqn` arm
+(trains via the pre-existing, frozen `mc_runner.run_single`/`DQNPolicy`
+path) both reproduced **exactly**. But `gat_ctde`, `independent_dqn`,
+and the federated arm -- everything that trains via the newer
+`marl_training.run_episodes_marl` path -- diverged substantially, with
+differences far too large (e.g. one seed's compliance moving from 0.006
+to 0.240) to be explained by ordinary floating-point summation-order
+noise.
+
+**Root cause, confirmed by reading the code, not guessed:**
+`mc_runner.py`'s `set_seeds()` calls `torch.manual_seed(seed)` (which is
+why `single_agent_dqn` is fine); `run_episodes_marl` only ever called
+`np.random.seed(seed)`. Every MARL policy's weight initialization
+(`nn.init.xavier_uniform_` in `GATLayer`, `nn.Linear`'s own default
+`reset_parameters` in `AgentQHead`) draws from torch's global RNG at
+**construction time** -- which happens in the calling script
+(`m2_run_experiment.py`/`m3_run_experiment.py`), *before*
+`run_episodes_marl` is even called. So even a defense-in-depth
+`torch.manual_seed(seed)` inside `run_episodes_marl` itself would be too
+late to fix weight init; the real fix has to happen at the call site,
+immediately before each policy is constructed.
+
+**Fix, verified before trusting it:** `torch.manual_seed(seed)` added
+immediately before every `GatCtdeMarlPolicy(...)` /
+`IndependentPerGnbDqnPolicy(...)` / `FederatedGatPolicy(...)`
+construction in `m2_run_experiment.py`/`m3_run_experiment.py`, plus the
+same call added inside `run_episodes_marl` itself for defense in depth
+against any other torch randomness later in the loop (currently none in
+practice -- `GATEncoder`'s dropout defaults to 0.0/off). Verified
+directly, not assumed: ran the same seed through two **separate process
+invocations** and confirmed the resulting checkpoint's weights are
+bit-identical (`torch.equal` on every tensor) and the eval omega logs
+are byte-for-byte identical; ran three *different* seeds and confirmed
+they still produce three different results, so the fix does not
+over-seed everything into one degenerate outcome. `m3_run_experiment.py`
+also gained the `_clear_seed_dir`-equivalent guard `m2_run_experiment.py`
+already had (docs/PAPER5_M2_gat_ctde.md section 14) -- it had never
+actually hit the append-contamination bug in practice (M3's committed
+logs were independently confirmed clean earlier), but had no guard
+against it either.
+
+**What this means for the already-committed M2/M3/M4 numbers: nothing
+needs correcting.** Unlike the eval-log append-contamination bug
+(section 14), this bug does not make any reported number wrong -- each
+of the 30 `gat_ctde` seeds (etc.) is still a genuine, honestly-obtained
+outcome of a real training+eval run, and the paired statistical
+comparisons (Wilcoxon signed-rank across the 30 real pairs that
+actually happened) remain valid regardless. What it means is narrower:
+**"seed" for `gat_ctde`/`independent_dqn`/the federated arm has always
+controlled the environment and exploration randomness, but never the
+network's initial weights** -- so re-running "seed 900" was never
+actually reproducing the original seed-900 run in the full sense before
+this fix, only in the environment-realization sense. Both the same-seed
+`reproduction_check/` run above and any fresh-seed replication run
+*before* this fix was applied inherit that same property; both fixed
+scripts now produce genuinely fully-seeded results going forward.
+Given `reproduce_paper5_full.sh`'s own same-seed run had already served
+its purpose (finding this exact bug) once, it was not re-run after the
+fix purely to re-confirm something already decisively verified at
+smaller scale above -- but doing so would now be expected to reproduce
+`gat_ctde`/`independent_dqn`/the federated arm exactly too, not just M1
+and `single_agent_dqn`.
 
 ## Known, already-disclosed reproducibility caveats
 

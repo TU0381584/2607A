@@ -31,7 +31,13 @@
 #   experiments/scripts/reproduce_paper5_full.sh [OUT_ROOT]
 #   OUT_ROOT defaults to experiments/results/reproduction_check
 
-set -uo pipefail
+set -euo pipefail
+# -e: a killed/failed stage (e.g. an interrupted python3 | tee pipeline --
+# real incident this session: a partial kill of one stage's python process
+# left the wrapper script silently continuing into the NEXT stage against
+# incomplete prior output, since pipefail alone does not stop the script,
+# only marks that one pipeline's exit status) must stop this script, not
+# silently fall through to the next stage against incomplete data.
 
 REPO_ROOT="/home/kmanojp/oranslice_rig"
 OUT_ROOT="${1:-${REPO_ROOT}/experiments/results/reproduction_check}"
