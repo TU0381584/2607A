@@ -81,18 +81,21 @@ def per_seed_metrics_normalized(eval_omega_path: str):
     return mean_reward_per_pending_request, mmtc_blocks, total_blocks
 
 
-M2_CAMPAIGN_DIR = "/home/kmanojp/oranslice_rig/experiments/results/m2_campaign"
-M3_CAMPAIGN_DIR = "/home/kmanojp/oranslice_rig/experiments/results/m3_campaign"
+DEFAULT_M2_CAMPAIGN_DIR = "/home/kmanojp/oranslice_rig/experiments/results/m2_campaign"
+DEFAULT_M3_CAMPAIGN_DIR = "/home/kmanojp/oranslice_rig/experiments/results/m3_campaign"
 
 
-def baseline_eval_path(arm: str, seed: int) -> str:
+def baseline_eval_path(arm: str, seed: int, m2_campaign_dir: str = DEFAULT_M2_CAMPAIGN_DIR,
+                        m3_campaign_dir: str = DEFAULT_M3_CAMPAIGN_DIR) -> str:
     """The arm's own already-existing, UNDISRUPTED eval log -- same path
-    convention m2/m3_correctness_metrics.py already use, not a new one."""
+    convention m2/m3_correctness_metrics.py already use, not a new one.
+    Defaults point at the committed campaigns; override both to compare
+    against a fresh from-scratch reproduction's own baseline instead."""
     if arm == "fl_gat_ctde_sigma0.0":
-        return f"{M3_CAMPAIGN_DIR}/fl_gat_ctde_sigma0.0/seed{seed}/eval/omega_log.jsonl"
+        return f"{m3_campaign_dir}/fl_gat_ctde_sigma0.0/seed{seed}/eval/omega_log.jsonl"
     if arm == "single_agent_dqn":
-        return f"{M2_CAMPAIGN_DIR}/single_agent_dqn/seed{seed}/eval/dqn/offline_eval/rep_0/omega_log.jsonl"
-    return f"{M2_CAMPAIGN_DIR}/{arm}/seed{seed}/eval/omega_log.jsonl"
+        return f"{m2_campaign_dir}/single_agent_dqn/seed{seed}/eval/dqn/offline_eval/rep_0/omega_log.jsonl"
+    return f"{m2_campaign_dir}/{arm}/seed{seed}/eval/omega_log.jsonl"
 
 
 def disrupted_eval_path(m4_campaign_dir: str, arm: str, severity_label: str, seed: int) -> str:
@@ -103,6 +106,8 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--m4-results", default="/home/kmanojp/oranslice_rig/experiments/results/m4_campaign/campaign_results.json")
     ap.add_argument("--m4-campaign-dir", default="/home/kmanojp/oranslice_rig/experiments/results/m4_campaign")
+    ap.add_argument("--m2-campaign-dir", default=DEFAULT_M2_CAMPAIGN_DIR)
+    ap.add_argument("--m3-campaign-dir", default=DEFAULT_M3_CAMPAIGN_DIR)
     args = ap.parse_args()
 
     with open(args.m4_results) as fh:
@@ -123,7 +128,7 @@ def main() -> None:
         disrupted_precisions = []
         for seed in seeds:
             d_path = disrupted_eval_path(args.m4_campaign_dir, arm, severity_label, seed)
-            b_path = baseline_eval_path(arm, seed)
+            b_path = baseline_eval_path(arm, seed, args.m2_campaign_dir, args.m3_campaign_dir)
             if not Path(d_path).exists() or not Path(b_path).exists():
                 continue
             d_norm, d_mmtc, d_total = per_seed_metrics_normalized(d_path)

@@ -60,12 +60,18 @@ EVAL_SEED_OFFSET = 5000  # matches M2/M3's own convention
 CHURN_FRESH_POLICY_SEED_OFFSET = 800000  # disjoint from every other seed use in this project
 EVAL_EPISODES = 50
 
-M2_CKPT = {
-    "gat_ctde": f"{REPO_ROOT}/experiments/results/m2_campaign/gat_ctde/seed{{seed}}/train/checkpoint.pt",
-    "independent_dqn": f"{REPO_ROOT}/experiments/results/m2_campaign/independent_dqn/seed{{seed}}/train/checkpoint.pt",
-    "single_agent_dqn": f"{REPO_ROOT}/experiments/results/m2_campaign/single_agent_dqn/seed{{seed}}/train/dqn/offline_train/rep_0/checkpoint.pt",
-}
-M3_CKPT = f"{REPO_ROOT}/experiments/results/m3_campaign/fl_gat_ctde_sigma0.0/seed{{seed}}/train/checkpoint.pt"
+DEFAULT_M2_CAMPAIGN_DIR = f"{REPO_ROOT}/experiments/results/m2_campaign"
+DEFAULT_M3_CAMPAIGN_DIR = f"{REPO_ROOT}/experiments/results/m3_campaign"
+
+
+def m2_checkpoint_path(arm: str, seed: int, m2_campaign_dir: str) -> str:
+    if arm == "single_agent_dqn":
+        return f"{m2_campaign_dir}/single_agent_dqn/seed{seed}/train/dqn/offline_train/rep_0/checkpoint.pt"
+    return f"{m2_campaign_dir}/{arm}/seed{seed}/train/checkpoint.pt"
+
+
+def m3_checkpoint_path(seed: int, m3_campaign_dir: str) -> str:
+    return f"{m3_campaign_dir}/fl_gat_ctde_sigma0.0/seed{seed}/train/checkpoint.pt"
 
 # Severity axis, matching the approved M4 plan: dropout/churn sweep window
 # DURATION (10/30/60% of a 60-step episode); spike sweeps arrival-rate
@@ -99,29 +105,36 @@ def build_disruption_template(kind: str, severity: int, episode_length: int) -> 
     raise ValueError(f"unknown disruption kind {kind!r}")
 
 
-def load_frozen_policy(arm: str, seed: int, cfg, n_agents: int, node_dim: int, ctx_dim: int, adj):
+def load_frozen_policy(arm: str, seed: int, cfg, n_agents: int, node_dim: int, ctx_dim: int, adj,
+                        m2_campaign_dir: str = DEFAULT_M2_CAMPAIGN_DIR,
+                        m3_campaign_dir: str = DEFAULT_M3_CAMPAIGN_DIR):
     """Constructs the class matching `arm` and loads its already-trained
     checkpoint. Never trains. Raises loudly (strict=True internally, or an
     unhandled KeyError/RuntimeError) on any architecture mismatch -- the
-    same discipline m2_run_experiment.py's resume logic established."""
+    same discipline m2_run_experiment.py's resume logic established.
+    m2_campaign_dir/m3_campaign_dir default to the committed campaign
+    results but can point at a fresh from-scratch reproduction's own
+    checkpoints instead (docs/PAPER5_REPRODUCIBILITY.md)."""
     if arm == "gat_ctde":
         policy = GatCtdeMarlPolicy(n_agents, node_dim, ctx_dim, ACTION_DIM, adj)
-        policy.load_checkpoint(M2_CKPT["gat_ctde"].format(seed=seed))
+        policy.load_checkpoint(m2_checkpoint_path("gat_ctde", seed, m2_campaign_dir))
     elif arm == "independent_dqn":
         policy = IndependentPerGnbDqnPolicy(n_agents, node_dim, ctx_dim, ACTION_DIM)
-        policy.load_checkpoint(M2_CKPT["independent_dqn"].format(seed=seed))
+        policy.load_checkpoint(m2_checkpoint_path("independent_dqn", seed, m2_campaign_dir))
     elif arm == "single_agent_dqn":
         policy = build_policy("dqn", cfg)
-        policy.load_checkpoint(M2_CKPT["single_agent_dqn"].format(seed=seed))
+        policy.load_checkpoint(m2_checkpoint_path("single_agent_dqn", seed, m2_campaign_dir))
     elif arm == "fl_gat_ctde_sigma0.0":
         policy = FederatedGatPolicy(n_agents, node_dim, ctx_dim, ACTION_DIM, adj)
-        policy.load_checkpoint(M3_CKPT.format(seed=seed))
+        policy.load_checkpoint(m3_checkpoint_path(seed, m3_campaign_dir))
     else:
         raise ValueError(f"unknown arm {arm!r}")
     return policy
 
 
-def run_marl_arm_condition(arm: str, seed: int, kind: str, severity: int, out_dir: str) -> dict:
+def run_marl_arm_condition(arm: str, seed: int, kind: str, severity: int, out_dir: str,
+                            m2_campaign_dir: str = DEFAULT_M2_CAMPAIGN_DIR,
+                            m3_campaign_dir: str = DEFAULT_M3_CAMPAIGN_DIR) -> dict:
     """gat_ctde / independent_dqn / fl_gat_ctde_sigma0.0: all three already
     speak run_episodes_marl's select_actions(node_features, requests, training)
     interface, so this reuses that loop wholesale via its disruption= hook."""
@@ -133,7 +146,7 @@ def run_marl_arm_condition(arm: str, seed: int, kind: str, severity: int, out_di
     adj = build_adjacency(n_agents)
     kpm_factory = make_kpm_source_factory(cfg, sd_for_slice)
 
-    policy = load_frozen_policy(arm, seed, cfg, n_agents, node_dim, ctx_dim, adj)
+    policy = load_frozen_policy(arm, seed, cfg, n_agents, node_dim, ctx_dim, adj, m2_campaign_dir, m3_campaign_dir)
 
     fresh_policy = None
     if kind == "churn":
@@ -164,7 +177,8 @@ def run_marl_arm_condition(arm: str, seed: int, kind: str, severity: int, out_di
     return summary
 
 
-def run_single_agent_condition(seed: int, kind: str, severity: int, out_dir: str) -> dict:
+def run_single_agent_condition(seed: int, kind: str, severity: int, out_dir: str,
+                                m2_campaign_dir: str = DEFAULT_M2_CAMPAIGN_DIR) -> dict:
     """single_agent_dqn: no separable per-gNB agent (one shared policy over
     the flattened joint state), so churn does not apply here (see
     docs/PAPER5_M4_disruption.md's scope note) -- only dropout/spike."""
@@ -177,7 +191,7 @@ def run_single_agent_condition(seed: int, kind: str, severity: int, out_dir: str
     n_slices = len(cfg.slices)
 
     policy = build_policy("dqn", cfg)
-    policy.load_checkpoint(M2_CKPT["single_agent_dqn"].format(seed=seed))
+    policy.load_checkpoint(m2_checkpoint_path("single_agent_dqn", seed, m2_campaign_dir))
 
     spec = build_disruption_template(kind, severity, cfg.episode.steps_per_episode)
     base_arrivals = cfg.arrivals.synthetic_arrivals_per_step
@@ -289,10 +303,12 @@ def run_single_agent_condition(seed: int, kind: str, severity: int, out_dir: str
     }
 
 
-def run_condition(arm: str, seed: int, kind: str, severity: int, out_dir: str) -> dict:
+def run_condition(arm: str, seed: int, kind: str, severity: int, out_dir: str,
+                   m2_campaign_dir: str = DEFAULT_M2_CAMPAIGN_DIR,
+                   m3_campaign_dir: str = DEFAULT_M3_CAMPAIGN_DIR) -> dict:
     if arm == "single_agent_dqn":
-        return run_single_agent_condition(seed, kind, severity, out_dir)
-    return run_marl_arm_condition(arm, seed, kind, severity, out_dir)
+        return run_single_agent_condition(seed, kind, severity, out_dir, m2_campaign_dir)
+    return run_marl_arm_condition(arm, seed, kind, severity, out_dir, m2_campaign_dir, m3_campaign_dir)
 
 
 def main() -> None:
@@ -303,9 +319,14 @@ def main() -> None:
     ap.add_argument("--kind", required=True, choices=["dropout", "spike", "churn"])
     ap.add_argument("--severity", type=int, required=True, choices=[1, 2, 3])
     ap.add_argument("--out-dir", default=f"{REPO_ROOT}/experiments/results/m4_campaign")
+    ap.add_argument("--m2-campaign-dir", default=DEFAULT_M2_CAMPAIGN_DIR,
+                     help="Where to load M2 checkpoints from -- override to point at a fresh reproduction.")
+    ap.add_argument("--m3-campaign-dir", default=DEFAULT_M3_CAMPAIGN_DIR,
+                     help="Where to load the M3 federated checkpoint from -- override for a fresh reproduction.")
     args = ap.parse_args()
 
-    summary = run_condition(args.arm, args.seed, args.kind, args.severity, args.out_dir)
+    summary = run_condition(args.arm, args.seed, args.kind, args.severity, args.out_dir,
+                             args.m2_campaign_dir, args.m3_campaign_dir)
     print(f"[m4] arm={args.arm} seed={args.seed} kind={args.kind} severity={args.severity}: "
           f"sla_compliance_all_slices={summary['sla_compliance_all_slices']:.4f}")
 

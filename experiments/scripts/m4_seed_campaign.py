@@ -41,6 +41,10 @@ def main() -> None:
     ap.add_argument("--kinds", nargs="+", default=DEFAULT_KINDS, choices=DEFAULT_KINDS)
     ap.add_argument("--severities", type=int, nargs="+", default=DEFAULT_SEVERITIES, choices=[1, 2, 3])
     ap.add_argument("--out-dir", default="/home/kmanojp/oranslice_rig/experiments/results/m4_campaign")
+    ap.add_argument("--m2-campaign-dir", default=m4.DEFAULT_M2_CAMPAIGN_DIR,
+                     help="Where to load M2 checkpoints from -- override to point at a fresh reproduction.")
+    ap.add_argument("--m3-campaign-dir", default=m4.DEFAULT_M3_CAMPAIGN_DIR,
+                     help="Where to load the M3 federated checkpoint from -- override for a fresh reproduction.")
     ap.add_argument("--force", action="store_true", help="Re-run cells even if already present in campaign_results.json")
     args = ap.parse_args()
 
@@ -70,7 +74,8 @@ def main() -> None:
             n_skipped += 1
             continue
 
-        summary = m4.run_condition(arm, seed, kind, severity, args.out_dir)
+        summary = m4.run_condition(arm, seed, kind, severity, args.out_dir,
+                                    args.m2_campaign_dir, args.m3_campaign_dir)
         all_results[key] = {
             "arm": arm, "kind": kind, "severity": severity, "seed": seed,
             "sla_compliance_all_slices": summary["sla_compliance_all_slices"],
