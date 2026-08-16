@@ -6,8 +6,10 @@ actual unit the Wilcoxon signed-rank test in Section results-m2 is
 computed over, so the plot shows the same thing the p-value summarizes,
 not a lossy proxy of it); (b) a per-seed reward strip across all three
 arms, with gat_ctde split into "differentiated" (any block) vs. "still
-collapsed" (zero blocks) -- the 22/8 split from docs/PAPER5_M2_gat_ctde.md
-section 12. Deliberately NOT claiming differentiated seeds score higher:
+collapsed" (zero blocks) -- the 21/9 split from docs/PAPER5_M2_gat_ctde.md
+section 12 (corrected from an originally-reported 22/8 after fixing an
+eval-log append-contamination bug -- see the doc's correction section).
+Deliberately NOT claiming differentiated seeds score higher:
 several still-collapsed seeds have the highest reward of the whole arm
 (always-accepting never pays the reject cost), so the strip is left to
 show that honestly rather than a caption asserting a trend the data does
@@ -29,6 +31,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.lines import Line2D
+from scipy import stats
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
@@ -88,9 +91,10 @@ def main() -> None:
     ax1.set_title(f"(a) Paired per-seed comparison (n={len(single)})")
 
     lo, hi = bootstrap_ci(diff)
+    _w_stat, w_p = stats.wilcoxon(gat, single)
     ax1.text(0.5, 0.02,
               f"mean $\\Delta$=+{diff.mean():.3f} [{lo:.2f}, {hi:.2f}]\n"
-              f"Wilcoxon $p$=0.0001",
+              f"Wilcoxon $p$={w_p:.4f}",
               transform=ax1.transAxes, ha="center", va="bottom", fontsize=6.5,
               bbox=dict(boxstyle="round,pad=0.3", facecolor="#fcfcfb", edgecolor="#c3c2b7", linewidth=0.6))
 

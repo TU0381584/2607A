@@ -35,25 +35,32 @@ episode-level SLA-compliance metric could not detect this, since it
 happened to score the collapsed policy no worse than several
 genuinely-differentiated ones. Two encoder fixes -- per-layer
 LayerNorm, then per-slice Q-heads that isolate each slice's gradient
-signal -- reduce the collapse rate from 30/30 to 8/30 seeds, and we
+signal -- reduce the collapse rate from 30/30 to 9/30 seeds, and we
 introduce a correctness-aware evaluation pair (mean reward per step
 and block precision, both derived from data every arm already logs)
 that the compliance metric cannot substitute for. On mean reward per
-step, GAT-CTDE beats the single-agent baseline with a paired
-difference of +0.442 (95\% CI [0.261, 0.655], Wilcoxon
-$p=0.0001$, 23 wins / 2 ties / 5 losses out of 30 seeds). We then
-build a federated variant, in which each gNB trains locally and
-synchronizes via periodic FedAvg with a DP-SGD-style per-client
-gradient clip and calibrated Gaussian noise, and find that federating
-the architecture costs a small, borderline-significant amount of
-reward (+0.422, $p=0.055$), while differential privacy shows a real
-threshold effect on block precision -- perfect targeting through
-noise multiplier $\sigma=1.0$, dropping sharply by $\sigma=4.0$ --
-rather than the compliance metric's misleading, non-monotonic curve
-at the same noise levels. These results argue that admission-control
-evaluation in multi-agent, privacy-constrained settings needs metrics
-tied to the actual training objective, not only to a downstream SLA
-proxy that can reward the wrong policy.
+step, GAT-CTDE decisively beats an independent-per-gNB-DQN ablation
+that isolates the same GAT/centralized-training contribution (+1.461,
+95\% CI [0.550, 2.782], Wilcoxon $p<0.0001$, 27 wins / 0 ties / 3
+losses), but its advantage over our existing single-agent baseline is
+small and not statistically decisive at this sample size (+0.195,
+95\% CI [$-$0.017, 0.442], Wilcoxon $p=0.0577$, 20 wins / 3 ties / 7
+losses out of 30 seeds) -- a more modest finding than we originally
+reported, corrected after catching a second data-integrity bug with
+the same discipline the collapse diagnosis required
+(Section~\ref{sec:collapse}). We then build a federated variant, in
+which each gNB trains locally and synchronizes via periodic FedAvg
+with a DP-SGD-style per-client gradient clip and calibrated Gaussian
+noise, and find that federating the architecture costs nothing
+measurable in reward at this sample size (+0.133, $p=0.8125$), while
+differential privacy shows a real threshold effect on block precision
+-- perfect targeting through noise multiplier $\sigma=1.0$, dropping
+sharply by $\sigma=4.0$ -- rather than the compliance metric's
+misleading, non-monotonic curve at the same noise levels. These
+results argue that admission-control evaluation in multi-agent,
+privacy-constrained settings needs metrics tied to the actual training
+objective, not only to a downstream SLA proxy that can reward the
+wrong policy.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -98,9 +105,10 @@ ever recovering it once a stress episode is underway. We introduce two
 fixes and a pair of correctness-aware metrics that expose this gap
 directly. Third, we extend GAT-CTDE to a federated training regimen
 with differential privacy, and characterize both the cost of
-federating (small, not clearly significant at our sample size) and
-the cost of privacy (a real threshold in decision precision, not a
-smooth compliance tradeoff), using the same correctness-aware metrics.
+federating (statistically indistinguishable from zero at our sample
+size) and the cost of privacy (a real threshold in decision precision,
+not a smooth compliance tradeoff), using the same correctness-aware
+metrics.
 
 \authorTODO{Literature review section deferred -- to be written and
 inserted after this Introduction once the related-work survey is
@@ -298,7 +306,7 @@ every node's embedding to zero-mean, unit-variance regardless of input
 magnitude. This is a real, verified improvement -- collapse drops from
 30/30 to 27/30 seeds -- but not a complete fix. We then apply the
 per-slice Q-heads described in Section~\ref{sec:methodology-perslice},
-which reduces collapse further, to 8/30 seeds
+which reduces collapse further, to 9/30 seeds
 (Fig.~\ref{fig:collapse}). We verified each fix on a small pilot before
 committing to a full campaign's compute budget, and we tested one
 further variant, disabling LayerNorm's learnable affine transform, that
@@ -315,6 +323,36 @@ congestion), across the original unnormalized encoder and the two
 fixes described in Section~\ref{sec:collapse}.}
 \label{fig:collapse}
 \end{figure}
+
+\subsection{A Second Bug: Eval-Log Contamination}
+\label{sec:eval-log-bug}
+A separate, unrelated bug was caught while building an evaluation-time
+disruption harness for planned future work (Section~\ref{sec:conclusion}):
+our logging utility opens its output file in append mode and never
+truncates it, and GAT-CTDE was retrained in place three times over the
+course of diagnosing and fixing the collapse above (the original
+encoder, the LayerNorm-only fix, and the per-slice-heads fix), each
+time writing evaluation results to the same per-seed path. Because
+nothing cleared that path between runs, every one of the 30 seeds'
+evaluation logs had silently accumulated all three runs' episodes
+stacked together -- confirmed directly by each log's own episode index
+resetting to 1 twice. Every GAT-CTDE number reported through an
+earlier draft of this paper, and every M3 result that reuses GAT-CTDE's
+centralized evaluation as a reference point
+(Section~\ref{sec:results-m3}), was therefore a hidden three-way
+average across two architecturally-obsolete runs and the true final
+one, not the final architecture's behavior alone. The saved model
+checkpoints themselves were unaffected (a different save routine
+overwrites rather than appends, verified by reproducing one seed's
+final-block statistics exactly from its checkpoint in isolation), so
+the fix required no retraining: we cleared every stale log and
+re-ran evaluation once, cleanly, against the already-trained
+checkpoints, and hardened the training script to clear its output
+path before any future run. All numbers in this paper reflect that
+corrected data; the magnitude of the correction is largest on exactly
+the paired comparisons this section's own diagnostic discipline exists
+to protect, which is why we report it here rather than silently
+revising the numbers.
 
 \subsection{Correctness-Aware Metrics}
 \label{sec:correctness-metrics}
@@ -375,12 +413,13 @@ nonparametric methods.
 \caption{30-seed campaign, per-seed evidence for mean reward per step,
 the correctness-aware metric (Section~\ref{sec:correctness-metrics}).
 (a) Paired per-seed comparison against single-agent DQN: each line is
-one seed, colored by whether GAT-CTDE scored higher (green, 23),
-tied (gray, 2), or lower (red, 5) than the baseline on that seed --
-the same paired unit the Wilcoxon test is computed over. (b) Full
+one seed, colored by whether GAT-CTDE scored higher (green, 20),
+tied (gray, 3), or lower (red, 7) than the baseline on that seed --
+the same paired unit the Wilcoxon test is computed over, and the
+source of this figure's borderline $p=0.0577$. (b) Full
 per-seed distribution for all three arms; GAT-CTDE is split into seeds
-that learned genuine differentiated shedding (blue, 22) versus seeds
-still stuck at the always-accept collapse (gray $\times$, 8) -- shown
+that learned genuine differentiated shedding (blue, 21) versus seeds
+still stuck at the always-accept collapse (gray $\times$, 9) -- shown
 without claiming the split predicts reward, since several
 still-collapsed seeds score among the arm's highest (always accepting
 never pays the reject cost).}
@@ -389,19 +428,25 @@ never pays the reject cost).}
 
 Table~\ref{tab:m2-results} and Fig.~\ref{fig:m2-campaign} report the
 final, post-fix 30-seed campaign. On \texttt{sla\_compliance\_all\_slices},
-GAT-CTDE's mean is 0.230, below its own pre-fix number (0.353) for the
+GAT-CTDE's mean is 0.151, below its own pre-fix number (0.353) for the
 reason given in Section~\ref{sec:correctness-metrics} -- the metric
 penalizes newly-correct mmTC-blocking decisions -- and the paired
-comparison against single-agent DQN is positive but modest: +0.116
-(95\% CI [0.036, 0.196], Wilcoxon $p=0.0099$, 19 wins / 4 ties / 7
+comparison against single-agent DQN shows no clear direction: +0.036
+(95\% CI [$-$0.050, 0.126], Wilcoxon $p=0.4549$, 11 wins / 9 ties / 10
 losses). On mean reward per step, the metric that reflects the actual
-objective, GAT-CTDE beats both baselines decisively: +0.442 over
-single-agent DQN (95\% CI [0.261, 0.655], $p=0.0001$, 23/2/5), and its
-block precision (0.955) is high, meaning that when GAT-CTDE does
-block a request, it is almost always the reward-correct slice. 22 of
-the 30 seeds now show genuine, correctly-targeted differentiated
-shedding (21 of those 22 blocking mmTC exclusively), up from 3/30
-under the LayerNorm-only fix and 0/30 originally.
+objective, GAT-CTDE beats the independent-DQN ablation decisively --
++1.461 (95\% CI [0.550, 2.782], $p<0.0001$, 27/0/3), isolating a real
+contribution from the shared GAT encoder and centralized training --
+but its edge over single-agent DQN is small and does not clear
+conventional significance at this sample size: +0.195 (95\% CI
+[$-$0.017, 0.442], $p=0.0577$, 20/3/7). Its block precision (0.952) is
+high regardless, meaning that when GAT-CTDE does block a request, it
+is almost always the reward-correct slice. 21 of the 30 seeds now show
+genuine, correctly-targeted differentiated shedding (20 of those 21
+blocking mmTC exclusively), up from 3/30 under the LayerNorm-only fix
+and 0/30 originally -- a real, substantial behavioral improvement that,
+at this sample size, does not by itself translate into a decisive
+reward edge over the single-agent baseline specifically.
 
 \begin{table}[t]
 \caption{M2 campaign results, 30 seeds/arm, 95\% bootstrap CIs.}
@@ -412,7 +457,7 @@ under the LayerNorm-only fix and 0/30 originally.
 \toprule
 Arm & Compliance & Mean reward/step & Block precision \\
 \midrule
-GAT-CTDE & 0.230 [0.169, 0.293] & \textbf{14.309} [14.17, 14.45] & 0.955 \\
+GAT-CTDE & 0.151 [0.083, 0.225] & \textbf{14.062} [13.91, 14.23] & 0.952 \\
 Indep. DQN & 0.049 [0.013, 0.093] & 12.601 [11.30, 13.49] & 0.901 \\
 Single-agent & 0.115 [0.061, 0.176] & 13.867 [13.69, 14.05] & 0.987 \\
 \bottomrule
@@ -428,8 +473,8 @@ Single-agent & 0.115 [0.061, 0.176] & 13.867 [13.69, 14.05] & 0.987 \\
 \includegraphics[width=0.92\textwidth]{figures/fig4_m3_privacy.pdf}
 \caption{Federated GAT-CTDE, per-seed evidence. (a) Paired per-seed
 federation cost on mean reward per step (same 10 seeds): centralized
-training scores higher on 6 seeds, federated on 3, with 1 tie --
-a real but borderline-significant edge (Wilcoxon $p=0.055$), shown as
+training scores higher on 2 seeds, federated on 3, with 5 ties --
+no measurable difference (Wilcoxon $p=0.8125$), shown as
 individual seed trajectories rather than two independent bars, since
 the significance test itself is paired. (b) Privacy-utility curve
 using block precision, the metric that survives the compliance-based
@@ -444,9 +489,10 @@ $\sigma=1.0$ and drops sharply by $\sigma=4.0$.}
 \subsection{Federation Cost}
 Comparing the centralized GAT-CTDE campaign against the federated
 variant with no DP noise, on the same 10 seeds: mean reward per step
-drops from 14.362 to 13.940, a paired difference of +0.422 (95\% CI
-[0.134, 0.727], Wilcoxon $p=0.055$) -- a real, consistent-direction
-cost that does not reach significance at this sample size. Both arms'
+moves from 14.073 to 13.940, a paired difference of +0.133 (95\% CI
+[$-$0.138, 0.470], Wilcoxon $p=0.8125$) -- no measurable cost to
+federating at this sample size (5 of the 10 seeds tie exactly, and the
+remaining seeds split 2 centralized / 3 federated). Both arms'
 block precision is perfect (1.000) on the seeds that block anything at
 all.
 
@@ -500,16 +546,19 @@ backhaul, even under one operator) rather than with a privacy
 motivation we cannot substantiate at this scale.
 
 \section{Conclusion and Future Work}
+\label{sec:conclusion}
 We built and iteratively fixed a GAT-CTDE architecture for coordinated
-multi-gNB slice admission control, found and diagnosed a training
-collapse that a standard compliance metric could not detect, and
-showed that on a correctness-aware reward metric the architecture
-delivers a decisive, statistically significant improvement over both
-an independent-learner ablation and our existing single-agent
-baseline. Extending the architecture to federated training with
-differential privacy, we found federation nearly free and privacy
-costly only past a real threshold in decision precision, not a smooth
-tradeoff. Future work extends this same architecture and the same
+multi-gNB slice admission control, found and diagnosed two failures a
+standard compliance metric and an unguarded append-only log could not
+have caught on their own -- a training collapse and a hidden
+eval-data contamination bug -- and showed that on a correctness-aware
+reward metric the architecture delivers a decisive, statistically
+significant improvement over an independent-learner ablation, though
+its edge over our existing single-agent baseline specifically is small
+and not decisive at this sample size. Extending the architecture to
+federated training with differential privacy, we found federation to
+add no measurable reward cost and privacy costly only past a real
+threshold in decision precision, not a smooth tradeoff. Future work extends this same architecture and the same
 correctness-aware evaluation to a disruption-resilience setting --
 mid-episode gNB dropout, demand spikes, and client churn -- evaluated
 against the frozen policies reported here, testing the prediction this

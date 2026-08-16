@@ -11,6 +11,14 @@ was established by direct inspection of every seed's eval omega log
 30-seed re-runs. No number here is invented -- all three are cited
 directly from the campaign data already committed.
 
+The per-slice-heads count (21/30, not the originally-reported 22/30) was
+corrected after discovering OmegaLogger's append-only file mode had
+silently stacked three retrain-in-place runs' eval episodes into every
+gat_ctde seed's log; see docs/PAPER5_M2_gat_ctde.md's correction section
+and experiments/scripts/m2_reeval_gat_ctde.py, which re-ran eval cleanly
+against the (unaffected -- torch.save overwrites, never appends)
+already-trained checkpoints.
+
 Usage:
     python3 experiments/plots/paper5_fig2_collapse_reduction.py \
         --out paper5/figures/fig2_collapse_reduction
@@ -26,7 +34,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from paper5_common import M2_ARM_STYLE  # noqa: E402
 
 STAGES = ["No normalization\n(original)", "+ LayerNorm", "+ per-slice\nQ-heads"]
-DIFFERENTIATED = [0, 3, 22]  # out of 30 seeds each -- docs/PAPER5_M2_gat_ctde.md sections 11-12
+DIFFERENTIATED = [0, 3, 21]  # out of 30 seeds each -- docs/PAPER5_M2_gat_ctde.md sections 11-12
 N_SEEDS = 30
 
 

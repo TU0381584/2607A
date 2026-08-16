@@ -3,8 +3,12 @@
 (a) a paired slope chart, centralized GAT-CTDE -> federated/no-DP
 mean_reward_per_step, one line per seed (same 10 seeds), colored by
 whether federation cost or helped reward that seed -- the actual paired
-unit the borderline p=0.055 Wilcoxon result is computed over; (b) the
-block_precision vs. DP noise multiplier sigma privacy-utility curve,
+unit the Wilcoxon result (computed fresh below, not hardcoded -- an
+earlier version of this figure had the p-value baked in as a literal
+string, which silently went stale after the M2 gat_ctde eval-log
+correction; see docs/PAPER5_M2_gat_ctde.md's correction section) is
+computed over; (b) the block_precision vs. DP noise multiplier sigma
+privacy-utility curve,
 with individual per-seed points (jittered) shown behind the mean, and
 the number of seeds that ever blocked anything (precision is undefined
 for zero-block seeds, so this count shrinks and matters) printed at each
@@ -29,6 +33,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.lines import Line2D
+from scipy import stats
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
@@ -111,9 +116,10 @@ def main() -> None:
 
     diff_mean = diff_c_minus_f.mean()
     lo, hi = bootstrap_ci(diff_c_minus_f)
+    _w_stat, w_p = stats.wilcoxon(centralized_rewards, fl_no_dp_rewards)
     ax1.text(0.5, 0.02,
               f"mean $\\Delta$=+{diff_mean:.3f} [{lo:.2f}, {hi:.2f}]\n"
-              f"Wilcoxon $p$=0.055 (borderline)",
+              f"Wilcoxon $p$={w_p:.4f}",
               transform=ax1.transAxes, ha="center", va="bottom", fontsize=6.5,
               bbox=dict(boxstyle="round,pad=0.3", facecolor="#fcfcfb", edgecolor="#c3c2b7", linewidth=0.6))
 

@@ -44,6 +44,7 @@ relative-path note re: RANEnv's qoe-mapper checkpoint path):
 """
 import argparse
 import json
+import shutil
 import sys
 import time
 from pathlib import Path
@@ -119,6 +120,25 @@ def _checkpoint_matches_current_architecture(ckpt_path: str, probe_policy: "GatC
         return False
 
 
+def _clear_seed_dir(out_dir: str, tag: str, seed: int) -> None:
+    """Deletes seed<N>/ entirely before a fresh (non-resumed) train+eval
+    run. Real bug this guards against, discovered during M4's build:
+    OmegaLogger opens its output file in append ('a') mode and never
+    truncates -- gat_ctde was retrained in place three times across this
+    project's collapse-fix history (original, LayerNorm-only, per-slice-
+    heads), and because nothing ever cleared seed<N>/eval/omega_log.jsonl
+    between runs, every seed's eval log silently accumulated all three
+    runs' episodes stacked together (150 records instead of 50, confirmed
+    via the episode index resetting to 1 twice per file) -- every
+    downstream metric computed from that file was a hidden 3-way average
+    across two stale, architecturally-different runs and the true final
+    one. See docs/PAPER5_M2_gat_ctde.md's correction section for the full
+    diagnostic chain and its effect on the paper's headline numbers.
+    Independent_dqn/single_agent_dqn never triggered this (never retrained
+    in place) but get the same guard for future-proofing."""
+    shutil.rmtree(f"{out_dir}/{tag}/seed{seed}", ignore_errors=True)
+
+
 def run_gat_ctde_arm(cfg, sd_for_slice, seeds, train_episodes, eval_episodes, out_dir, tag,
                       resume_seeds=False):
     n_agents = len(cfg.gnb_ids)
@@ -144,6 +164,7 @@ def run_gat_ctde_arm(cfg, sd_for_slice, seeds, train_episodes, eval_episodes, ou
                 print(f"[m2:{tag}] seed={seed}: on-disk checkpoint does NOT match current architecture "
                       f"(stale from a different run) -- retraining, not resuming")
 
+        _clear_seed_dir(out_dir, tag, seed)
         policy = GatCtdeMarlPolicy(n_agents, node_dim, ctx_dim, ACTION_DIM, adj)
         env = RANEnv(cfg, kpm_factory(seed), seed=seed, reward_mode="sla")
         train_dir = f"{out_dir}/{tag}/seed{seed}/train"
@@ -176,6 +197,7 @@ def run_independent_dqn_arm(cfg, sd_for_slice, seeds, train_episodes, eval_episo
 
     results = {}
     for seed in seeds:
+        _clear_seed_dir(out_dir, tag, seed)
         policy = IndependentPerGnbDqnPolicy(n_agents, node_dim, ctx_dim, ACTION_DIM)
         env = RANEnv(cfg, kpm_factory(seed), seed=seed, reward_mode="sla")
         train_dir = f"{out_dir}/{tag}/seed{seed}/train"
@@ -205,6 +227,7 @@ def run_single_agent_dqn_arm(cfg, sd_for_slice, seeds, train_episodes, eval_epis
     kpm_factory = make_kpm_source_factory(cfg, sd_for_slice)
     results = {}
     for seed in seeds:
+        _clear_seed_dir(out_dir, tag, seed)
         train_dir = f"{out_dir}/{tag}/seed{seed}/train"
         run_mc(cfg, "dqn", kpm_factory, n_reps=1, episodes_per_rep=train_episodes, base_seed=seed,
                mode="offline_train", training=True, results_dir=train_dir, reward_mode="sla")

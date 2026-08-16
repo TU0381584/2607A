@@ -282,6 +282,35 @@ point, then a real drop), M4 should look for a similar threshold in
 disruption severity rather than assuming either pure graceful decay or a
 pure collapse-on-any-disruption cliff.
 
+## Correction: centralized reference data was contaminated (found while building M4)
+
+While actually building M4, a regression check surfaced a bug affecting
+`docs/PAPER5_M2_gat_ctde.md`'s `gat_ctde` eval logs (full account:
+that document's section 14) — `OmegaLogger` never truncates its output
+file, and `gat_ctde` was retrained in place three times, so every
+seed's eval log silently stacked three runs' episodes together. This
+document's own federated (`fl_gat_ctde_sigma*`) logs were **never
+affected** (confirmed: always exactly 50 records, never retrained in
+place) — only the **centralized reference point** this document's
+Federation Cost comparison pulls from M2 is. After M2's correction
+(clean eval re-run against the same, unaffected checkpoints — no
+federated arm needed retraining or re-evaluating):
+
+| Quantity | Contaminated (previously reported) | Corrected |
+|---|---|---|
+| centralized `gat_ctde` mean_reward_per_step | 14.362 [14.075,14.668] | 14.073 [13.797,14.417] |
+| Federation cost (paired diff) | +0.422 [0.134,0.727], p=0.055, 6/1/3 | +0.133 [-0.138,0.470], p=0.8125, 2/5/3 |
+
+The federation-cost finding changes from "small, real, borderline-
+significant cost" to **no measurable cost at all** (p=0.8125 is about
+as null a result as this test produces, and 5 of the 10 seeds now tie
+exactly). The privacy-cost sweep (block_precision and reward across
+σ) is **entirely unchanged** — every number in the Result section's
+correctness-aware table above sigma=0.0 through 4.0 stands as
+originally reported; only the centralized comparison point shifted.
+`paper5/main.tex`'s Federation Cost subsection and Fig. 4(a) reflect
+the corrected number.
+
 ## Acceptance status
 
 - [x] No frozen `qoe_oran_framework/` source modified.
@@ -337,3 +366,9 @@ pure collapse-on-any-disruption cliff.
       concrete reason (the compliance curve's sign flips between levels
       in a way the correctness curve's monotonic-ish pattern does not),
       rather than picking whichever story was more convenient.
+- [x] When M2's eval-log contamination bug surfaced, checked this
+      document's own logs directly rather than assuming they were fine
+      by association (confirmed clean: never retrained in place), and
+      corrected only the specific number that actually depended on the
+      contaminated data (the centralized reference point) rather than
+      re-running or second-guessing the unaffected privacy sweep.

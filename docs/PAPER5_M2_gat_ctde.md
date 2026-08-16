@@ -659,3 +659,74 @@ it can cover sections 11 and 12 as well.)
       11 and 12) once this section's verification was complete -- see
       that document for whether the same collapse/fix pattern, and the
       same metric-inversion effect, held there too.
+- [x] Section 14: found the eval-log append-contamination bug via a
+      regression check (not by chance), traced it to root cause before
+      touching any data, verified the fix reproduces the true final-
+      architecture numbers exactly before trusting it, and propagated
+      the correction through every downstream artifact (`main.tex`,
+      Table I, Figs. 2-4, this file, `PAPER5_M3_fl_dp.md`) rather than
+      only fixing the number the author happened to notice.
+
+## 14. Third bug: eval-log append contamination (found while building M4)
+
+While building an evaluation-time disruption harness for M4 (paused for
+this), a regression check re-ran `gat_ctde` seed 900's eval against its
+already-trained checkpoint and got a different `sla_compliance_all_slices`
+than the campaign's own recorded number (0.006 vs. 0.162). Root cause,
+confirmed directly rather than assumed: `OmegaLogger` opens its output
+file in append (`"a"`) mode and never truncates, and `gat_ctde` was
+retrained in place three times over the course of sections 11-12 (the
+original encoder, the LayerNorm-only fix, the per-slice-heads fix),
+each time writing eval results to the identical per-seed path. Nothing
+ever cleared that path between runs, so every one of the 30 seeds' eval
+logs had silently accumulated all three runs' 50-episode blocks stacked
+together (150 records, not 50 -- confirmed by each file's own episode
+index resetting to 1 twice). Every number this document and
+`paper5/main.tex` reported for `gat_ctde` was therefore a hidden
+three-way average across two architecturally-obsolete runs and the
+true final one, not the final architecture's behavior alone --
+`independent_dqn`/`single_agent_dqn` and every M3 log were unaffected
+(confirmed: never retrained in place, always exactly 50 records).
+
+**Verified before trusting it, same discipline as sections 11-12:**
+split each contaminated log into its three chronological blocks
+(splitting on the episode-index reset), confirmed the LAST block's
+seed-900 stats (0.006 compliance, 3506 blocks) exactly matched a fresh,
+independent eval of that seed's checkpoint run in isolation -- proving
+the checkpoints themselves were never corrupted (a different, non-
+appending save routine) and the fix needed no retraining, only a clean
+eval re-run. `m2_run_experiment.py` now clears `seed<N>/` before any
+future fresh run (`_clear_seed_dir`, applied to all three arms for
+future-proofing); `m2_reeval_gat_ctde.py` (new) re-ran eval once,
+cleanly, for all 30 seeds against the untouched checkpoints, and its
+per-seed outputs matched the independently-derived last-block numbers
+exactly, seed for seed -- two independent methods agreeing, not one
+trusted blindly.
+
+**Effect on the headline numbers** (all now corrected in
+`paper5/main.tex`, Table I, and Figs. 2-4):
+
+| Quantity | Contaminated (previously reported) | Corrected |
+|---|---|---|
+| GAT-CTDE compliance mean | 0.230 | 0.151 |
+| GAT-CTDE mean reward/step | 14.309 | 14.062 |
+| Differentiated seeds | 22/30 | 21/30 |
+| Paired reward diff vs. single-agent DQN | +0.442 [0.261,0.655], p=0.0001, 23/2/5 | **+0.195 [-0.017,0.442], p=0.0577, 20/3/7** |
+| Paired compliance diff vs. single-agent DQN | +0.116 [0.036,0.196], p=0.0099, 19/4/7 | +0.036 [-0.050,0.126], p=0.4549, 11/9/10 |
+
+The paper's headline claim -- "GAT-CTDE beats the single-agent baseline
+decisively, p=0.0001" -- does not survive the correction: the true
+paired reward effect is small and does not clear conventional
+significance (p=0.0577, 95% CI barely crosses zero). The
+`gat_ctde`-vs-`independent_dqn` comparison, unaffected in direction
+because `independent_dqn`'s own data was always clean, remains strongly
+significant on the corrected `gat_ctde` side too (+1.461
+[0.550,2.782], p<0.0001, 27/0/3) -- so the honest, corrected claim
+splits in two: GAT-CTDE clearly beats a naive independent-agent
+baseline (isolating a real GAT/centralized-training contribution), but
+does not clearly beat the already-competitive single-agent-on-
+flattened-state baseline at this sample size. M3's Federation Cost
+number is also corrected (it reuses these same `gat_ctde` logs as its
+centralized reference): +0.422 [0.134,0.727] p=0.055 (borderline) becomes
++0.133 [-0.138,0.470] p=0.8125 (no measurable cost) -- see
+`docs/PAPER5_M3_fl_dp.md`'s own correction note.
