@@ -38,7 +38,7 @@ from pathlib import Path
 sys.path.insert(0, "/home/kmanojp/oranslice_rig/experiments/scripts")
 import m3_run_experiment as m3  # noqa: E402
 
-SEEDS = list(range(900, 910))  # first 10 seeds of Block E's 30-seed campaign list
+DEFAULT_SEED_BASE = 900  # first 10 seeds of Block E's 30-seed campaign list, base..base+9
 NOISE_MULTIPLIERS = [0.0, 0.5, 1.0, 2.0, 4.0]
 
 
@@ -49,12 +49,18 @@ def main() -> None:
     ap.add_argument("--eval-episodes", type=int, default=50)
     ap.add_argument("--local-steps-per-round", type=int, default=50)
     ap.add_argument("--noise-multipliers", type=float, nargs="+", default=NOISE_MULTIPLIERS)
+    ap.add_argument("--seed-base", type=int, default=DEFAULT_SEED_BASE,
+                     help="First of 10 consecutive seeds -- override with the SAME base used for the "
+                          "matching M2 campaign (e.g. 1000) so the centralized-reference pairing this "
+                          "sweep's analysis relies on still lines up seed-for-seed.")
     args = ap.parse_args()
+
+    seeds = list(range(args.seed_base, args.seed_base + 10))
 
     cfg = m3.load_saclb_config(m3.CONFIG_PATH)
     sd_for_slice = {sid: spec.sd for sid, spec in cfg.slice_by_id.items()}
-    print(f"[privacy_sweep] {len(SEEDS)} seeds x {len(args.noise_multipliers)} noise levels: "
-          f"{SEEDS} x {args.noise_multipliers}")
+    print(f"[privacy_sweep] {len(seeds)} seeds x {len(args.noise_multipliers)} noise levels: "
+          f"{seeds} x {args.noise_multipliers}")
 
     out_path = Path(args.out_dir) / "campaign_results.json"
     all_results = {}
@@ -62,7 +68,7 @@ def main() -> None:
     if out_path.exists():
         with open(out_path) as fh:
             existing = json.load(fh)
-        assert existing["seeds"] == SEEDS, "resumed campaign seed list mismatch"
+        assert existing["seeds"] == seeds, "resumed campaign seed list mismatch"
         assert existing["train_episodes"] == args.train_episodes, "resumed campaign train_episodes mismatch"
         assert existing["eval_episodes"] == args.eval_episodes, "resumed campaign eval_episodes mismatch"
         all_results = existing["results"]
@@ -78,7 +84,7 @@ def main() -> None:
         tag = f"fl_gat_ctde_sigma{sigma}"
         print(f"[privacy_sweep] === noise_multiplier={sigma} ===")
         res = m3.run_fl_arm(
-            cfg, sd_for_slice, SEEDS, args.train_episodes, args.eval_episodes, args.out_dir, tag,
+            cfg, sd_for_slice, seeds, args.train_episodes, args.eval_episodes, args.out_dir, tag,
             aggregator="fedavg", fedprox_mu=0.0, dp_noise_multiplier=sigma,
             dp_clip_norm=1.0, local_steps_per_round=args.local_steps_per_round,
         )
@@ -87,7 +93,7 @@ def main() -> None:
         print(f"[privacy_sweep] sigma={sigma} done, cumulative elapsed {elapsed:.0f}s")
         out_path.parent.mkdir(parents=True, exist_ok=True)
         with open(out_path, "w") as fh:
-            json.dump({"seeds": SEEDS, "noise_multipliers": all_noise_multipliers,
+            json.dump({"seeds": seeds, "noise_multipliers": all_noise_multipliers,
                        "train_episodes": args.train_episodes, "eval_episodes": args.eval_episodes,
                        "local_steps_per_round": args.local_steps_per_round, "results": all_results}, fh, indent=2)
 

@@ -40,6 +40,41 @@ is interrupted (machine restart, session timeout), re-running it with
 the **same** `OUT_ROOT` picks up exactly where it left off, it does not
 restart from zero.
 
+## Independent-seed replication (not just same-seed reproduction)
+
+```bash
+experiments/scripts/reproduce_paper5_fresh_seeds.sh [OUT_ROOT] [SEED_BASE]
+```
+
+A stronger check than `reproduce_paper5_full.sh`'s same-seed
+determinism verification: retrains M2 (30 seeds), M3 (10 seeds x 5
+sigma), and M4 (10 seeds) from scratch under a **disjoint** seed range
+(default base 1000, i.e. seeds 1000-1029/1000-1009 instead of
+900-929/900-909) -- testing whether the paper's statistical findings
+(paired significance, the accelerating dropout/churn severity curves)
+hold up under an independent sample, not merely that the same seed
+reproduces the same number. `m2_seed_campaign.py`/`m3_privacy_sweep.py`
+both gained a `--seed-base` override for this (default unchanged, so
+every existing invocation is unaffected); `m4_seed_campaign.py` already
+had a `--seeds` override. M4's stage runs against this same script's own
+freshly-trained M2/M3 checkpoints via `--m2-campaign-dir`/
+`--m3-campaign-dir`, not the committed ones.
+
+**M1 is deliberately not part of this script.** It evaluates paper #4's
+real, historical live-hardware checkpoints (training seeds 256-261)
+against already-recorded live traffic from an actual OpenAirInterface
+testbed run -- there is no "fresh seed" retraining of a live testbed
+session to redo from this codebase. M1's own reproducibility (does the
+grid search / held-out eval reproduce on a clean run) is already fully
+covered by `reproduce_paper5_full.sh`.
+
+Output lands in an isolated `experiments/results/fresh_seed_retrain/`
+by default -- separate from both the committed results and the
+same-seed `reproduction_check/` directory. Since this and the same-seed
+reproduction are both real training campaigns competing for the same
+CPU budget, they are chained to run sequentially (fresh-seed starts
+automatically once the same-seed run exits), not in parallel.
+
 **Verify the result:**
 
 ```bash

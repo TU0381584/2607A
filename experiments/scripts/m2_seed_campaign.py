@@ -45,8 +45,11 @@ from pathlib import Path
 sys.path.insert(0, "/home/kmanojp/oranslice_rig/experiments/scripts")
 import m2_run_experiment as m2  # noqa: E402
 
-SEED_GROUPS = [list(range(900 + 3 * i, 903 + 3 * i)) for i in range(10)]  # 10 groups x 3 = 30 seeds
-ALL_SEEDS = [s for group in SEED_GROUPS for s in group]
+DEFAULT_SEED_BASE = 900  # 10 groups x 3 = 30 seeds, base..base+29
+
+
+def seed_groups_from(base: int):
+    return [list(range(base + 3 * i, base + 3 + 3 * i)) for i in range(10)]
 
 
 def main() -> None:
@@ -55,6 +58,10 @@ def main() -> None:
     ap.add_argument("--train-episodes", type=int, default=300)
     ap.add_argument("--eval-episodes", type=int, default=50)
     ap.add_argument("--arms", nargs="+", default=["gat_ctde", "independent_dqn", "single_agent_dqn"])
+    ap.add_argument("--seed-base", type=int, default=DEFAULT_SEED_BASE,
+                     help="First of 30 consecutive seeds (10 groups of 3), grouped identically to the "
+                          "original 900-929 campaign -- override with a disjoint range (e.g. 1000) for an "
+                          "independent-seed replication rather than a same-seed reproduction check.")
     ap.add_argument("--resume-seeds", action="store_true",
                      help="Skip seeds that already have a checkpoint+eval-log pair under --out-dir "
                           "(reload their compliance from the existing eval log instead of retraining). "
@@ -63,16 +70,19 @@ def main() -> None:
                           "_reload_eval_compliance docstring.")
     args = ap.parse_args()
 
+    seed_groups = seed_groups_from(args.seed_base)
+    all_seeds = [s for group in seed_groups for s in group]
+
     cfg = m2.load_saclb_config(m2.CONFIG_PATH)
     sd_for_slice = {sid: spec.sd for sid, spec in cfg.slice_by_id.items()}
-    print(f"[campaign] {len(ALL_SEEDS)} seeds ({len(SEED_GROUPS)} groups of 3): {ALL_SEEDS}")
+    print(f"[campaign] {len(all_seeds)} seeds ({len(seed_groups)} groups of 3), base={args.seed_base}: {all_seeds}")
 
     out_path = Path(args.out_dir) / "campaign_results.json"
     all_results = {}
     if out_path.exists():
         with open(out_path) as fh:
             existing = json.load(fh)
-        assert existing["seed_groups"] == SEED_GROUPS, "resumed campaign seed_groups mismatch"
+        assert existing["seed_groups"] == seed_groups, "resumed campaign seed_groups mismatch"
         all_results = existing["results"]
         print(f"[campaign] merging into existing {out_path}: "
               f"carrying over {[a for a in all_results if a not in args.arms]}, "
@@ -82,14 +92,14 @@ def main() -> None:
     for arm in args.arms:
         print(f"[campaign] === arm: {arm} ===")
         if arm == "gat_ctde":
-            res = m2.run_gat_ctde_arm(cfg, sd_for_slice, ALL_SEEDS, args.train_episodes,
+            res = m2.run_gat_ctde_arm(cfg, sd_for_slice, all_seeds, args.train_episodes,
                                        args.eval_episodes, args.out_dir, arm,
                                        resume_seeds=args.resume_seeds)
         elif arm == "independent_dqn":
-            res = m2.run_independent_dqn_arm(cfg, sd_for_slice, ALL_SEEDS, args.train_episodes,
+            res = m2.run_independent_dqn_arm(cfg, sd_for_slice, all_seeds, args.train_episodes,
                                               args.eval_episodes, args.out_dir, arm)
         elif arm == "single_agent_dqn":
-            res = m2.run_single_agent_dqn_arm(cfg, sd_for_slice, ALL_SEEDS, args.train_episodes,
+            res = m2.run_single_agent_dqn_arm(cfg, sd_for_slice, all_seeds, args.train_episodes,
                                                args.eval_episodes, args.out_dir, arm)
         else:
             raise ValueError(arm)
@@ -100,7 +110,7 @@ def main() -> None:
         out_path = Path(args.out_dir) / "campaign_results.json"
         out_path.parent.mkdir(parents=True, exist_ok=True)
         with open(out_path, "w") as fh:
-            json.dump({"seed_groups": SEED_GROUPS, "results": all_results}, fh, indent=2)
+            json.dump({"seed_groups": seed_groups, "results": all_results}, fh, indent=2)
 
     print(f"[campaign] wrote {args.out_dir}/campaign_results.json, total elapsed {time.time()-t0:.0f}s")
 
