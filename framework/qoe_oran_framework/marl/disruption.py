@@ -48,6 +48,26 @@ class DisruptionSpec:
     severity_param: float = 0.0  # spike: arrival-rate multiplier. dropout/churn: unused (window length IS the severity).
     severity_label: str = ""  # human-readable tag for filenames/logging, e.g. "dropout_sev1"
 
+    def randomized_for_episode(self, n_agents: int, episode_length: int,
+                                rng: np.random.RandomState) -> "DisruptionSpec":
+        """Returns a NEW spec with target_agent_idx and start_step freshly
+        drawn from rng, keeping kind/duration_steps/severity_param/
+        severity_label from self -- this object is used as a per-condition
+        TEMPLATE (its own target_agent_idx/start_step are placeholders,
+        conventionally -1), re-randomized once per episode so a 50-episode
+        eval run doesn't hit the identical gNB at the identical step every
+        time. start_step is drawn so the whole window fits inside the
+        episode (1-indexed step numbering, matching run_episodes_marl's
+        own step_idx convention)."""
+        target = int(rng.randint(0, n_agents))
+        max_start = max(1, episode_length - self.duration_steps + 1)
+        start = int(rng.randint(1, max_start + 1))
+        return DisruptionSpec(
+            kind=self.kind, target_agent_idx=target, start_step=start,
+            duration_steps=self.duration_steps, severity_param=self.severity_param,
+            severity_label=self.severity_label,
+        )
+
     def active_at(self, step_in_episode: int) -> bool:
         return self.start_step <= step_in_episode < self.start_step + self.duration_steps
 

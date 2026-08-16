@@ -97,20 +97,30 @@ def run_episodes_marl(
     extra_limitations = extra_limitations or []
     replay_buffer = JointReplayBuffer(capacity=replay_capacity, seed=seed) if training else None
     base_arrivals_per_step = cfg.arrivals.synthetic_arrivals_per_step
+    # disruption is used as a per-episode TEMPLATE (its own target_agent_idx/
+    # start_step are placeholders) -- re-randomized fresh every episode below
+    # so a 50-episode eval run doesn't hit the identical gNB at the identical
+    # step every time. Deterministic given `seed`, independent of np.random's
+    # global state (which epsilon-greedy exploration would otherwise share).
+    disruption_rng = np.random.RandomState(seed) if disruption is not None else None
+    n_agents = len(cfg.gnb_ids)
+    episode_length = cfg.episode.steps_per_episode
 
     episode_sla_compliance_all_slices: List[float] = []
     episode_sla_compliance_by_slice: List[Dict[str, float]] = []
 
     try:
         for episode_idx in range(1, n_episodes + 1):
+            episode_disruption = None
             if disruption is not None:
+                episode_disruption = disruption.randomized_for_episode(n_agents, episode_length, disruption_rng)
                 # Step 1's pending list is produced by THIS reset() call, not
                 # by a step() call inside the loop below -- see
                 # spike_multiplier_for_step's docstring for why a spike
                 # active at step 1 needs the arrivals knob set before reset()
                 # specifically, not just before the loop's first env.step().
                 cfg.arrivals.synthetic_arrivals_per_step = spike_multiplier_for_step(
-                    disruption, 1, base_arrivals_per_step
+                    episode_disruption, 1, base_arrivals_per_step
                 )
             env.reset()
             block_by_slice: Dict[str, int] = {}
@@ -127,23 +137,23 @@ def run_episodes_marl(
                 node_features = extract_node_features(cluster_state, cfg)
                 requests_ctx = requests_to_agent_contexts(pending, cfg)
 
-                if disruption is not None:
-                    node_features = corrupt_node_features(node_features, disruption, step_idx)
+                if episode_disruption is not None:
+                    node_features = corrupt_node_features(node_features, episode_disruption, step_idx)
 
                 actions = policy.select_actions(node_features, requests_ctx, training=training)
 
-                if disruption is not None and disruption.kind == "churn" and disruption_fresh_policy is not None \
-                        and disruption.active_at(step_idx):
+                if episode_disruption is not None and episode_disruption.kind == "churn" \
+                        and disruption_fresh_policy is not None and episode_disruption.active_at(step_idx):
                     fresh_actions = disruption_fresh_policy.select_actions(node_features, requests_ctx, training=False)
-                    actions = splice_churn_actions(actions, fresh_actions, requests_ctx, disruption, step_idx)
-                if disruption is not None:
-                    actions = force_reject_actions(actions, requests_ctx, disruption, step_idx)
+                    actions = splice_churn_actions(actions, fresh_actions, requests_ctx, episode_disruption, step_idx)
+                if episode_disruption is not None:
+                    actions = force_reject_actions(actions, requests_ctx, episode_disruption, step_idx)
                     # The request list env.step() synthesizes internally
                     # (for step_idx+1) reads cfg.arrivals AT THIS CALL --
                     # set it for the step about to be produced, not the one
                     # just processed.
                     cfg.arrivals.synthetic_arrivals_per_step = spike_multiplier_for_step(
-                        disruption, step_idx + 1, base_arrivals_per_step
+                        episode_disruption, step_idx + 1, base_arrivals_per_step
                     )
 
                 result = env.step(actions)
