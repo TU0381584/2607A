@@ -33,7 +33,7 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from paper5_common import M2_ARM_STYLE  # noqa: E402
 
-STAGES = ["No normalization\n(original)", "+ LayerNorm", "+ per-slice\nQ-heads"]
+STAGES = ["No normalisation\n(original)", "+ LayerNorm", "+ per-slice\nQ-heads"]
 DIFFERENTIATED = [0, 3, 21]  # out of 30 seeds each -- docs/PAPER5_M2_gat_ctde.md sections 11-12
 N_SEEDS = 30
 

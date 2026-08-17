@@ -110,7 +110,7 @@ def main() -> None:
     ax1.set_ylim(ymin - 0.34 * (ymax - ymin), ymax)
     ax1.set_xlim(-0.25, 1.25)
     ax1.set_xticks([0, 1])
-    ax1.set_xticklabels(["Centralized\n(GAT-CTDE)", "Federated\n(no DP)"])
+    ax1.set_xticklabels(["Centralised\n(GAT-CTDE)", "Federated\n(no DP)"])
     ax1.set_ylabel("Mean reward per step")
     ax1.set_title(f"(a) Federation cost, per seed (n={len(seeds)})")
 

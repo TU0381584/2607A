@@ -56,7 +56,7 @@ M2_ARM_STYLE: Dict[str, dict] = {
 }
 
 M3_STYLE: Dict[str, dict] = {
-    "centralized": {"color": "#2a78d6", "marker": "o", "label": "Centralized (GAT-CTDE)"},
+    "centralized": {"color": "#2a78d6", "marker": "o", "label": "Centralised (GAT-CTDE)"},
     "federated":   {"color": "#eb6834", "marker": "D", "label": "Federated, no DP ($\\sigma$=0)"},
     "curve":       {"color": "#2a78d6", "marker": "o", "label": "Federated GAT-CTDE"},
 }

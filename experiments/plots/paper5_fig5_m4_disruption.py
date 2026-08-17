@@ -120,7 +120,7 @@ def main() -> None:
     ax1.set_xticks(x)
     ax1.set_xticklabels(["10%", "30%", "60%"])
     ax1.set_xlabel("Dropout window (% of episode)")
-    ax1.set_ylabel("Normalized reward cost\n(baseline $-$ disrupted)")
+    ax1.set_ylabel("Normalised reward cost\n(baseline $-$ disrupted)")
     ax1.set_title("(a) gNB dropout")
     ax1.axhline(0, color="#c3c2b7", linewidth=0.6, zorder=0)
 
@@ -132,7 +132,7 @@ def main() -> None:
     ax2.set_xticks(x)
     ax2.set_xticklabels(["10%", "30%", "60%"])
     ax2.set_xlabel("Churn window (% of episode)")
-    ax2.set_ylabel("Normalized reward cost\n(baseline $-$ disrupted)")
+    ax2.set_ylabel("Normalised reward cost\n(baseline $-$ disrupted)")
     ax2.set_title("(b) Agent churn")
     ax2.axhline(0, color="#c3c2b7", linewidth=0.6, zorder=0)
 

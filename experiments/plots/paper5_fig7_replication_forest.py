@@ -120,7 +120,7 @@ def main() -> None:
     panel_a_rows = [
         ("GAT-CTDE $-$ Independent DQN", lambda s: m2_reward_diff(s, "gat_ctde", "independent_dqn")),
         ("GAT-CTDE $-$ Single-agent DQN", lambda s: m2_reward_diff(s, "gat_ctde", "single_agent_dqn")),
-        ("Federation cost (centralized $-$ federated)", m3_federation_cost),
+        ("Federation cost (centralised $-$ federated)", m3_federation_cost),
     ]
     panel_b_rows = [
         ("Dropout cost, 60% window: GAT-CTDE", lambda s: m4_cost(s, "gat_ctde", "dropout", 3)),
@@ -173,7 +173,7 @@ def main() -> None:
 
     draw_panel(ax1, a_data, "$\\Delta$ mean reward per step",
                "(a) M2/M3 headline reward comparisons")
-    draw_panel(ax2, b_data, "Disruption cost (baseline $-$ disrupted, normalized)",
+    draw_panel(ax2, b_data, "Disruption cost (baseline $-$ disrupted, normalised)",
                "(b) M4 disruption cost, most severe (60%) window")
 
     from matplotlib.lines import Line2D
