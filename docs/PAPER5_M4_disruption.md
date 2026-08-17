@@ -200,6 +200,26 @@ than GAT-CTDE's at every matched severity (0.073>0.059, 0.240>0.200,
 becomes a paper section, not a headline claim on its own (no formal
 paired test between the two architectures' churn costs was run).
 
+**RETRACTED (see `docs/PAPER5_REPLICATION_FINDINGS.md`):** an
+independent-seed replication (seeds 1000-1029, disjoint from this
+section's 900-909) found independent DQN's churn cost highly
+significant at every severity instead (p=0.0020, 10/10 seeds hurt at
+every level) -- the opposite of "not significantly affected." The
+*direction* was always consistent between both samples (churn hurts,
+never helps); what changed is that a borderline, underpowered n=10
+result got written up above as a confirmed architectural property
+("mechanistically sensible, not a fluke") when it was actually
+sample noise. The mechanistic story above -- "nothing to coordinate,
+nothing to lose" -- does not survive replication and should not be
+carried into any paper section: replacing a trained agent's own
+decision-making with an untrained one degrades that agent's own local
+performance regardless of whether it ever used cross-agent
+coordination, which in hindsight is the more obviously correct
+prediction. Left in place above, struck through in spirit rather than
+deleted, so the original reasoning and exactly how it was wrong stay
+visible -- the same "superseded, not erased" convention
+`docs/PAPER5_M2_gat_ctde.md`/`PAPER5_M3_fl_dp.md` already use.
+
 ### Demand spike (multiplier = severity; use block_precision as primary here, see above)
 
 | Arm | sev1 (2x) | sev2 (4x) | sev3 (8x) |
@@ -225,10 +245,13 @@ threshold effect on decision quality rather than graceful degradation,"
 by analogy to the DP-noise finding in M3. **Dropout and agent churn
 confirm this directly and consistently**, across every arm that admits
 the comparison, with real accelerating-cost curves, not just a
-plausible-sounding qualitative match. Agent churn additionally surfaces
-a genuine, mechanistically-explained architectural difference: only
-coordination-dependent arms (GAT-CTDE, federated) are hurt by losing one
-agent's coordination, because only they have coordination to lose.
+plausible-sounding qualitative match, and this part held up under an
+independent-seed replication (`docs/PAPER5_REPLICATION_FINDINGS.md`).
+The specific claim originally made here about churn -- that only
+coordination-dependent arms (GAT-CTDE, federated) are hurt by it, while
+independent DQN is architecturally immune -- did NOT survive that
+replication and is retracted (see the RETRACTED note in the Agent churn
+section above); churn plausibly hurts every multi-agent arm, full stop.
 
 **Spike is a genuinely different, cleaner story once read correctly**:
 it does not threshold at all on the metric that matters
