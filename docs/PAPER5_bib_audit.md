@@ -70,3 +70,35 @@ because a prior message asserted it.
   cosmetic issues are a five-minute fix (correct the two author name
   orders in `gong2026femaddpg`, rename the two stale-year keys) before
   this bibliography is used in the lit review.
+
+## Addendum: seven specifically-named prior-art works (M5 brief)
+
+The reviewing brief (routed through Claude Web) named seven prior-art
+works by topic/venue/year rather than by citation key, to be located,
+verified, and positioned against explicitly in the lit review. None of
+these overlap with the 31-entry skeleton above (that skeleton was
+deliberately scoped to 2024-2026 only, per `ref:access`'s own review
+window; several of these seven predate that window). Same method as
+above: found via web search, confirmed against CrossRef's own
+registered metadata, not accepted on title-match alone.
+
+| Brief's description | Resolved paper | Venue | Year | DOI | Status |
+|---|---|---|---|---|---|
+| GAT+MARL base-station-agent slicing, "the 2021 canonical work" | Shao, Li, Hu, Wu, Zhao, Zhang, "Graph Attention Network-Based Multi-Agent Reinforcement Learning for Slicing Resource Management in Dense Cellular Network" | IEEE Trans. Vehicular Technology | 2021 | `10.1109/TVT.2021.3103416` | verified |
+| Topology-generalizable GAT-MARL admission agents | Ahmadi, Moayyedi, Sulaiman, Salahuddin, Boutaba, Saleh, "Generalizable 5G RAN/MEC Slicing and Admission Control for Reliable Network Operation" | IEEE Trans. Network and Service Management | 2024 | `10.1109/TNSM.2024.3437217` | verified -- fetched the actual PDF (not just CrossRef metadata) to confirm it is genuinely graph-attention-based, not just topically adjacent |
+| Coordinated MARL slicing+admission control, "IEEE TNSM 2022" | Sulaiman, Moayyedi, Ahmadi, Salahuddin, Boutaba, Saleh, "Coordinated Slicing and Admission Control Using Multi-Agent Deep Reinforcement Learning" | IEEE Trans. Network and Service Management | 2023 (CrossRef print record: vol. 20, issue 2, pp. 1110-1124) | `10.1109/TNSM.2022.3222589` | verified, year note: DOI itself is 2022-dated (early access); CrossRef's authoritative print-issue year is 2023 -- the brief's "2022" is the online-early-access date, cited here as 2023 to match CrossRef |
+| Federated DRL coordinating O-RAN slicing xApps, "GLOBECOM 2022" | Zhang, Zhou, Erol-Kantarci, "Federated Deep Reinforcement Learning for Resource Allocation in O-RAN Slicing" | GLOBECOM 2022, pp. 958-963 | 2022 | `10.1109/GLOBECOM48099.2022.10001658` | verified |
+| FL+DP for O-RAN slicing | Yasin, Yu, Wang, "Differential Privacy Federated Edge Learning-assisted for Securing RAN Intelligent Controller in O-RAN 6G Communications" | 2025 IEEE VTS Asia Pacific Wireless Commun. Symp. (APWCS) | 2025 | `10.1109/APWCS67981.2025.11151868` | verified |
+| Adversarial/disruption resilience for RAN slicing, "2026" | Tashman, Cherkaoui, "Adversarial Attacks in AI-Driven RAN Slicing: SLA Violations and Recovery" | 2026 Intl. Wireless Commun. and Mobile Computing (IWCMC) | 2026 | `10.1109/IWCMC69287.2026.11580033` | verified |
+| Attention-based MARL for O-RAN slicing, "2026" | Fatehi, Rahmani Ghourtani, Sonee, Yadav, Russo, Ahmadi, Calinescu, "Interpretable Attention-Based Multi-Agent PPO for Latency Spike Resolution in 6G RAN Slicing" | ICC 2026 | 2026 | `10.1109/ICC59461.2026.11586913` | verified |
+
+**7/7 located and verified, 0/7 fabricated.** Note the Waterloo group
+(Sulaiman/Ahmadi/Moayyedi/Salahuddin/Boutaba/Saleh) authored both the
+TNSM 2022/2023 coordinated-admission paper and its 2024
+topology-generalization follow-up -- these read as one coherent line
+of work and are positioned that way in the lit review rather than as
+two independent citations.
+
+All 38 entries (31 skeleton + 7 here) are merged into `paper5/refs.bib`
+for the actual manuscript; see `paper5/main.tex`'s Literature Review
+section for how each is positioned.

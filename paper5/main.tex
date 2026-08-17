@@ -12,7 +12,7 @@
 
 \begin{document}
 
-\title{GAT-CTDE: Federated Multi-Agent Reinforcement Learning with\\Graph Attention for Multi-gNB Slice Admission Control}
+\title{Evaluation Integrity in Multi-Agent Slice Admission Control:\\When Compliance Metrics Mask Training Collapse}
 
 \author{Manoj~Prasad~Kunasegran, Wai~Leong~Pang,~\IEEEmembership{Corresponding~author,} and Swee~King~Phang
 \thanks{All authors are with the School of Engineering, Taylor's University, Subang Jaya, Malaysia. M.~P.~Kunasegran: orcid.org/0009-0005-3169-1873. W.~L.~Pang (corresponding author, e-mail: TODO@taylors.edu.my): orcid.org/0000-0001-8407-5648. S.~K.~Phang: orcid.org/0000-0002-7877-8766.}}
@@ -20,61 +20,72 @@
 \maketitle
 
 \begin{abstract}
-Our prior work validated single-gNB, single-agent Deep Reinforcement
-Learning (DRL) slice admission control (SAC) on a live Open RAN
-testbed. This paper extends that control problem to a multi-gNB
-cluster, where per-gNB admission decisions must be coordinated rather
-than made independently. We propose GAT-CTDE, a centralised-training,
-decentralised-execution multi-agent architecture in which a shared
-Graph Attention Network (GAT) encoder over the gNB topology graph
-feeds per-slice Q-heads, and evaluate it against an independent
-per-gNB DQN ablation and a flattened-state single-agent DQN baseline
-over a 30-seed offline stress-regime campaign. We report a
-methodological finding alongside the architectural one: our initial
-GAT encoder, lacking any normalisation, collapsed to a trivial
-``accept every request'' policy on all 30 seeds, and the standard
-episode-level SLA-compliance metric could not detect this, since it
-happened to score the collapsed policy no worse than several
-genuinely-differentiated ones. Two encoder fixes -- per-layer
-LayerNorm, then per-slice Q-heads that isolate each slice's gradient
-signal -- reduce the collapse rate from 30/30 to 9/30 seeds, and we
-introduce a correctness-aware evaluation pair (mean reward per step
-and block precision, both derived from data every arm already logs)
-that the compliance metric cannot substitute for. On mean reward per
-step, GAT-CTDE decisively beats an independent-per-gNB-DQN ablation
-that isolates the same GAT/centralised-training contribution (+1.461,
-95\% CI [0.550, 2.782], Wilcoxon $p<0.0001$, 27 wins / 0 ties / 3
-losses), but its advantage over our existing single-agent baseline is
-small and not statistically decisive at this sample size (+0.195,
-95\% CI [$-$0.017, 0.442], Wilcoxon $p=0.0577$, 20 wins / 3 ties / 7
-losses out of 30 seeds) -- a more modest finding than we originally
+Reinforcement-learning-based slice admission control is normally
+evaluated by whether each decision keeps its slice inside its Service
+Level Agreement (SLA) margin. We show this assumption can fail
+outright in a realistic contention regime, on a real Open RAN (O-RAN)
+ratio-ceiling admission-control surface extended from the live,
+single-gNB deployment validated in our prior work to a coordinated
+multi-gNB cluster: an episode-level SLA-compliance metric scored a
+degenerate, always-accept policy no worse than genuinely
+differentiated decision-making, because blocking a low-priority slice
+under congestion -- the reward-optimal action -- costs compliance
+without ever recovering it once a stress episode is underway. The
+metric could not tell a training collapse from correct behaviour. This
+evaluation-integrity failure mode, a correctness-aware metric pair
+(mean reward per step and block precision, both derived from data
+every arm already logs) that exposes it, and a reproduction-versus-
+replication discipline that catches a second, independent class of
+evaluation error, are this paper's central contributions. We build the
+evidence on GAT-CTDE, a centralised-training, decentralised-execution
+multi-agent architecture (a shared Graph Attention Network encoder
+over the gNB topology feeding per-slice Q-heads) that we use as a
+\emph{substrate} for the evaluation study, evaluated against an
+independent per-gNB DQN ablation and a flattened-state single-agent
+DQN baseline over a 30-seed offline stress-regime campaign -- the
+architecture is the vehicle through which the metric failure and its
+fix are demonstrated, not the paper's headline result. Our initial GAT
+encoder, lacking any normalisation, collapsed to a trivial ``accept
+every request'' policy on all 30 seeds, invisibly to the compliance
+metric; two encoder fixes -- per-layer LayerNorm, then per-slice
+Q-heads that isolate each slice's gradient signal -- reduce the
+collapse rate from 30/30 to 9/30 seeds, a residual-reliability gap we
+report rather than paper over. On the correctness-aware metric, GAT-
+CTDE decisively beats the independent-DQN ablation that isolates the
+same GAT/centralised-training contribution (+1.461, 95\% CI [0.550,
+2.782], Wilcoxon $p<0.0001$, 27 wins / 0 ties / 3 losses), but its
+advantage over our existing single-agent baseline is small and not
+statistically decisive at this sample size (+0.195, 95\% CI
+[$-$0.017, 0.442], Wilcoxon $p=0.0577$, 20 wins / 3 ties / 7 losses out
+of 30 seeds) -- a more modest architectural finding than we originally
 reported, corrected after catching a second data-integrity bug with
 the same discipline the collapse diagnosis required
-(Section~\ref{sec:collapse}). We then build a federated variant, in
-which each gNB trains locally and synchronises via periodic FedAvg
-with a DP-SGD-style per-client gradient clip and calibrated Gaussian
-noise, and find that federating the architecture costs nothing
-measurable in reward at this sample size (+0.133, $p=0.8125$), while
-differential privacy shows a real threshold effect on block precision
--- perfect targeting through noise multiplier $\sigma=1.0$, dropping
-sharply by $\sigma=4.0$ -- rather than the compliance metric's
-misleading, non-monotonic curve at the same noise levels. Finally, we
-evaluate the same frozen policies under mid-episode gNB dropout, demand
-spikes, and agent churn (one gNB's decisions replaced by a fresh,
-never-trained policy): dropout and churn both produce a real,
-accelerating cost with severity (not graceful degradation) across every
-arm, while demand spikes do not threshold at all on block precision, a
-genuinely different failure mode. We cross-check every result in this
-paper against an independent seed sample, not only the same seeds
-reproduced again, and report one finding this caught: an initial
-reading that independent-per-gNB DQN is architecturally immune to
-agent churn did not survive replication and is retracted here rather
-than reported. These results argue that admission-control evaluation
-in multi-agent, privacy-constrained, disruption-prone settings needs
-metrics tied to the actual training objective, not only to a
-downstream SLA proxy that can reward the wrong policy, and that
-architectural claims need more than one seed sample before they are
-trusted.
+(Section~\ref{sec:collapse}), and reported honestly as modest rather
+than inflated to fit a headline-architecture narrative. Extending to a
+federated variant with DP-SGD-style privacy, we find federating the
+architecture costs nothing measurable in reward at this sample size
+(+0.133, $p=0.8125$), while differential privacy shows a real
+threshold effect on block precision -- perfect targeting through noise
+multiplier $\sigma=1.0$, dropping sharply by $\sigma=4.0$ -- rather
+than the compliance metric's misleading, non-monotonic curve at the
+same noise levels: a second, independent instance of the same
+evaluation-integrity failure this paper's central contribution
+targets. Evaluating the same frozen policies under mid-episode gNB
+dropout, demand spikes, and agent churn, dropout and churn both
+produce a real, accelerating cost with severity across every arm,
+while demand spikes do not threshold at all on block precision, a
+genuinely different failure mode. Finally, we cross-check every result
+in this paper against an independent seed sample, not only the same
+seeds reproduced again -- the reproduction-versus-replication
+discipline this paper argues evaluation practice needs -- and report
+one finding this caught: an initial reading that independent-per-gNB
+DQN is architecturally immune to agent churn did not survive
+replication and is retracted here rather than reported. Together these
+results argue that admission-control evaluation in multi-agent,
+privacy-constrained, disruption-prone settings needs metrics tied to
+the actual training objective, not only to a downstream SLA proxy that
+can reward the wrong policy, and that architectural claims need more
+than one seed sample before they are trusted.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -103,40 +114,175 @@ make better joint decisions than either a single agent using the
 flattened joint state, or independent per-gNB agents with no shared
 representation at all.
 
-This paper makes four contributions. First, we build GAT-CTDE: a
-Graph Attention Network~\cite{gat} encoder over the gNB topology,
-shared across agents and trained centrally, feeding decentralised
-per-slice Q-heads that each agent executes using only its own node's
-embedding. Second, we report a methodological failure mode and its
-fix: the initial encoder, lacking any output normalisation, encoded
-network congestion almost entirely as embedding \emph{magnitude}
-rather than \emph{pattern}, causing training to collapse to a trivial
-always-accept policy -- and the standard SLA-compliance metric used
-throughout our prior work could not distinguish this collapse from
-genuinely correct behaviour, because blocking a low-priority slice
-under congestion, the reward-optimal action, costs compliance without
-ever recovering it once a stress episode is underway. We introduce two
-fixes and a pair of correctness-aware metrics that expose this gap
-directly. Third, we extend GAT-CTDE to a federated training regimen
-with differential privacy, and characterise both the cost of
-federating (statistically indistinguishable from zero at our sample
-size) and the cost of privacy (a real threshold in decision precision,
-not a smooth compliance trade-off), using the same correctness-aware
-metrics. Fourth, we evaluate every arm's frozen policy under
-mid-episode disruption -- gNB dropout, demand spikes, and agent churn
--- and cross-check every result in the paper against an independent
-seed sample rather than only reproducing the same seeds, which is what
-catches a real architectural overclaim (Section~\ref{sec:results-m4})
-before it could be reported as a finding. We label these three
-campaigns M2 (centralised), M3 (federated/privacy), and M4
+This paper's contribution is evaluation integrity, not architecture,
+and its four parts are ordered accordingly. First, we identify an
+evaluation-integrity failure mode specific to stress-regime admission
+control: the standard episode-level SLA-compliance metric can score a
+degenerate, always-accept policy no worse than genuinely differentiated
+decision-making, because blocking a low-priority slice under
+congestion -- the reward-optimal action -- costs compliance without
+ever recovering it once a stress episode is underway, so the metric
+cannot distinguish a training collapse from correct behaviour. Second,
+we introduce a correctness-aware metric pair (mean reward per step and
+block precision, both computed from data every training run already
+logs, requiring no new instrumentation) that exposes this gap directly,
+and use it to diagnose and fix the collapse we found: two encoder
+fixes reduce the collapse rate from 30/30 to 9/30 seeds, a residual
+reliability gap we report as a first-class finding rather than
+smoothing over. Third, we establish a reproduction-versus-replication
+discipline -- checking every headline result against an independent
+seed sample, not only reproducing the same seeds -- and show it catches
+a second, distinct class of evaluation error that same-seed
+reproduction cannot: a real architectural overclaim under mid-episode
+disruption (Section~\ref{sec:results-m4}) that read as confirmed on one
+seed sample and was retracted once a disjoint sample contradicted it.
+Fourth, we build the empirical substrate all three of the above are
+demonstrated on: GAT-CTDE, a centralised-training,
+decentralised-execution multi-agent architecture (a Graph Attention
+Network~\cite{gat} encoder over the gNB topology, shared across agents
+and trained centrally, feeding decentralised per-slice Q-heads), on the
+real O-RAN ratio-ceiling admission-control surface extended from the
+live single-gNB anchor validated in our prior
+work~\cite{mecon-paper1,icraie-paper2}, extended to a federated
+training regimen with differential privacy and evaluated under
+mid-episode gNB dropout, demand spikes, and agent churn. We label
+these three campaigns M2 (centralised), M3 (federated/privacy), and M4
 (disruption) throughout, matching this project's internal milestone
 numbering; a fourth, earlier milestone (M1, live-testbed recalibration)
 motivates the offline stress environment of
 Section~\ref{sec:system-model} but reports no results of its own here.
+The architecture is deliberately not this paper's headline: it is the
+vehicle that makes the metric failure, its fix, and the
+reproduction-replication gap concrete and measurable, and
+Section~\ref{sec:litreview} positions it against the closest prior art
+to make that scoping explicit before any results are reported.
 
-\authorTODO{Literature review section deferred -- to be written and
-inserted after this Introduction once the related-work survey is
-ready. The rest of the draft does not depend on it.}
+\section{Literature Review}
+\label{sec:litreview}
+Our own systematic review~\cite{ref:access} screened 6{,}286 records
+down to 67 core 2024--2026 studies on machine-learning-driven,
+user-centric distributed network slicing, organised around three
+enabling pillars -- topology-aware graph representation, distributed
+multi-agent control, and privacy-preserving federation -- and found
+individual pillars well developed but rarely combined under realistic
+constraints, and never with a validated live deployment. That review
+supplies this section's broader landscape; here we go narrower and
+ask a different question of the closest works in each pillar, plus
+several specifically-positioned pieces outside that review's
+2024--2026 window: does any of it examine whether its own reported
+evaluation metric can mask a degenerate policy, or check a headline
+finding against an independent seed sample? We find no work that does
+either, which is the gap this paper fills.
+
+\subsection{Graph-Attention State Representation for Slicing}
+The canonical result behind our own encoder choice is
+Shao~\emph{et al.}~\cite{shao2021gatmarl}, who formulate dense-cellular
+slicing resource management as MARL with one agent per base station and
+show a graph attention encoder strengthens inter-agent cooperation over
+plain DQN/A2C baselines -- the architectural precedent GAT-CTDE's
+encoder builds on directly. Closest to our own admission-control
+setting specifically, Ahmadi~\emph{et al.}~\cite{ahmadi2024generalizable}
+extend a coordinated multi-agent slicing-and-admission line of work
+(discussed further below) to generalise across unseen RAN/MEC
+topologies via graph attention, without retraining -- a topology-
+generalisation question distinct from, and complementary to, the
+evaluation-integrity question this paper asks on a single fixed
+topology; whether GAT-CTDE's own correctness-aware metrics remain
+reliable across topologies neither paper tests is exactly the kind of
+question our metric pair is built to keep honest, and is a natural
+extension of this work. Beyond admission control specifically, graph
+learning has been applied to joint user association and resource
+allocation~\cite{tran2026gnnppo}, intent-driven RAN
+optimisation~\cite{silva2025gnnintent}, transferable bandwidth
+allocation via meta-learning~\cite{hao2024html}, latency-optimal
+digital-twin placement~\cite{zhu2025hgatdt}, general adaptive network
+optimisation~\cite{kurapati2025hybridgnn}, offline-data delay-sensitive
+resource allocation~\cite{jing2025gnnoffline}, QoS
+prediction~\cite{huang2025qosgdrl}, and non-stationary
+space-air-ground-sea slicing~\cite{asheralieva2024admmgnn}. None of
+these report a metric that structurally rewards a degenerate policy,
+because none instrument the correctness-aware pair this paper
+introduces to look for one.
+
+\subsection{Multi-Agent RL for Coordinated Slicing and Admission Control}
+Sulaiman~\emph{et al.}~\cite{sulaiman2023coordinated} is the closest
+prior art to our own problem: multi-agent DRL jointly solving slicing
+and admission control, coordinated across the substrate network, from
+the same research group as the topology-generalisation follow-up
+above. Neither paper in that line of work reports whether their own
+reward-optimal policy could be mistaken for a degenerate one under
+their own evaluation metric, nor checks a headline result against an
+independent seed sample -- both are exactly what this paper adds on a
+comparable problem. Related MARL work spans sample-efficient inter-
+slice orchestration~\cite{doanis2024samarl}, constrained MARL for
+flexible O-RAN slicing~\cite{zangooei2024flexran}, constrained
+traffic-aware MARL for joint URLLC admission and resource provisioning
+directly in O-RAN~\cite{wu2025admissionmarl,wu2025slicewise} (the
+closest single-column ablation to our own independent-per-gNB-DQN
+arm), sharpness-aware robustness~\cite{lotfi2026sharpmarl}, energy-
+efficient decentralised cooperation~\cite{phyu2025icecream}, MATD3 with
+evolutionary-game user association~\cite{chen2025matd3}, retraining-
+free scalable slicing~\cite{li2026scalablemarl}, and reliability-
+enhanced VNF orchestration~\cite{wang2024madqnvnf}. Two very recent
+works bear directly on our M4 disruption campaign
+(Section~\ref{sec:results-m4}): Tashman and
+Cherkaoui~\cite{tashman2026adversarial} study adversarial jamming
+attacks and SLA-violation recovery in AI-driven RAN slicing, and
+Fatehi~\emph{et al.}~\cite{fatehi2026attentionmarl} apply interpretable
+attention-based multi-agent PPO to resolve latency spikes in 6G RAN
+slicing. Both study robustness to a disruptive condition, as we do; neither
+checks whether the metric reporting that robustness is itself
+trustworthy under a stress regime, and neither replicates a headline
+robustness finding on an independent seed sample -- the exact gap our
+M4 campaign's independent-seed replication (Section~\ref{sec:results-m4}-D)
+was built to close, and the exact gap that replication shows is not
+hypothetical: it is what overturned our own initial churn-immunity
+reading.
+
+\subsection{Federated and Privacy-Preserving Learning for Slicing}
+Zhang~\emph{et al.}~\cite{zhang2022federatedoran} coordinate two
+independent O-RAN xApps (power control and slice resource allocation)
+via federated DRL -- the closest prior art to our own M3 federated
+variant's motivation (periodic, not per-step, cross-node
+synchronisation for disaggregated RIC deployments), though without a
+differential-privacy step or a correctness-aware metric to check
+whether federating changed decision quality, not just a throughput/
+delay average. Yasin~\emph{et al.}~\cite{yasin2025dpfl} combine
+federated edge learning with differential privacy specifically to
+secure the O-RAN RIC -- the closest FL+DP precedent to our own -- but
+target a different threat model (securing the controller against
+compromise) rather than characterising the privacy-utility trade-off
+of a control policy itself, which is what our $\sigma$-sweep
+(Section~\ref{sec:results-m3}) reports. Further federated work covers
+VNF splitting~\cite{amiri2024fedvnf}, prediction-based slice
+mobility~\cite{ming2024fedmobility}, personalised per-slice
+privacy~\cite{kwantwi2025pfl}, cooperative-game network
+selection~\cite{gonzalez2024fedns}, elastic multi-task FL over
+O-RAN~\cite{abdisarabshali2026elasticfl}, DQN-enhanced FL resource
+allocation~\cite{gong2024dqnfl}, safe energy-efficient FL
+orchestration~\cite{koursioumpas2024safefl,wu2024cefl}, and
+FL-assisted freshness optimisation~\cite{liu2026aoifl}. None of these
+report a privacy-utility curve on a metric verified, as ours is, to
+survive the same collapse-masking failure mode
+Section~\ref{sec:collapse} diagnoses.
+
+\subsection{Positioning}
+A small set of works begins to combine two of the three pillars --
+graph-attentive MARL for SLA-aware orchestration~\cite{mohajer2026pronto},
+GNN-based multi-agent DRL for multi-domain
+orchestration~\cite{bouroudi2025gnnmarl}, Transformer-GNN federated
+prediction~\cite{qasim2025tgnnfl}, and federated multi-agent DDPG for
+MEC slicing~\cite{gong2026femaddpg} -- but, like every other work
+surveyed above, evaluate exclusively on their own reported outcome
+metric, computed once, on one seed or one run. Of the works reviewed
+here and in~\cite{ref:access}, none report checking whether their
+evaluation metric could reward a degenerate policy, and none report an
+independent-seed replication of a headline finding. This is the gap
+this paper fills: not a new point in the GAT/MARL/FL design space, but
+a demonstration -- on GAT-CTDE, extended to federation, privacy, and
+disruption, as the substrate -- that both checks are necessary, and
+that skipping either one changes what a reader is entitled to believe
+the resulting numbers mean.
 
 \section{System Model and Problem Formulation}
 \label{sec:system-model}
@@ -845,17 +991,23 @@ motivation we cannot substantiate at this scale.
 
 \section{Conclusion and Future Work}
 \label{sec:conclusion}
-We built and iteratively fixed a GAT-CTDE architecture for coordinated
-multi-gNB slice admission control, found and diagnosed three failures a
-standard compliance metric, an unguarded append-only log, and an
-unseeded weight-initialisation path could not have caught on their own
--- a training collapse, a hidden eval-data contamination bug, and a
-same-seed-only reproducibility gap -- and showed that on a
-correctness-aware reward metric the architecture delivers a decisive,
-statistically significant improvement over an independent-learner
-ablation, though its edge over our existing single-agent baseline
-specifically is small and not decisive at this sample size. Extending
-the architecture to federated training with differential privacy, we
+We set out to test whether a standard evaluation metric can be trusted
+in multi-agent, privacy-constrained, disruption-prone slice admission
+control, and found it cannot go unchecked: a standard SLA-compliance
+metric, an unguarded append-only log, and an unseeded
+weight-initialisation path together hid three distinct failures from
+us -- a training collapse the compliance metric scored no worse than
+correct behaviour, a hidden eval-data contamination bug, and a
+same-seed-only reproducibility gap -- none of which a standard
+evaluation pipeline without the correctness-aware metrics and the
+reproduction-replication discipline this paper introduces would have
+caught. We built and iteratively fixed GAT-CTDE, the multi-agent
+architecture that served as this evaluation's substrate, and on the
+correctness-aware reward metric it delivers a decisive, statistically
+significant improvement over an independent-learner ablation, though
+its edge over our existing single-agent baseline specifically is small
+and not decisive at this sample size. Extending the architecture to
+federated training with differential privacy, we
 found federation to add no measurable reward cost and privacy costly
 only past a real threshold in decision precision, not a smooth
 trade-off. Evaluating the same frozen policies under mid-episode gNB
