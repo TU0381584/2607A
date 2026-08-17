@@ -3,6 +3,8 @@
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{xcolor}
+\usepackage{algorithm}
+\usepackage{algorithmic}
 
 % Visible TODO marker for content the author (not Claude) still needs to
 % fill in or decide -- same convention as paper_conf/main.tex.
@@ -239,6 +241,52 @@ has its own parameters, so one slice's gradients can no longer
 directly overwrite another's. The shared GAT encoder upstream is
 unaffected and remains the architecture's centralizing element.
 
+\subsubsection{Training Procedure}
+Algorithm~\ref{alg:gat-ctde} states the training loop precisely: the
+encoder is updated from every request in a sampled minibatch, regardless
+of which gNB or slice it belongs to (centralized training), while
+action selection at rollout time consults only the acting agent's own
+embedding row (decentralized execution). The per-request TD
+formulation on line 13 is the fix described above in the context of the
+architecture's earlier, unstable QMIX-style variant
+(Section~\ref{sec:collapse}'s companion bug, documented in full in
+\texttt{ctde\_policy.py}): every pending request in a step is its own
+independent temporal-difference sample, never summed or averaged across
+a step before the loss is computed, matching our existing single-agent
+DQN's own granularity exactly.
+
+\begin{algorithm}[t]
+\caption{GAT-CTDE: centralized training, decentralized execution}
+\label{alg:gat-ctde}
+\begin{algorithmic}[1]
+\REQUIRE shared GAT encoder $f_\theta$, per-slice Q-heads $\{Q_{\phi_k}\}_{k=1}^{K}$, target networks $f_{\theta^-}, \{Q_{\phi_k^-}\}$, replay buffer $\mathcal{D}$, fully-connected adjacency $A$, discount $\gamma$, target-sync period $C$ episodes
+\FOR{episode $= 1, 2, \dots$}
+  \STATE reset environment; observe joint node features $X_1 \in \mathbb{R}^{N \times d}$
+  \FOR{step $t = 1, \dots, T$}
+    \STATE $E_t \gets f_\theta(X_t, A)$ \COMMENT{one embedding row per gNB; centralized: sees every node}
+    \FOR{each pending request $r$ at gNB $i$, slice $k$}
+      \STATE $a_r \gets \arg\max_a Q_{\phi_k}(E_t[i])[a]$ w.p.\ $1{-}\epsilon$, else uniform random \COMMENT{decentralized: own row $E_t[i]$ only}
+    \ENDFOR
+    \STATE $X_{t+1}, \rho_t, \text{done} \gets \textsc{env.step}(\{a_r\})$
+    \STATE store $\big(X_t, X_{t+1}, \{(i,k,a_r)\}_r, \rho_t, \text{done}\big)$ in $\mathcal{D}$
+    \IF{$|\mathcal{D}| \geq$ warmup size}
+      \STATE sample minibatch $B \subset \mathcal{D}$
+      \STATE $E_B \gets f_\theta(X_B, A)$; \ $E'_B \gets f_{\theta^-}(X'_B, A)$ \COMMENT{target net, no grad}
+      \FOR{each request $(i,k,a) \in B$}
+        \STATE $q \gets Q_{\phi_k}(E_B[i])[a]$
+        \STATE $y \gets \rho + \gamma \cdot (1{-}\text{done}) \cdot \max_{a'} Q_{\phi_k^-}(E'_B[i])[a']$
+      \ENDFOR
+      \STATE $\mathcal{L} \gets$ mean Huber loss over every request's $(q, y)$ pair \COMMENT{per-request, never summed per step}
+      \STATE update $\theta$, $\{\phi_k\}$ by $\nabla \mathcal{L}$; clip grad-norm to 1.0
+    \ENDIF
+  \ENDFOR
+  \IF{episode $\bmod\ C = 0$}
+    \STATE $\theta^- \gets \theta$; \ $\phi_k^- \gets \phi_k\ \forall k$
+  \ENDIF
+\ENDFOR
+\end{algorithmic}
+\end{algorithm}
+
 \subsection{Federated Training with Differential Privacy}
 Fig.~\ref{fig:architecture}(b) shows the federated variant. Each gNB
 becomes an FL client with a private copy of the same GAT-CTDE network
@@ -274,6 +322,41 @@ $\varepsilon(\delta)=\rho+2\sqrt{\rho\ln(1/\delta)}$. This is a
 conservative, non-subsampled composition bound, not a tight
 moments-accountant figure -- we report it alongside $\sigma$, not in
 place of it.
+
+Algorithm~\ref{alg:fed-dp} states one federated round precisely. Every
+client runs the identical per-request TD loss Algorithm~\ref{alg:gat-ctde}
+already defines (line 8's FedProx term is additive and zero whenever
+$\mu{=}0$, our reported configuration); clipping is applied identically
+whether or not noise is added (line 11 vs.\ line 9), so a $\sigma{=}0$
+run and a $\sigma{>}0$ run differ only in whether noise is injected, not
+in any other aspect of the client's update -- the isolation the privacy-
+cost comparison in Section~\ref{sec:results-m3} depends on.
+
+\begin{algorithm}[t]
+\caption{Federated GAT-CTDE round with DP-SGD}
+\label{alg:fed-dp}
+\begin{algorithmic}[1]
+\REQUIRE $N$ clients, each with local network $(\theta_i, \{\phi_{i,k}\})$; global snapshot $\bar\theta$; local steps per round $R$; clip norm $C_{\text{dp}}$; noise multiplier $\sigma$; FedProx weight $\mu$ ($=0$ unless noted)
+\FOR{round $= 1, 2, \dots$}
+  \FOR{local step $= 1, \dots, R$, each client $i$ independently}
+    \STATE sample minibatch $B_i$ of $i$'s own requests from $i$'s local buffer
+    \STATE $E \gets f_{\theta_i}(X_{B_i}, A)$ \COMMENT{full joint state; client's OWN local weights only}
+    \STATE $\mathcal{L}_i \gets$ per-request Huber TD loss (Alg.~\ref{alg:gat-ctde}, lines 11--13) $+\ \frac{\mu}{2}\lVert \theta_i - \bar\theta \rVert^2$ \COMMENT{FedProx term}
+    \STATE $g_i \gets \nabla_{\theta_i,\phi_i} \mathcal{L}_i$
+    \IF{$\sigma > 0$}
+      \STATE $g_i \gets \text{clip}(g_i,\, C_{\text{dp}})$; \ $g_i \gets g_i + \mathcal{N}(0,\, (\sigma C_{\text{dp}})^2 I)$ \COMMENT{DP-SGD~\cite{dpsgd}}
+    \ELSE
+      \STATE $g_i \gets \text{clip}(g_i,\, C_{\text{dp}})$ \COMMENT{same clip norm, no noise -- isolates the privacy cost}
+    \ENDIF
+    \STATE $(\theta_i, \phi_i) \gets (\theta_i, \phi_i) - \eta\, g_i$
+  \ENDFOR
+  \STATE $\bar\theta, \bar\phi \gets \frac{1}{N}\sum_{i=1}^N (\theta_i, \phi_i)$ \COMMENT{FedAvg~\cite{fedavg}, equal client weights}
+  \FOR{each client $i = 1, \dots, N$}
+    \STATE $(\theta_i, \phi_i) \gets (\bar\theta, \bar\phi)$ \COMMENT{broadcast}
+  \ENDFOR
+\ENDFOR
+\end{algorithmic}
+\end{algorithm}
 
 \section{A Training Collapse, Diagnosed and Fixed}
 \label{sec:collapse}
@@ -570,7 +653,9 @@ mechanically inflates it regardless of decision quality. We therefore
 normalize by each step's own already-logged pending-request count
 before averaging (mean reward per pending request), built from data
 every run already logs, and use this normalized metric as the primary
-comparison throughout this section.
+comparison throughout this section. Fig.~\ref{fig:m4-injection} shows
+exactly where each disruption kind intercepts the per-step control loop
+around the frozen policy.
 
 \begin{figure*}[t]
 \centering
@@ -583,6 +668,21 @@ precision vs.\ demand-spike multiplier: flat and near-ceiling for
 every arm, unlike (a)-(b) -- spike does not threshold on the metric
 that matters.}
 \label{fig:m4-disruption}
+\end{figure*}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.92\textwidth]{figures/fig6_m4_disruption_loop.pdf}
+\caption{Where each M4 disruption kind intercepts the frozen policy's
+per-step evaluation loop. Dropout acts twice (corrupting the target
+gNB's input row, then separately forcing that gNB's own requests to
+reject, so a policy cannot simply learn around the corrupted feature);
+agent churn substitutes a fresh, never-trained policy's actions for the
+target gNB only, leaving every other agent's decisions untouched; demand
+spike is entirely external to the policy, acting on the arrival process
+the environment synthesizes for the following step. All three are
+evaluation-only perturbations -- the policy itself is never updated.}
+\label{fig:m4-injection}
 \end{figure*}
 
 \subsection{Dropout and Agent Churn: A Real, Accelerating Threshold Effect}
@@ -657,6 +757,36 @@ begins at does not (perfect through $\sigma=1.0$ in one 10-seed sample,
 already degrading at $\sigma=0.5$ in the other) -- a threshold is real;
 its precise location is not a property we would claim generalizes
 beyond the specific ten seeds it was measured on.
+
+Fig.~\ref{fig:replication-forest} puts every headline paired comparison
+in this paper next to its independent-sample counterpart on one axis,
+recomputed directly from each sample's own raw evaluation logs rather
+than retyped from either sample's summary numbers. Panel (a)'s three
+architecture/federation comparisons and panel (b)'s dropout/churn costs
+for GAT-CTDE and the federated arm all keep the same sign and a
+broadly overlapping confidence interval across samples -- visually, the
+committed and fresh estimates sit close together on every row except
+one. The exception is independent DQN's churn cost (panel (b), bottom
+row, shaded): both samples agree the cost is positive (churn never
+helps), but the committed sample's interval reaches down toward zero
+while the fresh sample's sits clearly higher and to the right of every
+other churn estimate in the panel -- the same reversal
+Section~\ref{sec:results-m4}D reports in numbers, here shown as the one
+row that visibly does not track its own sample-to-sample agreement the
+other six rows show.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.92\textwidth]{figures/fig7_replication_forest.pdf}
+\caption{Every headline paired comparison in this paper, committed
+sample (seeds 900--929/909) against the independent replication sample
+(seeds 1000--1029/1009), recomputed from raw logs for both. (a) M2/M3
+reward comparisons. (b) M4 disruption cost at the most severe (60\%)
+window. The bottom row of (b), independent DQN's churn cost, is the one
+comparison whose two samples visibly disagree on more than point-estimate
+noise -- the finding retracted in Section~\ref{sec:results-m4}D.}
+\label{fig:replication-forest}
+\end{figure*}
 
 \section{Discussion}
 Three findings in this paper are, we think, more broadly useful than
