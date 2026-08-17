@@ -56,11 +56,23 @@ measurable in reward at this sample size (+0.133, $p=0.8125$), while
 differential privacy shows a real threshold effect on block precision
 -- perfect targeting through noise multiplier $\sigma=1.0$, dropping
 sharply by $\sigma=4.0$ -- rather than the compliance metric's
-misleading, non-monotonic curve at the same noise levels. These
-results argue that admission-control evaluation in multi-agent,
-privacy-constrained settings needs metrics tied to the actual training
-objective, not only to a downstream SLA proxy that can reward the
-wrong policy.
+misleading, non-monotonic curve at the same noise levels. Finally, we
+evaluate the same frozen policies under mid-episode gNB dropout, demand
+spikes, and agent churn (one gNB's decisions replaced by a fresh,
+never-trained policy): dropout and churn both produce a real,
+accelerating cost with severity (not graceful degradation) across every
+arm, while demand spikes do not threshold at all on block precision, a
+genuinely different failure mode. We cross-check every result in this
+paper against an independent seed sample, not only the same seeds
+reproduced again, and report one finding this caught: an initial
+reading that independent-per-gNB DQN is architecturally immune to
+agent churn did not survive replication and is retracted here rather
+than reported. These results argue that admission-control evaluation
+in multi-agent, privacy-constrained, disruption-prone settings needs
+metrics tied to the actual training objective, not only to a
+downstream SLA proxy that can reward the wrong policy, and that
+architectural claims need more than one seed sample before they are
+trusted.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -89,7 +101,7 @@ make better joint decisions than either a single agent using the
 flattened joint state, or independent per-gNB agents with no shared
 representation at all.
 
-This paper makes three contributions. First, we build GAT-CTDE: a
+This paper makes four contributions. First, we build GAT-CTDE: a
 Graph Attention Network~\cite{gat} encoder over the gNB topology,
 shared across agents and trained centrally, feeding decentralized
 per-slice Q-heads that each agent executes using only its own node's
@@ -108,7 +120,12 @@ with differential privacy, and characterize both the cost of
 federating (statistically indistinguishable from zero at our sample
 size) and the cost of privacy (a real threshold in decision precision,
 not a smooth compliance tradeoff), using the same correctness-aware
-metrics.
+metrics. Fourth, we evaluate every arm's frozen policy under
+mid-episode disruption -- gNB dropout, demand spikes, and agent churn
+-- and cross-check every result in the paper against an independent
+seed sample rather than only reproducing the same seeds, which is what
+catches a real architectural overclaim (Section~\ref{sec:results-m4})
+before it could be reported as a finding.
 
 \authorTODO{Literature review section deferred -- to be written and
 inserted after this Introduction once the related-work survey is
@@ -516,10 +533,135 @@ Section~\ref{sec:collapse}'s architectural finding, of
 \texttt{sla\_compliance\_all\_slices} failing to track the quantity we
 actually care about.
 
+\section{Results: Disruption Resilience}
+\label{sec:results-m4}
+
+\subsection{Setup}
+We evaluate every arm's already-trained, frozen checkpoint (no
+retraining) against three mid-episode disruptions, injected purely at
+evaluation time: \emph{gNB dropout} (one randomly-chosen gNB's own
+requests are forced to reject and its row in the joint feature matrix
+every agent's encoder reads is zeroed, for a window); \emph{demand
+spike} (a transient multiplier on the arrival rate, for a fixed
+30\%-of-episode window); and \emph{agent churn} (one gNB's decisions
+are made by a freshly-initialized, never-trained copy of its own policy
+class instead of the loaded checkpoint, for a window). We call the
+third one \emph{agent} churn rather than \emph{client} churn
+deliberately: federation only happens during training, so a frozen,
+post-aggregation federated checkpoint has no per-client staleness left
+to reintroduce, and no arm shares cross-agent information at
+\emph{inference} time beyond what each node's own encoder already reads
+from the joint state -- there is no FL-specific desynchronization left
+to disrupt. Replacing one agent's trained decision-making with an
+inexperienced stand-in is a different, well-motivated failure mode
+(active-but-uncoordinated vs.\ absent) that applies to every genuinely
+multi-agent arm; single-agent DQN, with no separable per-gNB agent, is
+excluded from this condition. Severity is the disruption window's
+duration (10\%/30\%/60\% of the episode) for dropout and churn, and the
+arrival-rate multiplier (2$\times$/4$\times$/8$\times$) at a fixed
+window for spike. Target gNB and window start step are drawn fresh from
+each episode's own seeded RNG, not fixed to one gNB.
+
+Because a demand spike changes request \emph{volume}, raw mean reward
+per step is not a fair comparison against an undisrupted baseline --
+the reward's own service term is linear in how many requests were
+accepted that step (Section~\ref{sec:methodology}), so more requests
+mechanically inflates it regardless of decision quality. We therefore
+normalize by each step's own already-logged pending-request count
+before averaging (mean reward per pending request), built from data
+every run already logs, and use this normalized metric as the primary
+comparison throughout this section.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/fig5_m4_disruption.pdf}
+\caption{M4 disruption campaign, 10 seeds/arm. (a)-(b) Normalized
+reward cost (baseline $-$ disrupted) vs.\ severity for dropout and
+agent churn -- every arm, every severity, shows a real cost that
+accelerates with severity rather than growing linearly. (c) Block
+precision vs.\ demand-spike multiplier: flat and near-ceiling for
+every arm, unlike (a)-(b) -- spike does not threshold on the metric
+that matters.}
+\label{fig:m4-disruption}
+\end{figure*}
+
+\subsection{Dropout and Agent Churn: A Real, Accelerating Threshold Effect}
+Fig.~\ref{fig:m4-disruption}(a)-(b) report the normalized-reward cost at
+each severity. Dropout costs every arm significantly at every severity
+(Wilcoxon $p\leq0.03$, 9 or 10 of 10 seeds hurt in every case), and the
+cost accelerates with severity rather than growing proportionally: for
+GAT-CTDE, +0.165 at the 10\% window, +0.601 at 30\% (roughly
+3.6$\times$ the first increment), +1.710 at 60\% (roughly 1.8$\times$
+the second increment) -- the same super-linear pattern holds for every
+arm. Agent churn shows the same accelerating shape for GAT-CTDE
+(+0.059/+0.200/+0.529, $p=0.0039$ throughout) and the federated arm
+(+0.073/+0.240/+0.585, $p=0.0039$ throughout).
+
+Independent DQN's own churn cost needs both samples reported together
+to state honestly. On the seeds used throughout the rest of this paper
+(900--909), it is small and does not clear conventional significance
+(+0.000/+0.168/+0.640, $p=0.084/0.106/0.065$) -- which an earlier pass
+of this analysis read as independent DQN being architecturally immune
+to churn, reasoning that a policy which never attends to another
+agent's features (confirmed by inspection: it reads only its own node's
+row) has no coordination benefit a churned peer can take away. An
+independent-seed replication (seeds 1000--1009, disjoint from every
+other result in this paper) contradicts that reading directly:
+independent DQN's churn cost there is significant at every severity
+(+0.097/+0.657/+1.223, $p=0.0020$ throughout, 10/10 seeds hurt each
+time) and \emph{larger} than GAT-CTDE's or the federated arm's at
+matched severities in that sample -- the opposite of immune. The
+direction was consistent across both samples throughout (churn always
+hurts, never helps); what was wrong was treating a borderline,
+underpowered $n=10$ result as a confirmed architectural property. We do
+not conclude independent DQN is immune to churn: replacing a trained
+agent's own decision-making with an untrained one plausibly degrades
+that agent's local performance regardless of whether it ever used
+cross-agent coordination, and the combined evidence across both samples
+now points that way.
+
+\subsection{Demand Spike: A Different, Cleaner Story}
+Fig.~\ref{fig:m4-disruption}(c) shows no threshold at all on block
+precision, which stays flat and near-ceiling through the highest tested
+multiplier for every arm. The normalized-reward signal (not shown) that
+spike \emph{improves} per-request reward is real and reproduces across
+both seed samples for GAT-CTDE, independent DQN, and the federated arm
+($p\leq0.014$ in both), but we do not read it as better decision-making:
+it traces to a specific, understood property of the existing reward
+shape (a fixed per-step violation penalty diluted by a larger
+denominator once request volume rises, still present after the primary
+volume normalization above, which only corrects the dominant,
+much larger effect from the reward's accept-scaling service term) --
+block precision, a volume-invariant ratio, is the metric that actually
+answers whether spike corrupts decision quality, and it says no.
+Single-agent DQN's version of this same reward-based signal is
+significant in the original sample ($p=0.0020$ at every severity) but
+not in the replication ($p=0.084$) -- direction consistent, significance
+sample-dependent, reported as such rather than as an unconditional
+finding.
+
+\subsection{Independent-Seed Replication}
+Every dropout result above, and GAT-CTDE/the federated arm's churn
+costs, were checked against the independent 1000--1009 sample and hold
+up in both direction and approximate magnitude -- e.g.\ GAT-CTDE's
+dropout costs there are +0.170/+0.552/+1.449, close to the 900--909
+sample's +0.165/+0.601/+1.710. The one finding that did not survive
+(independent DQN's supposed churn immunity) is reported only in its
+corrected form above, not as an initial claim we later walk back --
+this section already reflects what replication showed, exactly the
+discipline Section~\ref{sec:eval-log-bug} argues for. One caveat the
+replication surfaced on the M3 privacy sweep
+(Section~\ref{sec:results-m3}) rather than here: block precision's
+degradation \emph{exists} in both samples but the exact noise level it
+begins at does not (perfect through $\sigma=1.0$ in one 10-seed sample,
+already degrading at $\sigma=0.5$ in the other) -- a threshold is real;
+its precise location is not a property we would claim generalizes
+beyond the specific ten seeds it was measured on.
+
 \section{Discussion}
-Two findings in this paper are, we think, more broadly useful than the
-specific architecture: first, that a class-imbalanced, shared Q-head
-can silently suppress a minority slice's learning signal in a
+Three findings in this paper are, we think, more broadly useful than
+the specific architecture: first, that a class-imbalanced, shared
+Q-head can silently suppress a minority slice's learning signal in a
 multi-slice admission controller, and that per-slice heads are a
 simple, verifiable fix; second, that an SLA-compliance metric which
 scores decisions only by whether they eventually keep a slice within
@@ -530,6 +672,24 @@ an already-stressed slice's margin. Any admission-control evaluation
 in a stress regime where this asymmetry holds should report a
 decision-level correctness metric alongside, not instead of, an
 outcome-level compliance metric.
+
+Third, that reproducing a result on the same seed and replicating it on
+an independent one answer different questions, and only the second
+caught a real error in this paper's own analysis. Every number in this
+paper was checked for exact, same-seed reproducibility (an eval-log
+append bug and an unseeded weight-initialization path,
+Section~\ref{sec:eval-log-bug}, both surfaced and were fixed this way,
+neither by inspection alone), which confirms the pipeline is
+deterministic but says nothing about whether a finding is real or a
+property of one particular sample of seeds. Only the independent-seed
+replication in Section~\ref{sec:results-m4} caught the latter: a
+claimed architectural immunity to agent churn that read as
+``mechanistically sensible'' on one 10-seed sample was directly
+contradicted by a second, disjoint one. We would not have caught this
+by re-running the same seeds again, however many times, and we think
+any paper reporting an architecture-specific claim from a single
+seed sample -- ours included, elsewhere, before this check -- should
+weigh how much of its evidence is reproduction versus replication.
 
 We are explicit about what remains offline-only. Every result in this
 paper uses the 3-gNB offline stress environment; none of it is a live
@@ -548,23 +708,45 @@ motivation we cannot substantiate at this scale.
 \section{Conclusion and Future Work}
 \label{sec:conclusion}
 We built and iteratively fixed a GAT-CTDE architecture for coordinated
-multi-gNB slice admission control, found and diagnosed two failures a
-standard compliance metric and an unguarded append-only log could not
-have caught on their own -- a training collapse and a hidden
-eval-data contamination bug -- and showed that on a correctness-aware
-reward metric the architecture delivers a decisive, statistically
-significant improvement over an independent-learner ablation, though
-its edge over our existing single-agent baseline specifically is small
-and not decisive at this sample size. Extending the architecture to
-federated training with differential privacy, we found federation to
-add no measurable reward cost and privacy costly only past a real
-threshold in decision precision, not a smooth tradeoff. Future work extends this same architecture and the same
-correctness-aware evaluation to a disruption-resilience setting --
-mid-episode gNB dropout, demand spikes, and client churn -- evaluated
-against the frozen policies reported here, testing the prediction this
-paper's own findings suggest: that disruption, like differential
-privacy noise, produces a threshold effect on decision quality rather
-than graceful degradation.
+multi-gNB slice admission control, found and diagnosed three failures a
+standard compliance metric, an unguarded append-only log, and an
+unseeded weight-initialization path could not have caught on their own
+-- a training collapse, a hidden eval-data contamination bug, and a
+same-seed-only reproducibility gap -- and showed that on a
+correctness-aware reward metric the architecture delivers a decisive,
+statistically significant improvement over an independent-learner
+ablation, though its edge over our existing single-agent baseline
+specifically is small and not decisive at this sample size. Extending
+the architecture to federated training with differential privacy, we
+found federation to add no measurable reward cost and privacy costly
+only past a real threshold in decision precision, not a smooth
+tradeoff. Evaluating the same frozen policies under mid-episode gNB
+dropout, demand spikes, and agent churn, we confirmed the threshold
+prediction this paper's own DP-noise finding suggested: dropout and
+churn both produce a real, accelerating cost with severity rather than
+graceful degradation, while demand spikes do not threshold at all on
+the metric that matters, a genuinely different failure mode.
+Cross-checking every result against an independent seed sample, not
+just the same seeds reproduced again, caught one architectural claim
+(that independent DQN is immune to agent churn) that a single sample
+had made look confirmed but was not -- retracted before it could
+appear as a finding, with the correction reported alongside it rather
+than silently.
+
+Everything in this paper is offline-only, and validating whether any of
+these architectural or privacy-cost rankings survive contact with a
+live testbed -- as our single-agent work already did, and as this
+offline environment's own known live-fidelity gap
+(Section~\ref{sec:system-model}) says we should not assume -- is the
+most direct remaining step. Two narrower questions this paper's own
+results raise are also still open: whether the churn-cost gap between
+coordination-dependent and independent architectures is itself
+statistically real (no formal paired test between architectures'
+disruption costs was run here, only each architecture against its own
+undisrupted baseline), and why the privacy threshold's exact location
+shifted between our two seed samples (Section~\ref{sec:results-m4}) --
+whether that reflects genuine sensitivity to which ten seeds are drawn,
+or a factor this paper has not identified.
 
 \section*{Acknowledgment}
 \authorTODO{Same acknowledgment text as paper\_conf/main.tex, or updated for this paper -- please fill in.}

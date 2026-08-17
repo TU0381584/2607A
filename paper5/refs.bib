@@ -2,10 +2,11 @@
 % Review is deferred (see main.tex's TODO), so this file holds only the
 % citations the current draft text actually uses: our own prior work,
 % and the core methods (GAT, FedAvg, FedProx, DP-SGD, zCDP) the
-% architecture and training regimen are built from. Entries with a
-% "note" field starting "VERIFY:" have bibliographic details that could
-% not be confirmed from a local source -- verify against the actual
-% publication before submission.
+% architecture and training regimen are built from. fedprox/zcdp page
+% ranges were originally flagged VERIFY (could not be confirmed from a
+% local source) and have since been confirmed against the publishers'
+% own pages (proceedings.mlsys.org for fedprox; Springer's LNCS 9985
+% chapter page, DOI 10.1007/978-3-662-53641-4_24, for zcdp).
 
 @inproceedings{mecon-paper1,
   title     = {Optimising Resource Allocation in {5G} Networks: Balancing {URLLC} and {eMBB} Traffic under {gNB} Congestion},
@@ -43,8 +44,8 @@
   author    = {Li, Tian and Sahu, Anit Kumar and Zaheer, Manzil and Sanjabi, Maziar and Talwalkar, Ameet and Smith, Virginia},
   booktitle = {Proceedings of Machine Learning and Systems (MLSys)},
   volume    = {2},
-  year      = {2020},
-  note      = {VERIFY: exact page range}
+  pages     = {429--450},
+  year      = {2020}
 }
 
 @inproceedings{dpsgd,
@@ -59,6 +60,6 @@
   title     = {Concentrated Differential Privacy: Simplifications, Extensions, and Lower Bounds},
   author    = {Bun, Mark and Steinke, Thomas},
   booktitle = {Theory of Cryptography Conference (TCC)},
-  year      = {2016},
-  note      = {VERIFY: exact page range}
+  pages     = {635--658},
+  year      = {2016}
 }

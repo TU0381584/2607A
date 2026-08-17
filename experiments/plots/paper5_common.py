@@ -61,6 +61,22 @@ M3_STYLE: Dict[str, dict] = {
     "curve":       {"color": "#2a78d6", "marker": "o", "label": "Federated GAT-CTDE"},
 }
 
+# M4 shows all four arms together (unlike M3's Fig. 4, which only ever
+# pairs gat_ctde against federated, so reusing independent_dqn's orange
+# for federated there is harmless) -- federated needs its OWN slot here to
+# avoid colliding with independent_dqn's orange. Slot 4 (yellow) of the
+# dataviz skill's validated categorical order, next after gat_ctde/
+# independent_dqn/single_agent_dqn's slots 1-3; gat_ctde/independent_dqn/
+# single_agent_dqn keep their established colors unchanged for identity
+# consistency across every figure in the paper.
+M4_ARM_ORDER: List[str] = ["gat_ctde", "independent_dqn", "single_agent_dqn", "fl_gat_ctde_sigma0.0"]
+M4_ARM_STYLE: Dict[str, dict] = {
+    "gat_ctde":            M2_ARM_STYLE["gat_ctde"],
+    "independent_dqn":     M2_ARM_STYLE["independent_dqn"],
+    "single_agent_dqn":    M2_ARM_STYLE["single_agent_dqn"],
+    "fl_gat_ctde_sigma0.0": {"color": "#eda100", "marker": "D", "label": "Federated"},
+}
+
 # Fixed (never themed) status roles, dataviz skill palette.md -- used for
 # paired win/tie/loss outcome coloring, never for series identity, so a
 # status color never impersonates an arm's own categorical hue.
