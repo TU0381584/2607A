@@ -1,0 +1,32 @@
+{
+    // These directories are large (tens of GB) and/or contain thousands of
+    // files that don't need live editing support. Without these excludes,
+    // VS Code's file watcher, search indexer, and Git decoration provider
+    // walk all of them on every window open -- the cause of the large
+    // one-time disk read on VS Code startup. .gitignore does NOT cover
+    // this; files.watcherExclude/search.exclude are separate from git.
+    "files.watcherExclude": {
+        "**/experiments/results/**": true,
+        "**/experiments/logs/**": true,
+        "**/venv/**": true,
+        "**/ORANSlice/**": true,
+        "**/docker_open5gs/**": true,
+        "**/protobuf-c/**": true,
+        "**/logs/**": true
+    },
+    "search.exclude": {
+        "**/experiments/results/**": true,
+        "**/experiments/logs/**": true,
+        "**/venv/**": true,
+        "**/ORANSlice/**": true,
+        "**/docker_open5gs/**": true,
+        "**/protobuf-c/**": true,
+        "**/logs/**": true
+    },
+    "files.exclude": {
+        "**/venv/**": true,
+        "**/ORANSlice/**": true,
+        "**/docker_open5gs/**": true,
+        "**/protobuf-c/**": true
+    }
+}
