@@ -1,0 +1,341 @@
+# Paper #5 M6: topology-scaling campaign
+
+Status: **pilot complete (3 seeds/arm, full 6-combination grid, real
+300/50 episode budget); full 30-seed campaign not yet run.**
+Heterogeneous load (Part 2) is resolved, no frozen-source edit needed.
+The pilot's own first read of "does GAT-CTDE's edge grow with N"
+turned out to be confounded and reversed on correction (Part 3) --
+read that section before trusting any raw-reward number anywhere else
+in this doc or in an early draft of the pilot report.
+
+## What M6 asks
+
+Does GAT-CTDE's paired edge over single-agent DQN (established at
+N=3, fully-connected, in M2) grow with cluster size N and with
+topology sparsity, or is the M2 result specific to a small,
+fully-connected graph? Extend to N in {3, 7, 19} with ring and
+hex-grid adjacency, plus per-gNB heterogeneous load, keeping reward/
+action space/per-request TD scheme identical so any measured
+difference is attributable to topology alone.
+
+## Part 1: N + adjacency (built, smoke-tested, unblocked)
+
+### Design
+
+- `framework/qoe_oran_framework/marl/topology.py` gained two new pure
+  functions, `ring_edges(n)` and `hex_grid_edges(n)`, both returning an
+  edge list consumed by the existing, unmodified `build_adjacency` --
+  no change to that function or to anything M2/M3/M4 depend on.
+  - `ring_edges`: an N-cycle, defined for any N. Degenerate at N=3 (a
+    3-cycle already touches every pair, so ring == fully-connected
+    there) -- not a bug, just means sparsity only differentiates from
+    fully-connected once N>=4.
+  - `hex_grid_edges`: concentric hex rings around one centre cell via
+    axial coordinates (ring 1 = +6 cells -> N=7; ring 2 = +12 cells ->
+    N=19) -- the standard cellular frequency-reuse cluster sizes, which
+    is why M6's own N choices land exactly on 7 and 19. Defined only
+    for N in {7, 19}; raises rather than guessing for any other N.
+  - Verified directly (not assumed): computed degree sequences for both
+    match hand-checkable hex geometry exactly -- N=7 gives one
+    degree-6 centre + six degree-3 outer cells; N=19 gives 7
+    degree-6 interior cells (centre + all 6 ring-1 cells) + 6
+    degree-4 ring-2 edge cells + 6 degree-3 ring-2 corner cells, all
+    symmetric adjacency matrices.
+- Two new YAML configs, `configs/saclb_offline_dqn_n7.yaml` and
+  `..._n19.yaml`: diffed directly against the N=3 baseline
+  (`saclb_offline_dqn.yaml`) to confirm the ONLY changes are the
+  `gnbs:` list (extended to 7/19 entries, same `prb_capacity: 100`
+  each) and `arrivals.synthetic_arrivals_per_step` (scaled from 3 to
+  7/19, preserving ~1 arrival/gNB/step -- unscaled, N=19 would dilute
+  per-node contention roughly 6x relative to N=3, confounding "does N
+  matter" with "is the stress regime still actually a stress regime
+  at this N," which is not the question M6 asks). Every slice/reward/
+  episode parameter is byte-identical to the N=3 config.
+- New `experiments/scripts/m6_run_experiment.py`, mirroring
+  `m2_run_experiment.py`'s exact per-arm training/eval loop (same
+  torch-seed-before-construction fix, same seed-dir-clearing bug
+  guard, same checkpoint-architecture-verified resume check) with two
+  new parameters: `--config-path` (selects N) and `--topology`
+  (fully_connected/ring/hex, consumed only by the `gat_ctde` arm's
+  adjacency construction -- `independent_dqn` and `single_agent_dqn`
+  never consume an adjacency matrix at all, so topology only reaches
+  the environment/contention level for those two arms, never a
+  graph-structure level).
+
+### Verification
+
+1. **Regression check**: ran seed 8801, 5 train/3 eval episodes,
+   `gat_ctde` arm, N=3/fully_connected through BOTH
+   `m2_run_experiment.py` and the new `m6_run_experiment.py`. Byte-
+   identical eval omega log, byte-identical train omega log, and
+   `torch.equal`-identical checkpoint weights. The new script
+   introduces zero behavioural change for the case it must reproduce
+   exactly.
+2. **Smoke test**: 1 seed (8801), 5 train/3 eval episodes, all three
+   arms, at N=7/ring, N=7/hex, and N=19/hex (3 arms). All ran to
+   completion with no errors; compliance values were non-degenerate
+   (neither 0 nor 1 across the board) at every combination tested.
+3. **Timing probe**: 1 seed, FULL M2-scale episode budget (300
+   train/50 eval), `gat_ctde` arm only, at N=19/hex (the most
+   expensive single combination: largest N, and `gat_ctde` is the only
+   arm whose per-step cost scales with graph attention over N nodes).
+   Result: TODO(MEASURE) -- launched, not yet complete as of this
+   doc's first commit; see the addendum below once it finishes.
+
+## Part 2: per-gNB heterogeneous load (RESOLVED -- correcting the earlier "blocked" finding)
+
+**This section originally said heterogeneous load was blocked without
+a frozen-source edit. That was wrong** -- the investigation that
+produced it checked `GnbSpec.prb_capacity` (genuinely dead, see below)
+and `env.py`'s arrival-assignment RNG (genuinely frozen and uniform),
+but missed a third path that was there the whole time. Corrected here
+rather than silently edited, per this project's own established
+practice (Section IV-E's eval-log bug, the M4 churn-immunity
+retraction) of leaving a record of what was wrong and why, not just
+the fix.
+
+**`replay_kpm_source.ClosedLoopKpmSource` -- the class that actually
+generates offered demand per (gNB, slice) -- already has a first-class
+`gnb_load_multiplier: Optional[Dict[str, float]]` constructor
+parameter, purpose-built for exactly this.** Its own docstring states
+the reason it exists: "Without genuine heterogeneity across gNBs there
+is nothing for the LB (load-balance) term to actually resolve." Each
+gNB's offered demand is `mean_offered_ratio * gnb_load_multiplier[gnb_id]`.
+More surprising: **if the caller doesn't supply one, `ClosedLoopKpmSource`
+auto-generates one from `seed`** (uniform in [0.6, 1.4], first gNB
+pinned to 1.0) -- and neither `m2_run_experiment.py` nor the M6 script
+above ever passed this argument explicitly, so **every M2/M3/M4 seed
+run to date already has implicit, seeded per-gNB load heterogeneity
+baked in**, just never deliberately controlled or reported as an
+experimental variable. This does not invalidate any committed M2/M3/M4
+result (the heterogeneity was there, consistently, for every arm and
+every seed alike -- it is not a confound between arms since all three
+arms see the same per-seed KPM source) but it is worth knowing: this
+paper's existing multi-gNB results were never actually homogeneous-load
+results in the first place.
+
+`GnbSpec.prb_capacity` remains genuinely dead code (confirmed: no
+reference anywhere outside `config.py`) and the arrival-assignment
+RNG inside `env.py` remains frozen and uniform -- neither of those
+findings was wrong. The path that resolves this was simply a third
+one, in a different frozen file (`replay_kpm_source.py`) than the two
+already checked, consumed the same way `mean_offered_ratio`/`B`/
+`backlog_capacity` already are: as a constructor argument passed from
+project-owned code (`make_kpm_source_factory`), not a frozen-file
+edit.
+
+### What M6 actually does with this
+
+`make_kpm_source_factory` (both `m2_run_experiment.py` and
+`m6_run_experiment.py`) gains a `gnb_load_multiplier_mode` parameter:
+- `"default"`: unchanged behaviour -- the existing seeded-random
+  [0.6, 1.4] auto-generation, matching every already-committed M2/M3/M4
+  result exactly (verified: regression check below).
+- `"homogeneous"`: explicit override, every gNB's multiplier forced to
+  1.0 -- giving M6 a genuine, deliberate homogeneous-vs-heterogeneous
+  comparison pair that did not exist before, since "default" was never
+  actually homogeneous to begin with.
+
+This is the pair M7's FedProx-under-heterogeneity task needs: FedProx
+against `"homogeneous"` (no real client heterogeneity, matching the M3
+doc's own reasoning for why a full FedProx sweep wasn't run there) vs.
+FedProx against `"default"`/heterogeneous (genuine per-client
+difference for FedProx's proximal term to correct for).
+
+### Verification
+
+1. **Regression check, repeated after adding the parameter**: same
+   seed 8801/N=3/fully_connected/5-train/3-eval comparison as Part 1,
+   `gnb_load_multiplier_mode="default"` (the parameter's default) vs.
+   `m2_run_experiment.py` unchanged -- still byte-identical eval log.
+   Adding the parameter did not silently change default behaviour.
+2. **The override actually reaches the environment**: same seed 8801,
+   `"default"` vs. `"homogeneous"`, otherwise identical arguments --
+   612 of 612 compared train-log lines differ (different reward,
+   different accepted counts, different ceiling trajectory from step 1
+   onward). Confirms the multiplier is not silently ignored anywhere
+   downstream.
+
+## Part 3: the pilot's collapse-at-scale signal, chased down
+
+The pilot (3 seeds/arm, all 6 combinations, full 300/50 episode
+budget) finished in 15{,}964s (~4.4h; 295.6s/cell average, giving a
+real, not extrapolated, full-30-seed-campaign estimate of ~44.3h main
++ ~14.8h for a 10-seed independent-replication pass ~= 59h/~2.5 days
+sequential). Its first read looked like two findings: (a) GAT-CTDE's
+reward edge over single-agent DQN grows with N (+0.4-0.5 at N=7 vs.
++0.67 at N=19), and (b) compliance collapses toward ~0 for every arm
+at N=7/19 versus N=3's established ~0.15 baseline. Chased (a) and (b)
+down before trusting either, and both needed correcting.
+
+### (b) is a metric artifact, not an architecture failure -- confirmed by reading the frozen source
+
+`reward.py::check_violations`'s own docstring says plainly: "Per-slice
+SLA violation flags for one step (cluster-wide, OR'd across gNBs)."
+The actual loop (`for slice_states in cluster_state.per_gnb.values():
+... if queue_violation or loss_violation: violated[slice_id] = True`)
+confirms it: a slice counts as violated for the WHOLE cluster if ANY
+single one of the N gNBs is out of budget on it that step. The
+probability that at least one of N gNBs is briefly non-compliant on
+any given step rises with N by construction, independent of policy
+quality -- so `sla_compliance_all_slices` trending toward 0 as N grows
+from 3 to 7 to 19 is expected from the metric's own OR-aggregation
+definition, not evidence the architecture (or any arm) is collapsing
+worse at scale. This is a second, N-specific instance of exactly the
+failure mode Section V of the paper already leads with (a standard
+metric that cannot be trusted at face value in this problem class) --
+not corrected here (it is frozen source, and the point of this
+project's correctness-aware metrics was always to have an alternative
+that does not inherit this specific flaw, not to patch the flawed
+one), but recorded as a second, independent argument for the paper's
+own central thesis, this time on the cluster-size axis rather than the
+disruption-severity axis M4 already covers.
+
+### (a) was itself confounded -- raw reward is not comparable across different N, confirmed by reading the frozen source
+
+`action_mapping.py`'s `apply_actions()`: `accepted_counts[slice_id]`
+is a single dict, initialized once per step and incremented once per
+accepted request across ALL gNBs in that step's combined request list
+-- not per gNB. `reward.py::compute_step_reward`'s `service_term =
+sum_slice(priority_weight * accept_reward * n_accepted)` therefore
+scales with however many gNBs there are, mechanically, the identical
+shape of confound (accept-volume inflating raw reward) M4's
+`mean_reward_per_pending_request` already had to fix for demand
+spikes -- just showing up on the N axis instead of the severity axis
+this time. Raw `mean_reward_per_step` comparisons across different N
+values are not valid for the same reason raw reward wasn't valid
+across spike severities.
+
+**Fix**: `m6_correctness_metrics.py`'s `mean_reward_per_gnb` divides
+by N before averaging -- same discipline, new instance. Re-running the
+pilot's GAT-CTDE vs. single-agent comparison through it:
+
+| Combo | Raw reward diff (WRONG, confounded) | Per-gNB-normalized diff (n=3, directional) |
+|---|---|---|
+| N=7, any topology | +0.25 to +0.49 | +0.035 to +0.070 |
+| N=19, any topology | +0.672 | +0.035 |
+
+**The "grows with N" reading does not survive correction -- if
+anything it shrinks slightly (N=7's ~0.07 to N=19's ~0.035), the
+opposite of what the confounded raw numbers suggested.** This would
+have been a real, wrong finding if it had gone straight into a 30-seed
+campaign write-up on the strength of the naive metric alone -- exactly
+the kind of error this paper's own reproduction/replication and
+metric-integrity discipline exists to catch before publication, not
+after.
+
+### What does hold up: block precision, not reward margin
+
+`block_precision` (mmTC-only-blocking fraction) is untouched by either
+confound above -- it was already volume-invariant, the same reason M4
+chose it as its own primary metric. In the pilot: GAT-CTDE holds
+1.000 precision at both N=7 and N=19 across every topology.
+Single-agent DQN holds 1.000 at N=7 but goes fully UNDEFINED (zero
+blocks in eval -- full collapse to always-accept) at N=19, across all
+three N=19 topologies. Independent DQN sits at 0.787 (N=7) and 0.544
+(N=19) -- degraded, not collapsed. **The signal this pilot actually
+supports is not "GAT-CTDE's reward edge grows with N" (corrected away
+above) but "GAT-CTDE resists always-accept collapse at N=19 in a way
+single-agent DQN's flattened-state policy does not, in this 3-seed
+sample"** -- a reliability/collapse-resistance claim, not a
+reward-margin claim, and still only n=3, not yet a powered result.
+
+### Implication for the full campaign
+
+Any full-scale M6 run must analyze through `mean_reward_per_gnb`
+(this file) from the start, not raw `mean_reward_per_step` -- and
+should report `sla_compliance_all_slices` trending toward 0 with N as
+an expected metric artifact requiring the explanation above, not a
+finding, exactly parallel to how the paper already handles
+`sla_compliance_all_slices` at the M2/M3 stage. The collapse-resistance
+signal (block precision holding for GAT-CTDE, going undefined for
+single-agent DQN at N=19) is the more promising thread to power up
+first, ahead of committing the full ~59h to the reward-margin question
+this pilot just showed was confounded in its naive form.
+
+## Part 4: is the N=19 collapse-resistance signal itself trustworthy? Checked directly -- mostly yes, with one real confound found and fixed
+
+Asked (correctly) not to trust the pilot's remaining signal without
+more work, so before recommending anything be scaled up: checked
+whether training had genuinely converged (not just run out of budget
+mid-improvement), then went to the strongest available evidence --
+direct Q-value inspection, the same standard this project's own
+original N=3 collapse diagnosis used -- and separately audited my own
+N=19 config for a scaling error rather than assuming the config I
+wrote was correct.
+
+### Training had converged, not just run out of episodes
+
+Both arms' per-50-episode block-count trajectories at N=19 flatten out
+over the last ~100-150 episodes (gat\_ctde: 250.3 -> 242.5 -> 247.6;
+single\_agent\_dqn: 48.1 -> 27.9 -> 32.7) rather than still falling
+sharply at episode 300 -- consistent with genuine convergence to two
+different policies, not one arm simply having less effective training
+time than the other within the same 300-episode budget.
+
+### Direct Q-value probe: the collapse is real, and so is GAT-CTDE's differentiation
+
+Loaded seed 900's N=19/hex checkpoints for both arms and ran a fresh
+greedy eval episode with a hook computing $Q(\text{accept}) -
+Q(\text{reject})$ for every one of that episode's real pending-request
+decisions (720 for each arm) -- not a synthetic probe state, the
+actual states each policy saw:
+
+| Arm | urllc | embb | mmtc |
+|---|---|---|---|
+| single\_agent\_dqn | +46.4 (100% accept-preferred) | +39.0 (100%) | **+36.5 (100% accept-preferred)** |
+| gat\_ctde | +13.1 (100% accept-preferred) | +3.7 (100%) | **-1.9 (0% accept-preferred, i.e. 100% reject-preferred)** |
+
+single\_agent\_dqn: $Q(\text{accept}) > Q(\text{reject})$ for every
+single one of 720 decisions, on all three slices including mmTC -- the
+identical unanimous-positive-gap signature the original N=3 collapse
+diagnosis used to confirm that one was genuine, not assumed. gat\_ctde:
+positive (accept-preferred) for urllc/embb, NEGATIVE (reject-preferred)
+for mmTC, unanimously, on all 241 mmTC decisions in the episode --
+exactly the reward-optimal differentiated-shedding signature
+Section III-B defines. This is not a difference in an aggregate
+statistic that could hide seed noise or a measurement quirk: it is two
+policies making opposite, internally consistent decisions on the
+identical problem, confirmed at the individual-decision level.
+
+### But the N=19 config itself had a real bug -- found by auditing my own scaling choice, not assumed correct
+
+Checked whether the "~1 arrival/gNB/step" scaling target Part 1 claims
+was actually delivered, rather than trusting the YAML I wrote. It was
+not, at N=19: `experiments/results/m6_pilot/n19_hex/gat_ctde/seed900/eval`'s
+`n_pending` was pinned at EXACTLY 12 every single step (zero variance)
+-- the unmistakable signature of a hard cap, not organic arrival
+variation. Root cause: `synthetic_arrivals_per_step` was scaled
+3->7->19 as Part 1 describes, but `max_pending_per_step` (the hard
+per-step cap) was left at the N=3 baseline's 12 in both new configs.
+19 > 12, so N=19 silently truncated every step's intended 19 arrivals
+down to 12 -- delivering ~0.63 pending/gNB/step, not the claimed
+~1.0 (N=3 measured 1.148; N=7, never actually hitting its own
+un-scaled 12 cap since 7 < 12, measured 1.148 too, matching exactly).
+**N=7's pilot cells were unaffected** (confirmed: real variance,
+mean 8.04, never pinned) but **N=19's were run under an unintended,
+gentler-than-designed stress regime.**
+
+Fixed: both configs' `max_pending_per_step` now scale with the same
+ratio as `synthetic_arrivals_per_step` (the original 12/3=4x headroom
+margin, preserved: N=7 -> 28, N=19 -> 76). Verified the fix: a 3-episode
+smoke run at the corrected N=19 config now shows real variance
+(mean n\_pending=22.1, std=4.3, min=19, max=76, per-gNB rate 1.164 --
+matching N=3/N=7's ~1.15 to within noise) instead of being pinned.
+
+### Net conclusion
+
+The collapse-resistance signal survives every check thrown at it so
+far -- genuine convergence, not undertraining; genuine, unanimous,
+decision-level Q-value confirmation on both arms, not an aggregate
+artifact -- but it was measured under an environment that was
+accidentally less stressed than intended at N=19 specifically. **The
+qualitative direction (single-agent DQN collapses, GAT-CTDE
+differentiates, at N=19) is well-supported by what actually ran; the
+N=19 pilot cells still need to be re-run against the corrected config
+before this is reported as a finding about the intended stress
+regime**, since a gentler-than-designed environment accidentally
+producing this contrast is a different, weaker claim than the intended
+regime producing it. Re-running the 9 N=19 cells (3 seeds x 3 arms,
+now under the fixed config) is far cheaper than the full campaign --
+recommended as the next concrete step, ahead of any further scaling.
