@@ -10,9 +10,9 @@ gnb_load_multiplier_mode override (added this milestone) that makes
 "homogeneous" (every gNB forced to 1.0) a genuine, deliberate
 comparison point that did not exist before.
 
-This sweeps {aggregator=fedavg, aggregator=fedprox} x
-{gnb_load_multiplier_mode=homogeneous, =default(heterogeneous)}, DP
-noise fixed at sigma=0 throughout (isolates the heterogeneity/FedProx
+This sweeps {aggregator=fedavg, aggregator=fedprox at each --fedprox-mu
+value} x {gnb_load_multiplier_mode=homogeneous, =default(heterogeneous)},
+DP noise fixed at sigma=0 throughout (isolates the heterogeneity/FedProx
 question from the already-characterised privacy cost,
 Section~\\ref{sec:results-m3}'s own discipline), same seeds and episode
 budget as the M2/M3 campaigns for direct comparability.
@@ -25,6 +25,18 @@ DIVIDEND specific to FedProx. If FedProx shows the same effect (or no
 effect) in both load modes, that is a null result, reported as such,
 matching this project's "do not invent an effect" discipline.
 
+The first pilot (mu=0.01 only) found FedAvg and FedProx bit-identical
+at the eval-decision level in every cell (mean_reward_per_step matching
+to full float precision, identical block counts) despite genuinely
+different checkpoint weights (verified directly, not assumed -- up to
+0.27 max-abs difference) -- mu=0.01's proximal pull never flips a
+single argmax accept/reject decision on this problem's typically
+large Q-value gaps. That result answers "is mu=0.01 applied correctly"
+(yes) but not "does FedProx have a heterogeneity dividend at any
+strength" -- hence --fedprox-mu now accepts multiple values, swept the
+same way m3_privacy_sweep.py sweeps noise_multiplier, so a null at one
+mu doesn't get reported as a null for FedProx in general.
+
 Resumable (same pattern as m3_privacy_sweep.py): existing
 campaign_results.json cells are kept, not re-run.
 
@@ -32,7 +44,7 @@ Usage (from repo root, cwd=framework/ required):
     cd framework && ../venv/bin/python3 \
         ../experiments/scripts/m7_fedprox_heterogeneity.py \
         --out-dir ../experiments/results/m7_campaign \
-        --seeds 900 901 902 --fedprox-mu 0.01
+        --seeds 900 901 902 --fedprox-mu 0.01 0.1 1.0
 """
 import argparse
 import json
@@ -43,12 +55,14 @@ from pathlib import Path
 sys.path.insert(0, "/home/kmanojp/oranslice_rig/experiments/scripts")
 import m3_run_experiment as m3  # noqa: E402
 
-CELLS = [
-    ("fedavg_homogeneous", "fedavg", 0.0, "homogeneous"),
-    ("fedavg_heterogeneous", "fedavg", 0.0, "default"),
-    ("fedprox_homogeneous", "fedprox", None, "homogeneous"),   # mu filled from --fedprox-mu
-    ("fedprox_heterogeneous", "fedprox", None, "default"),
-]
+LOAD_MODES = [("homogeneous", "homogeneous"), ("heterogeneous", "default")]
+
+
+def build_cells(fedprox_mus):
+    cells = [(f"fedavg_{tag}", "fedavg", 0.0, mode) for tag, mode in LOAD_MODES]
+    for mu in fedprox_mus:
+        cells += [(f"fedprox_mu{mu}_{tag}", "fedprox", mu, mode) for tag, mode in LOAD_MODES]
+    return cells
 
 
 def main() -> None:
@@ -58,7 +72,7 @@ def main() -> None:
     ap.add_argument("--train-episodes", type=int, default=300)
     ap.add_argument("--eval-episodes", type=int, default=50)
     ap.add_argument("--local-steps-per-round", type=int, default=50)
-    ap.add_argument("--fedprox-mu", type=float, default=0.01)
+    ap.add_argument("--fedprox-mu", type=float, nargs="+", default=[0.01])
     args = ap.parse_args()
 
     out_dir = Path(args.out_dir)
@@ -75,15 +89,14 @@ def main() -> None:
           f"fedprox_mu={args.fedprox_mu}, seeds={args.seeds}")
 
     t0 = time.time()
-    for tag, aggregator, mu, load_mode in CELLS:
+    for tag, aggregator, mu, load_mode in build_cells(args.fedprox_mu):
         if tag in campaign["results"]:
             print(f"[m7] {tag}: already present, skipping")
             continue
-        actual_mu = args.fedprox_mu if mu is None else mu
         results = m3.run_fl_arm(
             cfg, sd_for_slice, args.seeds, args.train_episodes, args.eval_episodes,
             str(out_dir), tag,
-            aggregator=aggregator, fedprox_mu=actual_mu, dp_noise_multiplier=0.0,
+            aggregator=aggregator, fedprox_mu=mu, dp_noise_multiplier=0.0,
             local_steps_per_round=args.local_steps_per_round,
             gnb_load_multiplier_mode=load_mode,
         )
