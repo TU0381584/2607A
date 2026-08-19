@@ -339,3 +339,334 @@ producing this contrast is a different, weaker claim than the intended
 regime producing it. Re-running the 9 N=19 cells (3 seeds x 3 arms,
 now under the fixed config) is far cheaper than the full campaign --
 recommended as the next concrete step, ahead of any further scaling.
+
+## Part 5: N=19 re-run against the fix -- signal confirmed, stronger than before
+
+Re-ran all 9 corrected cells (3 seeds x {fully\_connected, ring, hex},
+into new `n19_*_capfix` output dirs -- the original, confounded run is
+left in place for comparison, not overwritten). 10{,}244s total
+(~2.85h), matching the earlier per-cell cost estimate closely.
+
+**Every part of the collapse-resistance signal survives, and several
+parts got MORE decisive, not less:**
+
+- `single_agent_dqn`: **0 total blocks across all 9 cells** (all 3
+  seeds x all 3 topologies) -- complete collapse persists even under
+  the full, properly-scaled stress level (previously capped at 12
+  pending/step, now up to 76). block\_precision is undefined (nan) in
+  every cell, not just most of them.
+- `gat_ctde`: block\_precision = 1.000 in every cell, now over a much
+  larger number of actual blocking decisions (43{,}639 total blocks
+  across the 9 cells, vs. a much smaller count under the artificially
+  capped run) -- more evidence, not less, of consistent, correctly-
+  targeted differentiation.
+- Direct Q-value re-probe (same seed-900/hex checkpoints, now
+  corrected): `single_agent_dqn` -- $Q(\text{accept}) > Q(\text{reject})$
+  on 100% of 1347 real decisions (up from 720, since the environment
+  now delivers more real traffic), all three slices, mean mmTC gap
+  +29.6. `gat_ctde` -- unanimous accept-preference for urllc (+128.4)
+  and embb (+37.3), unanimous REJECT-preference for mmTC (0% accept-
+  preferred, mean -16.2, a much larger and more confident gap than the
+  buggy run's -1.9). The differentiated-shedding signature got
+  sharper under the intended, harsher stress level, not weaker.
+- Per-gNB-normalized reward diff (GAT-CTDE vs. single-agent): +0.065
+  [+0.000, +0.100], consistent across all three N=19 topologies --
+  close to N=7's own +0.035 to +0.070 range from Part 3, not
+  meaningfully larger. **The reward-margin question still reads as a
+  null once corrected (no clear growth from N=7 to N=19); the
+  collapse-resistance question does not** -- these are two different
+  axes with two different answers, and only one of them shows an N
+  effect in this pilot.
+
+**Conclusion**: the N=19 collapse-resistance finding is no longer
+provisional-pending-a-known-confound. It has now been confirmed twice
+(once under the accidentally-gentler buggy environment, once under the
+corrected one, with the signal strengthening under correction rather
+than weakening or reversing) and at the individual-decision level via
+direct Q-value inspection both times, matching this project's own
+established collapse-diagnosis bar. It is still an n=3 pilot -- not yet
+a Wilcoxon-powered, 30-seed claim -- but it is no longer resting on an
+uncorrected config bug. Recommended next step: scale the
+collapse-resistance axis specifically (N=19, all three arms, more
+seeds) ahead of the broader reward-margin/topology-sparsity campaign,
+which this pilot's own corrected numbers suggest is likely to be a
+null result across the board.
+
+## Part 6: scaled to 6 seeds (900-905) -- the clean n=3 story does not survive, and a real analysis-script bug was found in the process
+
+User's instruction: bring the 30-seed rescale down to a 6-hour, 6-seed
+budget (900-905), all three N=19 topologies. Two operational problems
+came up during the run itself (both caught and fixed, not silently
+absorbed): an orphaned process from an earlier, superseded 30-seed
+launch survived a `pkill` and ran concurrently with the correct 6-seed
+job for a while, contending for CPU; and because `independent_dqn`/
+`single_agent_dqn` have no resume guard (only `gat_ctde` does -- Part 1
+already notes this as a known inefficiency, which turned out to also
+be a correctness risk), the two concurrent processes raced on
+`independent_dqn/seed900`'s directory, leaving it half-deleted
+mid-retrain. Both seed900/independent\_dqn (the one corrupted cell,
+confirmed via a directory-by-directory audit of every other cell) and
+the orphan process itself were fixed/killed before any analysis ran.
+
+### The aggregate block\_precision number was itself hiding the real story -- a bug in this project's own new script
+
+`m6_correctness_metrics.py`'s block\_precision computation sums
+`mmtc_blocks`/`total_blocks` across every seed FIRST, then divides
+once -- the same pattern `m2_correctness_metrics.py` already uses. At
+n=3 this looked clean (1.000 for gat\_ctde, every topology). At n=6 the
+aggregate number dropped to 0.50-0.67, and re-checking per-seed
+(not pooled) revealed why: seed 901's gat\_ctde total\_blocks was 0 in
+ALL THREE topologies, in both the n=3 AND n=6 runs -- it was collapsed
+from the very first pilot, silently. A seed contributing (0, 0) to a
+summed ratio changes neither the numerator nor the denominator, so it
+disappears from the aggregate instead of flagging as undefined the way
+a single-seed calculation would. This is not a new bug specific to
+n=19 -- `m2_correctness_metrics.py`'s own block\_precision has the
+identical structural blind spot, quietly relying on the fact that M2's
+established write-up already reports collapse rate as its own
+first-class number (21/30, 9/30) alongside precision, rather than
+trusting the pooled ratio alone to surface it. M6's analysis had not
+yet adopted that same discipline; it now does (below).
+
+### Per-seed collapse/precision breakdown, n=6, all three N=19 topologies
+
+| Arm | Collapsed (0 blocks) | Precision >=0.99 | Other (mixed/wrong-target) |
+|---|---|---|---|
+| single\_agent\_dqn | **6/6** (all topologies) | 0/6 | 0/6 |
+| gat\_ctde, fully\_connected | 2/6 (seeds 901, 904) | 3/6 (900, 902, 903) | 1/6 (905, precision 0.003) |
+| gat\_ctde, ring | 2/6 (901, 904) | 2/6 (900, 902) | 2/6 (903: precision **0.000**; 905: 0.501) |
+| gat\_ctde, hex | 2/6 (901, 904) | 2/6 (900, 902) | 2/6 (903: 0.000; 905: 0.501) |
+| independent\_dqn (topology-invariant) | 0/6 | 0/6 | 6/6, precision range 0.29-0.49 |
+
+**Seed 903 is the clearest single data point that topology sparsity
+does matter, contradicting Part 3/5's n=3-based conclusion that it
+didn't**: identical seed, identical initial weights, identical
+environment stream -- perfect precision (1.0) under fully\_connected,
+zero precision (0.0, blocking 43{,}687-43{,}708 requests with not one
+of them mmTC) under ring or hex. Seed 905 shows the same qualitative
+pattern (0.003 fully\_connected vs. 0.501 ring/hex), smaller in
+magnitude. The n=3 pilot's apparent topology-invariance (Parts 3 and 5)
+was a real reading of those specific seeds, not a fabrication -- but it
+was sample luck: none of seeds 900-902 happen to be topology-sensitive,
+and two of the three new seeds (903, 905) are.
+
+### What the finding actually is, corrected
+
+Not "GAT-CTDE resists collapse, single-agent DQN doesn't" (Part 5's
+framing). The corrected version: **single-agent DQN's collapse is
+total and unanimous (6/6, every topology) -- a real, N=19-specific
+escalation from whatever its baseline collapse tendency is at smaller
+N. GAT-CTDE's OWN collapse rate at N=19 (2/6, ~33%) sits close to its
+already-established ~30% (9/30) collapse rate from the N=3 campaign --
+N does not appear to make GAT-CTDE collapse MORE often. What N=19 adds
+for GAT-CTDE specifically is a new, previously-unseen partial failure
+mode among its non-collapsed seeds (blocking heavily but targeting the
+wrong slice), and that new failure mode's frequency depends on
+topology.** independent\_dqn is a third, distinct profile: it never
+fully collapses but never cleanly differentiates either, consistently
+mediocre (0.29-0.49) regardless of topology.
+
+None of this is yet a powered, 30-seed claim -- six seeds is enough to
+show the n=3 story was incomplete, not enough to state the corrected
+one with real confidence. The honest summary for now: single-agent
+DQN's total collapse at N=19 is the most robust single finding in this
+whole pilot (6/6, zero exceptions, confirmed twice under two different
+environment configs, confirmed at the Q-value level). Everything about
+GAT-CTDE's OWN reliability and topology-sensitivity at this scale needs
+more seeds before it is a claim rather than a lead.
+
+## Part 7: requested audit before scaling further -- one more real bug found, Part 6's conclusion survives verification (not assumption)
+
+Asked explicitly to audit methodology/results/framework for glitches
+before spending more compute. Systematic pass: full completeness sweep
+over every cell in the pilot's entire history (not just the latest
+run), re-derivation of the per-gNB reward normalization math, a
+targeted re-check of `gnb_load_multiplier_mode` threading, and a
+direct re-verification (not re-assertion) that N=7 was genuinely never
+affected by the arrival-cap bug.
+
+**Found: the same class of bug as Part 6's independent\_dqn/seed900
+corruption, this time in `gat_ctde`.** The orphaned 30-seed process
+(Part 6) was not confined to `independent_dqn`/`single_agent_dqn` --
+it raced the legitimate 6-seed job on `gat_ctde` too, for the three
+seeds both processes' seed lists overlapped on late in the run (903,
+904, 905, `fully_connected` only -- ring/hex were never touched, same
+reasoning as Part 6). `gat_ctde`'s resume guard prevented the
+900-902 case (already-complete data verified and reused, not
+re-cleared), but seeds 903-905 had no pre-existing checkpoint for
+either process to resume from, so both raced to clear-and-train them
+independently. Caught by a full-history rollup-count sweep across
+every combo in the pilot (not just the newest one): exactly these 3
+cells showed 100 rollup episodes instead of 50; every other cell,
+including the entire original 6-combination pilot and the earlier
+3-seed capfix recheck, showed a clean 50. Confirmed via the same
+episode-index-reset check this project's original append-contamination
+bug used: sequence 1..50 then 1..50 again, in all three.
+
+Training logs for these seeds were clean (single, un-interleaved
+300-episode sequence, no resets) -- only the eval phase was
+double-appended -- but rather than trying to determine which of the
+two interleaved eval halves the on-disk checkpoint actually
+corresponds to, retrained and re-evaluated all three from a full clean
+slate (cheap: 3 seeds, 1 arm, 1 topology, ~1390s).
+
+**The corrected numbers**: block *counts* for these three cells are
+now exactly half what Part 6 reported (e.g. seed903/fully\_connected:
+21{,}791 vs. the contaminated 43{,}582) -- consistent with the
+contamination having been two near-identical stacked runs, not two
+different ones. **Precision ratios, collapse status, and every
+qualitative claim in Part 6 are unchanged**: seed901/904 still fully
+collapsed (0 blocks); seed903 still shows perfect precision (1.000) at
+fully\_connected and zero (0.000) at ring/hex, the topology-dependence
+finding; seed905 still shows near-zero precision (0.003) at
+fully\_connected vs. partial (0.501) at ring/hex. Part 6's conclusion
+holds -- now because it was checked, not because the contaminated data
+happened to average out kindly (which it did here, but that was not
+knowable in advance and is not a reason to have skipped the check).
+
+**Also found, not a data bug but a housekeeping one**: the orphan had
+already completed a further 28 seeds (906-929) for
+`gat_ctde`/`fully_connected` before it was killed -- never overlapping
+the legitimate 6-seed job's own range, so single-writer and verified
+clean by the same sweep, but outside every documented scope in this
+file. Not deleted (real, clean, already-paid-for compute), but flagged
+here so it is never mistaken for part of the reported 6-seed sample if
+someone later globs `seed*` in that directory without checking this
+note.
+
+**Verified clean, no action needed**: N=7's arrival distribution
+(mean 8.04, std 1.00, natural variance up to a max of 12 -- never
+pinned, unlike N=19's pre-fix signature), the per-gNB reward
+normalization arithmetic (division is linear, so dividing before vs.
+after the within-episode mean is equivalent -- traced, not just
+asserted), and `gnb_load_multiplier_mode`'s threading through all
+three arm functions (identical pattern to the already-empirically-
+tested `gat_ctde` path; not itself re-run empirically for the other
+two arms since `homogeneous` mode is not yet used by any committed
+result).
+
+**Also fixed while auditing** (root cause, not just symptom): added
+real resume logic to `run_independent_dqn_arm`/`run_single_agent_dqn_arm`
+(previously absent -- Part 1 already flagged this as a known
+inefficiency; Part 7 shows it was also the exact mechanism that made
+concurrent-process corruption possible for those two arms). Both new
+resume paths reuse the existing checkpoint's own `load_checkpoint`
+(a real `load_state_dict` call, not a weaker existence check) and
+`_reload_eval_compliance` now refuses to resume from any eval log
+whose rollup count doesn't match exactly or whose episode numbering
+isn't a clean, non-decreasing sequence -- the same contamination
+signature Parts 6-7 found, now a standing guard against resuming from
+one. Verified before use: resumed 6 already-complete cells in 2s
+(vs. ~2400s to retrain), reloaded compliance values matched previously
+recorded ones exactly.
+
+## Part 8: scaled to 12 seeds (900-911), fully audited clean -- the corrected, current picture
+
+12-seed run (17{,}644s total, resume logic now correctly skipping
+already-complete cells throughout) passed a full audit with zero
+findings: every one of 108 cells (3 topologies x 3 arms x 12 seeds)
+has a matching checkpoint and a clean, exactly-50-rollup, non-reset
+eval log; a training-log spot check on 9 of the newly-trained cells
+confirmed clean, single, un-interleaved 300-episode sequences; no
+concurrent process was ever running alongside this one (checked before
+launch and confirmed after completion).
+
+| Arm | Collapsed (0 blocks) | High precision (>=0.99) | Other (mixed/wrong-target) |
+|---|---|---|---|
+| single\_agent\_dqn | **12/12, every topology** | 0/12 | 0/12 |
+| gat\_ctde, fully\_connected | 4/12 | 6/12 | 2/12 |
+| gat\_ctde, ring | 4/12 | 5/12 | 3/12 |
+| gat\_ctde, hex | 3/12 | 6/12 | 3/12 |
+| independent\_dqn (topology-invariant) | 0/12 | 0/12 | 12/12, range 0.29-0.49 |
+
+**What is now well-supported, not just a lead**: single-agent DQN's
+total collapse at N=19 (12/12, zero exceptions, three topologies, two
+independent seed batches, confirmed at the Q-value level in Part 5).
+GAT-CTDE's own collapse rate at N=19 (25-33%) sits close to its
+established ~30% N=3 rate -- N does not appear to make GAT-CTDE
+collapse noticeably more often, but it is not immune either, and even
+among its non-collapsed seeds only 5-6/12 (not all of them) show
+clean, correctly-targeted precision.
+
+**Correction to how this should be reported**: the paired reward-margin
+comparison (GAT-CTDE vs. single-agent DQN, per-gNB-normalized) is
+**not statistically significant at n=12** for any topology (Wilcoxon
+$p=0.74$-$0.91$) and the mean difference is now slightly *negative*
+for GAT-CTDE in all three. Mechanically sensible, not a red flag:
+single-agent DQN's always-accept collapse collects the reward's
+service term on every request with no rejection cost, while GAT-CTDE
+pays a real service-term cost every time it correctly rejects mmTC --
+at this N, that cost is not clearly recovered in the aggregate reward
+signal, even though it is exactly the reward-optimal action per this
+project's own established calibration. **The honest framing is: this
+project's evidence for GAT-CTDE's advantage at N=19 lives entirely in
+block precision / collapse resistance, not in the reward-margin
+metric** -- reporting a reward-margin advantage here would not be
+supported by what actually ran.
+
+Independent-seed replication (disjoint from 900-911) launched next to
+check whether this corrected picture holds on seeds it was not tuned
+against, per this project's own reproduction-vs-replication discipline
+-- see the addendum below once it lands.
+
+## Part 9: independent-seed replication (1000-1002) -- one finding replicates cleanly, one does not
+
+Ran 3 fresh seeds (1000-1002, disjoint from the 900-911 primary
+sample), all three N=19 topologies, all three arms (9925s total).
+Audited with the same rigor as every prior stage before trusting it:
+all 27 cells checked for both train (300 rollups) and eval (50
+rollups, no resets) completeness, zero problems found, zero concurrent
+processes.
+
+| Arm | fully\_connected | ring | hex |
+|---|---|---|---|
+| single\_agent\_dqn | 3/3 collapsed | 3/3 collapsed | 3/3 collapsed |
+| gat\_ctde | 3/3 collapsed | 2/3 collapsed, 1/3 other (0.005) | 2/3 collapsed, 1/3 high-precision (1.0) |
+| independent\_dqn | 0/3 collapsed, precisions [0.333, 0.323, 0.341] | same | same |
+
+**single-agent DQN's total collapse replicates perfectly**: 3/3 on
+every topology, joining the primary sample's 12/12 for a combined
+15/15 across two disjoint seed batches, zero exceptions. This is now
+about as solid a finding as anything in this paper.
+
+**GAT-CTDE's own collapse rate does NOT clearly replicate at the
+primary sample's ~30% level.** The replication sample collapsed 7 of 9
+(arm, topology) cells (78%) -- notably higher than the primary
+12-seed sample's 11 of 36 (31%). At n=3 per topology this could be
+small-sample noise (if the true rate really is ~30%, 3/3 collapsed has
+roughly a 3% chance by chance alone -- unlikely but not
+disqualifying), or it could mean the primary sample's ~30% reading
+itself doesn't generalize as cleanly as Part 8 suggested. Both
+samples agree GAT-CTDE collapses sometimes and single-agent DQN
+collapses always -- that qualitative ordering replicates -- but the
+EXACT collapse rate for GAT-CTDE is not yet a number this project
+should quote with confidence. More seeds, specifically aimed at
+pinning down GAT-CTDE's own collapse rate at N=19 (not the broader
+topology-sparsity or reward-margin questions, which Part 8 already
+found to be weak or null), is the honest next step -- not yet done,
+flagged here rather than assumed.
+
+**independent\_dqn's mediocre-but-never-collapsed profile replicates**
+reasonably: precisions 0.32-0.34 in the replication sample, within the
+same general range as the primary sample's 0.29-0.49, still
+topology-invariant as expected (independent\_dqn never consumes an
+adjacency matrix).
+
+### Where this leaves M6, honestly
+
+Two findings now stand on real, audited, twice-independently-sampled
+evidence: single-agent DQN's total collapse at N=19, and the
+qualitative ordering (single-agent always collapses, GAT-CTDE
+sometimes does, independent\_dqn never fully collapses but never
+cleanly differentiates either). Two things do not yet stand on solid
+evidence: GAT-CTDE's exact collapse rate at N=19 (33% vs. 78% across
+the two samples so far), and the reward-margin/topology-sparsity
+questions M6 originally set out to answer (Part 8: null on both, at
+n=12). Nothing here is fabricated or assumed -- every number in this
+document was read from an audited log, and every correction (Parts
+6, 7, 9) is a record of a real check catching a real problem, not a
+hedge. The single most valuable next increment, if this is continued,
+is more seeds on the collapse-rate question specifically -- everything
+else in M6's original scope (N=7, topology sparsity as its own axis,
+the reward-margin question) already has a fairly clear, if modest,
+answer from what has run so far.

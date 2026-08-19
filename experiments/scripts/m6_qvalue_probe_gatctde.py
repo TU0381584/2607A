@@ -19,7 +19,7 @@ from qoe_oran_framework.marl.marl_env import extract_node_features, node_feature
 from qoe_oran_framework.marl.topology import build_adjacency, hex_grid_edges  # noqa: E402
 
 CFG_PATH = "/home/kmanojp/oranslice_rig/framework/qoe_oran_framework/configs/saclb_offline_dqn_n19.yaml"
-CKPT = "/home/kmanojp/oranslice_rig/experiments/results/m6_pilot/n19_hex/gat_ctde/seed900/train/checkpoint.pt"
+CKPT = "/home/kmanojp/oranslice_rig/experiments/results/m6_pilot/n19_hex_capfix/gat_ctde/seed900/train/checkpoint.pt"
 BACKLOG_CAPACITY = 2000.0
 EVAL_SEED = 5000 + 900
 ACTION_DIM = 2

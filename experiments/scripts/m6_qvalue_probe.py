@@ -24,7 +24,7 @@ from qoe_oran_framework.mc_runner import build_policy  # noqa: E402
 from qoe_oran_framework.replay_kpm_source import ClosedLoopKpmSource  # noqa: E402
 
 CFG_PATH = "/home/kmanojp/oranslice_rig/framework/qoe_oran_framework/configs/saclb_offline_dqn_n19.yaml"
-CKPT = "/home/kmanojp/oranslice_rig/experiments/results/m6_pilot/n19_hex/single_agent_dqn/seed900/train/dqn/offline_train/rep_0/checkpoint.pt"
+CKPT = "/home/kmanojp/oranslice_rig/experiments/results/m6_pilot/n19_hex_capfix/single_agent_dqn/seed900/train/dqn/offline_train/rep_0/checkpoint.pt"
 BACKLOG_CAPACITY = 2000.0
 EVAL_SEED = 5000 + 900
 

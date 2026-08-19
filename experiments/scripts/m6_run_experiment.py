@@ -94,16 +94,30 @@ def make_kpm_source_factory(cfg, sd_for_slice, gnb_load_multiplier_mode="default
     return factory
 
 
-def _reload_eval_compliance(eval_omega_path: str):
+def _reload_eval_compliance(eval_omega_path: str, expected_episodes: int = None):
+    """expected_episodes: if given, refuse to resume from a log whose
+    rollup count doesn't match exactly (and whose episode numbering isn't
+    a clean 1..N, no resets) -- the append-contamination signature
+    docs/PAPER5_M6_topology.md Parts 6-7 found and fixed twice (an
+    orphaned concurrent process racing this same seed directory). A
+    resume path that would silently trust a contaminated log is worse
+    than no resume path at all."""
     values = []
+    episode_nums = []
     with open(eval_omega_path) as fh:
         for line in fh:
             rec = json.loads(line)
             ev = rec.get("evidence", rec)
             if isinstance(ev, dict) and ev.get("rollup"):
                 values.append(ev["episode_sla_compliance_all_slices"])
+                episode_nums.append(rec["episode"])
     if not values:
         return None
+    if expected_episodes is not None:
+        if len(values) != expected_episodes:
+            return None
+        if any(episode_nums[i] < episode_nums[i - 1] for i in range(1, len(episode_nums))):
+            return None
     return {"sla_compliance_all_slices": sum(values) / len(values), "n_episodes": len(values)}
 
 
@@ -141,7 +155,7 @@ def run_gat_ctde_arm(cfg, sd_for_slice, seeds, train_episodes, eval_episodes, ou
         if resume_seeds and Path(ckpt_path).exists() and Path(eval_omega_path).exists():
             probe = GatCtdeMarlPolicy(n_agents, node_dim, ctx_dim, ACTION_DIM, adj)
             if _checkpoint_matches_current_architecture(ckpt_path, probe):
-                reloaded = _reload_eval_compliance(eval_omega_path)
+                reloaded = _reload_eval_compliance(eval_omega_path, expected_episodes=eval_episodes)
                 if reloaded is not None:
                     results[seed] = reloaded
                     print(f"[m6:{tag}] seed={seed}: RESUMED, "
@@ -178,7 +192,7 @@ def run_gat_ctde_arm(cfg, sd_for_slice, seeds, train_episodes, eval_episodes, ou
 
 
 def run_independent_dqn_arm(cfg, sd_for_slice, seeds, train_episodes, eval_episodes, out_dir, tag,
-                             gnb_load_multiplier_mode="default"):
+                             gnb_load_multiplier_mode="default", resume_seeds=False):
     n_agents = len(cfg.gnb_ids)
     node_dim = node_feature_dim(cfg)
     ctx_dim = request_context_dim(cfg)
@@ -186,6 +200,22 @@ def run_independent_dqn_arm(cfg, sd_for_slice, seeds, train_episodes, eval_episo
 
     results = {}
     for seed in seeds:
+        ckpt_path = f"{out_dir}/{tag}/seed{seed}/train/checkpoint.pt"
+        eval_omega_path = f"{out_dir}/{tag}/seed{seed}/eval/omega_log.jsonl"
+        if resume_seeds and Path(ckpt_path).exists() and Path(eval_omega_path).exists():
+            try:
+                probe = IndependentPerGnbDqnPolicy(n_agents, node_dim, ctx_dim, ACTION_DIM)
+                probe.load_checkpoint(ckpt_path)  # raises (strict load_state_dict) if architecture doesn't match
+                arch_ok = True
+            except (RuntimeError, KeyError):
+                arch_ok = False
+            if arch_ok:
+                reloaded = _reload_eval_compliance(eval_omega_path, expected_episodes=eval_episodes)
+                if reloaded is not None:
+                    results[seed] = reloaded
+                    print(f"[m6:{tag}] seed={seed}: RESUMED, "
+                          f"eval sla_compliance_all_slices={reloaded['sla_compliance_all_slices']:.3f}")
+                    continue
         _clear_seed_dir(out_dir, tag, seed)
         torch.manual_seed(seed)
         policy = IndependentPerGnbDqnPolicy(n_agents, node_dim, ctx_dim, ACTION_DIM)
@@ -212,12 +242,28 @@ def run_independent_dqn_arm(cfg, sd_for_slice, seeds, train_episodes, eval_episo
 
 
 def run_single_agent_dqn_arm(cfg, sd_for_slice, seeds, train_episodes, eval_episodes, out_dir, tag,
-                              gnb_load_multiplier_mode="default"):
+                              gnb_load_multiplier_mode="default", resume_seeds=False):
     kpm_factory = make_kpm_source_factory(cfg, sd_for_slice, gnb_load_multiplier_mode)
     results = {}
     for seed in seeds:
-        _clear_seed_dir(out_dir, tag, seed)
         train_dir = f"{out_dir}/{tag}/seed{seed}/train"
+        ckpt_path = f"{train_dir}/dqn/offline_train/rep_0/checkpoint.pt"
+        eval_omega_path = f"{out_dir}/{tag}/seed{seed}/eval/dqn/offline_eval/rep_0/omega_log.jsonl"
+        if resume_seeds and Path(ckpt_path).exists() and Path(eval_omega_path).exists():
+            try:
+                build_policy("dqn", cfg).load_checkpoint(ckpt_path)  # strict load_state_dict
+                arch_ok = True
+            except (RuntimeError, KeyError):
+                arch_ok = False
+            if arch_ok:
+                reloaded = _reload_eval_compliance(eval_omega_path, expected_episodes=eval_episodes)
+                if reloaded is not None:
+                    results[seed] = reloaded
+                    print(f"[m6:{tag}] seed={seed}: RESUMED, "
+                          f"eval sla_compliance_all_slices={reloaded['sla_compliance_all_slices']:.3f}")
+                    continue
+
+        _clear_seed_dir(out_dir, tag, seed)
         run_mc(cfg, "dqn", kpm_factory, n_reps=1, episodes_per_rep=train_episodes, base_seed=seed,
                mode="offline_train", training=True, results_dir=train_dir, reward_mode="sla")
         ckpt = f"{train_dir}/dqn/offline_train/rep_0/checkpoint.pt"
@@ -274,11 +320,13 @@ def main() -> None:
     if "independent_dqn" in args.arms:
         all_results["independent_dqn"] = run_independent_dqn_arm(
             cfg, sd_for_slice, args.seeds, args.train_episodes, args.eval_episodes, args.out_dir,
-            "independent_dqn", gnb_load_multiplier_mode=args.gnb_load_multiplier_mode)
+            "independent_dqn", gnb_load_multiplier_mode=args.gnb_load_multiplier_mode,
+            resume_seeds=args.resume_seeds)
     if "single_agent_dqn" in args.arms:
         all_results["single_agent_dqn"] = run_single_agent_dqn_arm(
             cfg, sd_for_slice, args.seeds, args.train_episodes, args.eval_episodes, args.out_dir,
-            "single_agent_dqn", gnb_load_multiplier_mode=args.gnb_load_multiplier_mode)
+            "single_agent_dqn", gnb_load_multiplier_mode=args.gnb_load_multiplier_mode,
+            resume_seeds=args.resume_seeds)
 
     out_path = Path(args.out_dir) / "m6_results.json"
     out_path.parent.mkdir(parents=True, exist_ok=True)

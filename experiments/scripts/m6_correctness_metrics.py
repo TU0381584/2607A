@@ -98,6 +98,7 @@ def main() -> None:
     for combo, n_gnb in N_GNB_BY_COMBO.items():
         for arm in ARMS:
             vals, mmtc_total, all_total = [], 0, 0
+            n_collapsed, per_seed_precisions = 0, []
             for seed in SEEDS:
                 p = eval_path(pilot_dir, combo, arm, seed)
                 if not p.exists():
@@ -106,12 +107,26 @@ def main() -> None:
                 vals.append(mrpg)
                 mmtc_total += mmtc_b
                 all_total += total_b
+                if total_b == 0:
+                    n_collapsed += 1
+                else:
+                    per_seed_precisions.append(mmtc_b / total_b)
             if not vals:
                 continue
             v = np.array(vals)
+            # Pooled ratio kept for continuity with m2_correctness_metrics.py's
+            # own convention, but reported ALONGSIDE collapse rate, never alone:
+            # a seed with total_b=0 contributes (0,0) to this sum and silently
+            # vanishes from it instead of registering as undefined -- confirmed
+            # to hide real per-seed collapse in this project's own N=19 data
+            # (docs/PAPER5_M6_topology.md Part 6). collapse rate is the number
+            # that cannot hide this the way the pooled ratio can.
             prec = mmtc_total / all_total if all_total > 0 else float("nan")
             reward_by[(combo, arm)] = v
-            print(f"{combo:<22}{arm:<18}{v.mean():<20.4f}{prec:<18.3f}")
+            n_seeds = len(vals)
+            print(f"{combo:<22}{arm:<18}{v.mean():<20.4f}{prec:<18.3f}"
+                  f"collapsed={n_collapsed}/{n_seeds}  "
+                  f"per-seed precisions (non-collapsed)={[round(p, 3) for p in per_seed_precisions]}")
         print()
 
     print("=== paired GAT-CTDE - single-agent DQN, per-gNB-normalized reward (n=3, DIRECTIONAL ONLY) ===")
