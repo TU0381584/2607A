@@ -1,9 +1,10 @@
 # Paper #5 M7: FedProx-under-heterogeneity investigation
 
-Status: **complete, null result with a verified mechanism (not a
-bug and not an unexplained absence of effect). Collapse-reliability
-characterization (M7's other half, per the original roadmap) not yet
-started.**
+Status: **complete. FedProx-under-heterogeneity: null result with a
+verified mechanism (not a bug and not an unexplained absence of
+effect). Collapse-reliability characterization (M7's other half, per
+the original roadmap): complete, GAT-CTDE's N=19 collapse rate now
+resolved to 46.0% [28.6%, 65.1%] across 21 independent seeds.**
 
 ## What M7 asks
 
@@ -142,10 +143,17 @@ different variable (round length) than M7 set out to test
 (heterogeneity mode), so it is flagged here rather than run without
 being asked.
 
-## Pending
+## Collapse-reliability characterization: resolved (Part 10 of docs/PAPER5_M6_topology.md)
 
-The other half of M7 per the original roadmap -- collapse-reliability
-characterization, i.e. more N=19 seeds specifically aimed at pinning
-down GAT-CTDE's own collapse rate (31% in the M6 primary 12-seed
-sample vs. 78% in the 3-seed replication, Part 9 of
-`docs/PAPER5_M6_topology.md`) -- has not been started.
+The other half of M7 per the original roadmap: 6 more seeds
+(2000-2005, disjoint from every prior sample), all three N=19
+topologies, gat_ctde only. Combined across all three samples now
+available (primary 900-911, replication 1000-1002, this extension):
+**29/63 cells collapsed, 46.0%, seed-level bootstrap 95% CI
+[28.6%, 65.1%]** (21 independent seeds; bootstrapped at the seed level
+rather than the pooled-cell level since collapse status is correlated
+across a given seed's three topologies). Neither of the two earlier
+small samples (31%, 78%) was wrong -- both were honest small-sample
+reads of a genuinely wide distribution, and the combined estimate
+supersedes rather than contradicts them. Full detail in
+`docs/PAPER5_M6_topology.md` Part 10.

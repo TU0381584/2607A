@@ -1,151 +1,27 @@
 {
   "gat_ctde": {
-    "900": {
-      "sla_compliance_all_slices": 0.003,
+    "2000": {
+      "sla_compliance_all_slices": 0.007666666666666667,
       "n_episodes": 50
     },
-    "901": {
-      "sla_compliance_all_slices": 0.006333333333333333,
-      "n_episodes": 50
-    },
-    "902": {
-      "sla_compliance_all_slices": 0.003,
-      "n_episodes": 50
-    },
-    "903": {
-      "sla_compliance_all_slices": 0.004,
-      "n_episodes": 50
-    },
-    "904": {
-      "sla_compliance_all_slices": 0.015333333333333332,
-      "n_episodes": 50
-    },
-    "905": {
-      "sla_compliance_all_slices": 0.0026666666666666666,
-      "n_episodes": 50
-    },
-    "906": {
-      "sla_compliance_all_slices": 0.003333333333333333,
-      "n_episodes": 50
-    },
-    "907": {
-      "sla_compliance_all_slices": 0.004,
-      "n_episodes": 50
-    },
-    "908": {
+    "2001": {
       "sla_compliance_all_slices": 0.005,
       "n_episodes": 50
     },
-    "909": {
-      "sla_compliance_all_slices": 0.008,
-      "n_episodes": 50
-    },
-    "910": {
+    "2002": {
       "sla_compliance_all_slices": 0.003,
       "n_episodes": 50
     },
-    "911": {
+    "2003": {
+      "sla_compliance_all_slices": 0.02166666666666667,
+      "n_episodes": 50
+    },
+    "2004": {
       "sla_compliance_all_slices": 0.009333333333333334,
       "n_episodes": 50
-    }
-  },
-  "independent_dqn": {
-    "900": {
-      "sla_compliance_all_slices": 0.0036666666666666666,
-      "n_episodes": 50
     },
-    "901": {
-      "sla_compliance_all_slices": 0.003333333333333333,
-      "n_episodes": 50
-    },
-    "902": {
-      "sla_compliance_all_slices": 0.005333333333333333,
-      "n_episodes": 50
-    },
-    "903": {
-      "sla_compliance_all_slices": 0.004,
-      "n_episodes": 50
-    },
-    "904": {
-      "sla_compliance_all_slices": 0.003333333333333333,
-      "n_episodes": 50
-    },
-    "905": {
-      "sla_compliance_all_slices": 0.004333333333333333,
-      "n_episodes": 50
-    },
-    "906": {
-      "sla_compliance_all_slices": 0.003333333333333333,
-      "n_episodes": 50
-    },
-    "907": {
-      "sla_compliance_all_slices": 0.007333333333333333,
-      "n_episodes": 50
-    },
-    "908": {
-      "sla_compliance_all_slices": 0.005,
-      "n_episodes": 50
-    },
-    "909": {
-      "sla_compliance_all_slices": 0.003,
-      "n_episodes": 50
-    },
-    "910": {
-      "sla_compliance_all_slices": 0.0036666666666666666,
-      "n_episodes": 50
-    },
-    "911": {
-      "sla_compliance_all_slices": 0.005333333333333333,
-      "n_episodes": 50
-    }
-  },
-  "single_agent_dqn": {
-    "900": {
-      "sla_compliance_all_slices": 0.004666666666666667,
-      "n_episodes": 50
-    },
-    "901": {
-      "sla_compliance_all_slices": 0.006333333333333333,
-      "n_episodes": 50
-    },
-    "902": {
-      "sla_compliance_all_slices": 0.014333333333333333,
-      "n_episodes": 50
-    },
-    "903": {
-      "sla_compliance_all_slices": 0.004,
-      "n_episodes": 50
-    },
-    "904": {
-      "sla_compliance_all_slices": 0.015333333333333332,
-      "n_episodes": 50
-    },
-    "905": {
-      "sla_compliance_all_slices": 0.007666666666666666,
-      "n_episodes": 50
-    },
-    "906": {
-      "sla_compliance_all_slices": 0.005666666666666666,
-      "n_episodes": 50
-    },
-    "907": {
-      "sla_compliance_all_slices": 0.013333333333333332,
-      "n_episodes": 50
-    },
-    "908": {
-      "sla_compliance_all_slices": 0.006999999999999999,
-      "n_episodes": 50
-    },
-    "909": {
-      "sla_compliance_all_slices": 0.008,
-      "n_episodes": 50
-    },
-    "910": {
-      "sla_compliance_all_slices": 0.006,
-      "n_episodes": 50
-    },
-    "911": {
-      "sla_compliance_all_slices": 0.009333333333333334,
+    "2005": {
+      "sla_compliance_all_slices": 0.006666666666666666,
       "n_episodes": 50
     }
   }

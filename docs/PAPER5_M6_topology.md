@@ -652,7 +652,7 @@ same general range as the primary sample's 0.29-0.49, still
 topology-invariant as expected (independent\_dqn never consumes an
 adjacency matrix).
 
-### Where this leaves M6, honestly
+### Where this leaves M6, honestly (superseded by Part 10 below)
 
 Two findings now stand on real, audited, twice-independently-sampled
 evidence: single-agent DQN's total collapse at N=19, and the
@@ -670,3 +670,47 @@ is more seeds on the collapse-rate question specifically -- everything
 else in M6's original scope (N=7, topology sparsity as its own axis,
 the reward-margin question) already has a fairly clear, if modest,
 answer from what has run so far.
+
+## Part 10 (M7): a third sample resolves the collapse-rate discrepancy
+
+Ran under M7 (docs/PAPER5_M7_heterogeneity.md), specifically to answer
+Part 9's open question: 6 more seeds (2000-2005, disjoint from both
+900-929 and 1000-1029), all three N=19 topologies, gat\_ctde only
+(single\_agent\_dqn's 15/15 total collapse and independent\_dqn's
+topology-invariant mediocre profile were already well-supported and
+not what needed narrowing). Audited the same way as every prior stage:
+all 18 new cells checked for exactly 300 train / 50 eval rollups, no
+concurrent process running before or during.
+
+**This third sample: 11/18 collapsed (61.1\%)** -- lands between the
+primary sample's 31\% and the replication sample's 78\%, neither
+confirming nor repeating either one exactly.
+
+**Combined across all three samples (63 cells, 21 independent seeds):
+29/63 collapsed, 46.0\%.** Because collapse status for the same seed
+across its three topologies is correlated (a seed that collapses at
+one topology is more likely to collapse at the others -- confirmed
+directly: of the 21 seeds, several collapse at all 3 topologies or none,
+not a uniform scatter), the pooled 63-cell ratio understates the real
+uncertainty. Bootstrapping at the seed level instead (10,000 resamples
+of the 21 seeds' own per-seed collapse fraction across their 3
+topologies, not the 63 pooled cells) gives **95\% CI [28.6\%, 65.1\%]**.
+
+| Sample | Seeds | Collapsed | Rate |
+|---|---|---|---|
+| Primary (900-911) | 12 | 11/36 | 30.6\% |
+| Replication (1000-1002) | 3 | 7/9 | 77.8\% |
+| Extension (2000-2005) | 6 | 11/18 | 61.1\% |
+| **Combined** | **21** | **29/63** | **46.0\%, CI [28.6\%, 65.1\%]** |
+
+**This is now the number to quote**: GAT-CTDE's own collapse rate at
+N=19 is approximately 46\% (roughly a coin flip), with real,
+substantial seed-to-seed variability -- not a tight, precisely-located
+rate the way single-agent DQN's 100\% or independent\_dqn's
+never-collapses profile are. Neither of the two smaller samples (31\%,
+78\%) was wrong; both were real, honest readings of small samples that
+happened to land on opposite sides of a genuinely wide distribution.
+The qualitative ordering established in Part 9 (single-agent always
+collapses, GAT-CTDE collapses roughly half the time, independent\_dqn
+never fully collapses) is unchanged and now rests on a properly-powered
+estimate rather than two disagreeing small ones.

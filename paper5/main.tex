@@ -86,10 +86,12 @@ agent DQN's always-accept collapse becomes total (15/15 eval runs
 across two disjoint seed samples, confirmed at the individual-decision
 level), GAT-CTDE collapses only partially, and independent DQN never
 collapses but never cleanly differentiates either -- a real,
-cluster-size-specific effect distinct from anything at $N=3$, though
-GAT-CTDE's own exact collapse rate does not yet replicate cleanly
-between seed samples (31\% vs.\ 78\%), reported as an open question
-rather than resolved. Together these
+cluster-size-specific effect distinct from anything at $N=3$.
+GAT-CTDE's own collapse rate initially disagreed sharply between two
+seed samples (31\% vs.\ 78\%); a third, independent sample drawn
+specifically to resolve the discrepancy converged on 46\% [29\%, 65\%]
+across 21 seeds, showing both smaller samples were honest reads of a
+genuinely wide distribution rather than one being wrong. Together these
 results argue that admission-control evaluation in multi-agent,
 privacy-constrained, disruption-prone settings needs metrics tied to
 the actual training objective, not only to a downstream SLA proxy that
@@ -1030,17 +1032,19 @@ what actually ran.
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{figures/fig8_m6_topology.pdf}
-\caption{$N=19$ cluster, per-seed evidence. (a) Collapse rate (fraction
-of eval runs with zero blocks), pooled across all three topologies,
-primary sample (seeds 900--911) against the independent replication
-sample (1000--1002) -- single-agent DQN collapses totally in both;
-GAT-CTDE's own rate is markedly higher in the replication sample.
-(b) Block precision by topology, primary sample, non-collapsed seeds
-only (single-agent DQN has none to show): GAT-CTDE's non-collapsed
-seeds are mostly near-ceiling but with a low-precision seed at every
-topology, while independent DQN sits in a narrow, mediocre band,
-identical across topologies as expected for an arm that never consumes
-adjacency.}
+\caption{$N=19$ cluster, per-seed evidence across three independent
+seed samples. (a) Collapse rate (fraction of eval runs with zero
+blocks), pooled across all three topologies -- single-agent DQN
+collapses totally in all three samples; GAT-CTDE's rate varies
+substantially sample-to-sample (primary 31\%, replication 78\%, a
+third sample targeted specifically at this question 61\%), converging
+to a combined, seed-level-bootstrapped estimate of 46\% [29\%, 65\%]
+across all 21 independent seeds (diamond marker, error bar). (b) Block
+precision by topology, primary sample, non-collapsed seeds only
+(single-agent DQN has none to show): GAT-CTDE's non-collapsed seeds are
+mostly near-ceiling but with a low-precision seed at every topology,
+while independent DQN sits in a narrow, mediocre band, identical across
+topologies as expected for an arm that never consumes adjacency.}
 \label{fig:m6-topology}
 \end{figure}
 
@@ -1053,10 +1057,9 @@ level by a direct Q-value probe identical in method to
 Section~\ref{sec:collapse}'s original $N=3$ diagnosis: $Q(\text{accept})
 > Q(\text{reject})$ on 100\% of 1{,}347 real pending-request decisions
 in a fresh greedy eval episode, all three slices, mean mmTC gap +29.6.
-GAT-CTDE collapses only partially: 11/36 (31\%) in the primary sample --
-close to its own established $\sim$30\% (9/30) collapse rate at $N=3$
-(Section~\ref{sec:results-m2}), suggesting cluster size does not by
-itself drive GAT-CTDE's collapse rate up. The same probe on GAT-CTDE's
+GAT-CTDE collapses only partially: 11/36 (31\%) in the primary sample,
+a first read the next subsection shows was itself only part of the
+picture. The same probe on GAT-CTDE's
 checkpoint shows unanimous accept-preference for urllc and eMBB and
 unanimous \emph{reject}-preference for mmTC (mean gap $-$16.2) -- the
 differentiated-shedding signature Section~\ref{sec:methodology-perslice}
@@ -1075,26 +1078,42 @@ seed, environment stream, and initial weights -- topology sparsity does
 affect GAT-CTDE's reliability, even though it does not affect its
 overall collapse rate.
 
-\subsection{Independent-Seed Replication: One Finding Holds, One Does Not}
+\subsection{Independent-Seed Replication and a Third Sample: Resolving GAT-CTDE's Collapse Rate}
 The replication sample (1000--1002) confirms single-agent DQN's total
 collapse exactly (3/3, every topology) and independent DQN's
 mediocre-but-never-collapsed profile (precisions 0.32--0.34, within the
-primary sample's 0.29--0.49 range, still topology-invariant). GAT-
+primary sample's 0.29--0.49 range, still topology-invariant), but GAT-
 CTDE's own collapse rate does not clearly replicate: 7 of 9 (arm,
 topology) cells (78\%) collapse in the replication sample, notably
 higher than the primary sample's 31\%. Both samples agree on the
 qualitative ordering -- single-agent DQN always collapses, GAT-CTDE
 sometimes does, independent DQN never fully collapses but never
-cleanly differentiates either -- but GAT-CTDE's exact collapse rate at
-$N=19$ is not yet a number we are prepared to quote with confidence: at
-$n=3$ per topology this could be sampling variance (if the true rate
-is near 30\%, three-for-three collapsed has roughly a 3\% chance by
-itself, unlikely but not disqualifying), or it could mean the primary
-sample's reading does not generalise as cleanly as it first appeared.
-We report the range rather than either number alone, for the same
-reason Section~\ref{sec:results-m4}'s independent-DQN churn retraction
-does: an unresolved discrepancy honestly reported is more useful to a
-reader than a single sample's point estimate presented as settled.
+cleanly differentiates either -- but at $n=3$ per topology, a real
+population rate of 78\% and the primary sample's 31\% cannot both be
+precise readings of the same fixed quantity from samples this small,
+so rather than report the range as an open question we drew a third,
+independent sample (2000--2005, 6 seeds) targeted specifically at this
+one question -- not the broader topology-sparsity or reward-margin
+questions the previous subsection already answered from the first two
+samples.
+
+The third sample collapses 11/18 (61\%), between the first two.
+Pooling all three samples gives 29/63 cells collapsed (46.0\%), but
+because collapse status for a given seed correlates across its three
+topologies (confirmed directly: several of the 21 seeds collapse at
+all three topologies or none, not a uniform scatter), we bootstrap the
+95\% confidence interval at the seed level -- each of the 21
+independent seeds contributing its own collapse fraction across its
+three topologies -- rather than over the 63 pooled cells, which would
+understate the true uncertainty. This gives $46.0\%$ [$29\%$, $65\%$]
+(Fig.~\ref{fig:m6-topology}(a), diamond marker). Neither of the two
+smaller samples was wrong: both were honest readings of a genuinely
+wide distribution that happened to land on opposite sides of it. GAT-
+CTDE's collapse rate at $N=19$ is best understood as roughly a coin
+flip with substantial seed-to-seed variability -- not a tightly located
+rate the way single-agent DQN's 100\% or independent DQN's
+never-collapses profile are -- and three independent samples, not one,
+is what it took to state that with confidence.
 
 \section{Discussion}
 Three findings in this paper are, we think, more broadly useful than
@@ -1126,8 +1145,11 @@ claimed architectural immunity to agent churn that read as
 contradicted by a second, disjoint one. Section~\ref{sec:results-m6}'s
 cluster-size campaign caught a second instance of the same pattern:
 GAT-CTDE's own collapse rate at $N=19$ read as $\sim$31\% on the
-primary sample and 78\% on the replication one, a discrepancy we report
-as open rather than resolve by picking whichever number arrived first.
+primary sample and 78\% on the replication one -- a gap a third,
+targeted sample resolved (46\% [29\%, 65\%], Section~\ref{sec:results-m6})
+rather than one we reported as permanently open, but only because we
+kept sampling until the disagreement was explained rather than
+accepting either single-sample estimate as final.
 We would not have caught either gap
 by re-running the same seeds again, however many times, and we think
 any paper reporting an architecture-specific claim from a single
@@ -1185,35 +1207,39 @@ appear as a finding, with the correction reported alongside it rather
 than silently. Extending the cluster to 19 gNBs under ring and
 hex-grid adjacency, single-agent DQN's collapse becomes total and
 GAT-CTDE's remains only partial, a real cluster-size-specific effect
-distinct from anything at $N=3$; but replication on an independent seed
-sample left GAT-CTDE's own exact collapse rate an open question rather
-than a settled number, reported as such rather than smoothed over.
+distinct from anything at $N=3$; an initial two-sample disagreement on
+GAT-CTDE's exact collapse rate (31\% vs.\ 78\%) was not left open but
+resolved with a third, independently-drawn sample targeted specifically
+at that question, converging on 46\% [29\%, 65\%] across 21 seeds.
+Testing separately whether FedProx earns a measurable benefit under the
+genuine per-gNB load heterogeneity this investigation uncovered, we
+found none at any tested strength (two orders of magnitude in the
+proximal-term weight) -- traced, not left unexplained, to real per-round
+client drift being too small relative to the loss scale for the
+proximal term to matter at this architecture's round length, a verified
+mechanism rather than an unexplained null.
 
 Everything in this paper is offline-only, and validating whether any of
 these architectural or privacy-cost rankings survive contact with a
 live testbed -- as our single-agent work already did, and as this
 offline environment's own known live-fidelity gap
 (Section~\ref{sec:system-model}) says we should not assume -- is the
-most direct remaining step. Three narrower questions this paper's own
-results raise are also still open: whether the churn-cost gap between
+most direct remaining step. Two narrower questions this paper's own
+results raise are still open: whether the churn-cost gap between
 coordination-dependent and independent architectures is itself
 statistically real (no formal paired test between architectures'
 disruption costs was run here, only each architecture against its own
-undisrupted baseline); why the privacy threshold's exact location
+undisrupted baseline); and why the privacy threshold's exact location
 shifted between our two seed samples (Section~\ref{sec:results-m4}) --
 whether that reflects genuine sensitivity to which ten seeds are drawn,
-or a factor this paper has not identified; and pinning down GAT-CTDE's
-exact collapse rate at $N=19$ with more seeds specifically aimed at
-that question, ahead of the broader topology-sparsity and reward-margin
-axes Section~\ref{sec:results-m6} already found to be weak or null. A
-further, not yet run, extension is a FedProx sweep under genuine
-per-gNB load heterogeneity -- newly available as a controlled variable
-because Section~\ref{sec:results-m6}'s own investigation found every
-M2--M4 result already carries \emph{implicit}, uncontrolled per-gNB
-load heterogeneity (a default in the frozen KPM-source constructor
-neither this paper nor its predecessors had deliberately set), which a
-homogeneous-load override now makes possible to isolate as its own
-experimental variable.
+or a factor this paper has not identified. The FedProx-under-
+heterogeneity question this paper's own $N$-scaling investigation
+opened up is answered, not open, but raises its own narrower follow-up:
+whether a substantially longer inter-aggregation round (this paper
+tested only the existing 50-local-step default) would let real client
+drift accumulate enough for a heterogeneity dividend to emerge, a
+different variable than the one tested here and flagged rather than
+assumed.
 
 \section*{Acknowledgment}
 \authorTODO{Same acknowledgment text as paper\_conf/main.tex, or updated for this paper -- please fill in.}
