@@ -324,3 +324,20 @@ All three slices show **identical** demand (mean=max=5.00 PRB) — consistent wi
 Staged into `~/oranslice_rig/`: `rig_bringup.sh`, `PROJECT_HANDOFF_SUMMARY.md`, `MIGRATION_PRECONDITION_REPORT.md`, this log.
 
 ---
+
+## Post-addendum resume: 3-slice/3-UE stack brought back up after a 2-week idle period (2026-08-19)
+
+**Context:** Paper #5's M8 (optional live single-gNB anchor) is gated on this rig being live again. Found via inspection, not assumption: the core network's 17 Docker containers were all `Exited (137)` (2 weeks idle, consistent with a host reboot -- Docker's persistent daemon kept the containers defined, native RAN processes and the addendum's `ue2ns`/`ue3ns` network namespaces did not survive). No file/config changes were needed; this was a clean resume of exactly where the Post-Stage-10 addendum left off.
+
+**Memory was the real question going in.** Before starting anything: 799Mi-1.5Gi free (fluctuating), tighter at times than the addendum's own "600Mi-1.2Gi free, tight but not thrashing" 3-UE benchmark -- unsurprising, since this machine now also carries an active Chrome/Firefox/VS Code desktop session the original bring-up sessions didn't have running concurrently. Flagged this explicitly before proceeding rather than assuming the earlier margin would still hold, and brought the stack up incrementally (core network, then gNB, then UE1, then UE2, then UE3) with a connectivity + `dmesg` check after each addition, so any instability could be isolated to a specific step rather than discovered only after everything was up.
+
+- **Core network**: `docker compose -f 5g-sa-deploy-slicing.yaml start` (not `up -d`, to restart the existing containers in place rather than risk recreating them and losing the mongo-backed subscriber DB). All 17 containers `Up` within ~9s. AMF logs confirmed all 3 SMFs and PCF re-registering with NRF cleanly. Subscriber DB verified intact via direct `mongosh` query (all 3 IMSIs `...776`/`...777`/`...778` present) -- no re-provisioning needed, so the Stage-4-era `mongosh`-shim workaround (needed only for `open5gs-dbctl`, and only after a container *recreate*) did not apply here.
+- **gNB**: `sudo ./nr-softmodem -O <106PRB conf> --sa --rfsim`, rfsimulator confirmed listening on `0.0.0.0:4043` (`ss -tlnp`). Frame counter advancing, E2 agent heartbeating, zero errors.
+- **UE1** (eMBB, default netns, as `rig_bringup.sh`'s plain `ue` stage does it): attached (RSRP -42dBm steady, HARQ 65-66/0/0 downlink), `oaitun_ue1` at `192.168.100.2`, 0% packet loss pinging `8.8.8.8`. Free memory dropped to 183Mi/2.1Gi-available at this point -- paused here and explicitly re-confirmed with the user before adding more UEs, given this was already below the addendum's benchmark margin.
+- **UE2** (mMTC) and **UE3** (URLLC): recreated the addendum's namespace fix from scratch (`ue2ns`/`ue3ns` did not persist) -- `ip netns add`, veth pairs (`10.99.2.0/30`, `10.99.3.0/30`), `nr-uesoftmodem ... --rfsimulator.serveraddr <veth-host-ip>` run via `ip netns exec`. Both attached cleanly (HARQ 31/1/0 and 26/1/0 downlink), both got independent `oaitun_ue1` devices in their own namespaces with no collision (the exact bug class the addendum's fix targets), both 0% packet loss to `8.8.8.8`. Re-verified UE1 and UE2 were still healthy (not clobbered) after UE3 came up.
+
+**Result: all 3 UEs live simultaneously again**, matching the addendum's prior state exactly. Final memory: 181Mi free / 1.9Gi available -- same "tight but not thrashing" territory as before, not worse, despite the extra desktop load, though with less margin than a from-scratch bring-up on an otherwise-idle machine would have. `dmesg` checked after every step: zero OOM-kill or segfault signatures throughout. No traffic generator run yet -- what's live is idle-attached connectivity across all three slices, not real per-slice differentiated load (same open item the addendum itself already flagged).
+
+**Not yet done:** the actual M8 goal (evaluating the offline-trained M2/M7 policies against this live testbed) is a distinct next step from "the rig is live again," and has not been started.
+
+---
