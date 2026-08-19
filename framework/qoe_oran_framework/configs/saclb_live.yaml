@@ -8,13 +8,34 @@
 # 2026-07-14 fresh-rig retune (this checkout's ORANSlice main + docker_open5gs
 # open5gs_slicing core ship TWO real S-NSSAIs, not three -- verified by
 # reading the AMF/gNB config directly, not assumed; see BRINGUP_LOG.md Stage
-# 4 finding). Dropped the "urllc" slice entry (sd=1): no MAC slice with that
-# (sst,sd) exists on this gNB (its 3 configured slices are id0
-# sst=0/sd=0=reserved-SRB-only, id1 sst=1/sd=0xFFFFFF, id2 sst=1/sd=2), so
-# apply_slicing_ctrl() (e2_message_handlers.c) would silently no-op for any
-# CONTROL targeting it every step -- a permanent no-op ceiling can't "bind"
-# on real hardware, it would just be misleading in the omega log. Kept
-# "embb" and "mmtc" (see each slice's own comment below for its sd fix).
+# 4 finding). Dropped the "urllc" slice entry (sd=1) at that time: no MAC
+# slice with that (sst,sd) existed on this gNB yet, so
+# apply_slicing_ctrl() (e2_message_handlers.c) would have silently no-op'd
+# for any CONTROL targeting it every step -- a permanent no-op ceiling
+# can't "bind" on real hardware, it would just be misleading in the omega
+# log.
+#
+# 2026-08-19 (M8 live anchor): re-added below. The core/gNB gap above is
+# closed -- BRINGUP_LOG.md's "Post-Stage-10 addendum" added a real 3rd
+# S-NSSAI (sst=1/sd=1) to both the core (dedicated smf-slice3/upf-slice3)
+# and the gNB's snssaiList, and this session verified it live: UE3 attached
+# on it (192.168.102.2, 0% packet loss to 8.8.8.8) with real traffic
+# flowing. `saclb_offline_live1gnb.yaml` (the matching offline training
+# config for this single-gNB topology) already carries a 3-slice roster
+# including urllc and always has -- this file was the one left stale, not
+# that one. Re-adding urllc here is required for state_dim compatibility:
+# a checkpoint trained against 3 slices will not load against a 2-slice
+# eval config (the exact class of bug this file's own gNB-count header
+# already documents, here on the slice-count axis instead). Parameters
+# below are copied from saclb_offline_live1gnb.yaml's urllc entry, not
+# independently re-verified against live demand: this rig's own E2 probe
+# (30 polls, real 300Kbps urllc traffic on UE3) showed avg_prbs_dl flat at
+# the same 5.00 PRB idle floor mmtc also shows, too coarse a signal at this
+# traffic rate to calibrate a cap from directly, though
+# dl_mac_buffer_occupation did show real backlog (40.0% vs. mmtc's 3.3%),
+# confirming genuine contention exists even where avg_prbs_dl does not
+# discriminate it. Flagged unverified rather than silently presented as
+# measured, the same honesty standard mmtc's own cap below already applies.
 #
 # paper_variant: paper2 is set only to keep the mmtc slice available; the
 # LB term is a no-op here regardless (fairness_ratio is trivially 1.0 with
@@ -67,7 +88,29 @@ gnbs:
 # no-opped against real hardware while this value was wrong. This is
 # load-bearing, not cosmetic: env.py sends slicing_control_m using this
 # exact (sst, sd) pair (env.py:183) each step.
+#
+# Slice list order matches saclb_offline_live1gnb.yaml's (urllc, embb,
+# mmtc) exactly, not just its slice SET -- config.py's slice_by_id is a
+# plain {s.slice_id: s for s in self.slices} dict comprehension, so it
+# preserves YAML insertion order. If any state-construction code iterates
+# this dict to build a per-slice feature vector, a mismatched order here
+# would silently swap which slice's features land in which input
+# position for a checkpoint trained under the other file's order --
+# same values, wrong meaning. Kept identical order to remove that risk
+# entirely rather than rely on an assumption about the iteration order
+# not mattering.
 slices:
+  - slice_id: urllc
+    sst: 1
+    sd: 1
+    nominal_ratio: 3
+    min_ratio_floor: 1
+    max_ratio_cap: 3  # copied from saclb_offline_live1gnb.yaml -- UNVERIFIED against live demand on this rig (avg_prbs_dl too coarse at this traffic rate to calibrate from directly; see header comment)
+    latency_budget_ms: 15
+    loss_budget_pct: 0.8
+    priority_weight: 12.0
+    accept_reward: 1.0
+    violation_penalty: 10.0
   - slice_id: embb
     sst: 1
     sd: 16777215  # 0xFFFFFF, corrected from 0 -- see comment above
