@@ -47,24 +47,42 @@ EVAL_SEED_OFFSET = 5000  # same disjoint-from-train convention as M1/M2
 DP_DELTA = 1e-5  # standard default (< 1/n_transitions_per_client), fixed so it's never swept accidentally
 
 
-def make_kpm_source_factory(cfg, sd_for_slice):
+def make_kpm_source_factory(cfg, sd_for_slice, gnb_load_multiplier_mode="default"):
+    """gnb_load_multiplier_mode (same parameter, same meaning, as
+    m6_run_experiment.py's version -- added here so M7's FedProx-under-
+    heterogeneity sweep can run through the federated training path):
+      "default"     -- omit the argument entirely, ClosedLoopKpmSource
+                        auto-generates a seeded per-gNB multiplier in
+                        [0.6, 1.4] (see its own docstring) -- the
+                        implicit heterogeneity every M2/M3/M4 result to
+                        date already had, never previously controlled.
+      "homogeneous" -- explicit override, every gNB's multiplier forced
+                        to 1.0, the genuine no-heterogeneity comparison
+                        point FedProx's proximal term has nothing to
+                        correct for.
+    """
     def factory(seed):
-        return ClosedLoopKpmSource(
+        kwargs = dict(
             seed=seed, gnb_ids=cfg.gnb_ids, slice_ids=list(cfg.slice_by_id),
             B=cfg.B, mean_offered_ratio=MEAN_OFFERED_RATIO,
             backlog_capacity=BACKLOG_CAPACITY, sd_for_slice=sd_for_slice,
         )
+        if gnb_load_multiplier_mode == "homogeneous":
+            kwargs["gnb_load_multiplier"] = {g: 1.0 for g in cfg.gnb_ids}
+        elif gnb_load_multiplier_mode != "default":
+            raise ValueError(f"unknown gnb_load_multiplier_mode {gnb_load_multiplier_mode!r}")
+        return ClosedLoopKpmSource(**kwargs)
     return factory
 
 
 def run_fl_arm(cfg, sd_for_slice, seeds, train_episodes, eval_episodes, out_dir, tag,
                 aggregator="fedavg", fedprox_mu=0.0, dp_noise_multiplier=0.0,
-                dp_clip_norm=1.0, local_steps_per_round=50):
+                dp_clip_norm=1.0, local_steps_per_round=50, gnb_load_multiplier_mode="default"):
     n_agents = len(cfg.gnb_ids)
     node_dim = node_feature_dim(cfg)
     ctx_dim = request_context_dim(cfg)
     adj = build_adjacency(n_agents)
-    kpm_factory = make_kpm_source_factory(cfg, sd_for_slice)
+    kpm_factory = make_kpm_source_factory(cfg, sd_for_slice, gnb_load_multiplier_mode)
 
     results = {}
     for seed in seeds:
@@ -109,6 +127,7 @@ def run_fl_arm(cfg, sd_for_slice, seeds, train_episodes, eval_episodes, out_dir,
         summary["fedprox_mu"] = fedprox_mu
         summary["dp_noise_multiplier"] = dp_noise_multiplier
         summary["dp_clip_norm"] = dp_clip_norm
+        summary["gnb_load_multiplier_mode"] = gnb_load_multiplier_mode
         results[seed] = summary
         print(f"[m3:{tag}] seed={seed}: eval sla_compliance_all_slices="
               f"{summary['sla_compliance_all_slices']:.3f} rounds={policy.round_count} "
@@ -128,12 +147,14 @@ def main() -> None:
     ap.add_argument("--noise-multiplier", type=float, default=0.0)
     ap.add_argument("--dp-clip-norm", type=float, default=1.0)
     ap.add_argument("--local-steps-per-round", type=int, default=50)
+    ap.add_argument("--gnb-load-multiplier-mode", default="default", choices=["default", "homogeneous"])
     args = ap.parse_args()
 
     cfg = load_saclb_config(CONFIG_PATH)
     sd_for_slice = {sid: spec.sd for sid, spec in cfg.slice_by_id.items()}
     print(f"[m3] {len(cfg.gnb_ids)}-gNB config loaded: {cfg.gnb_ids}, "
-          f"aggregator={args.aggregator}, noise_multiplier={args.noise_multiplier}")
+          f"aggregator={args.aggregator}, noise_multiplier={args.noise_multiplier}, "
+          f"gnb_load_multiplier_mode={args.gnb_load_multiplier_mode}")
 
     t0 = time.time()
     results = run_fl_arm(
@@ -141,6 +162,7 @@ def main() -> None:
         aggregator=args.aggregator, fedprox_mu=args.fedprox_mu,
         dp_noise_multiplier=args.noise_multiplier, dp_clip_norm=args.dp_clip_norm,
         local_steps_per_round=args.local_steps_per_round,
+        gnb_load_multiplier_mode=args.gnb_load_multiplier_mode,
     )
 
     out_path = Path(args.out_dir) / f"{args.tag}_results.json"
