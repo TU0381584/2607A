@@ -80,7 +80,16 @@ seeds reproduced again -- the reproduction-versus-replication
 discipline this paper argues evaluation practice needs -- and report
 one finding this caught: an initial reading that independent-per-gNB
 DQN is architecturally immune to agent churn did not survive
-replication and is retracted here rather than reported. Together these
+replication and is retracted here rather than reported. Extending the
+cluster from 3 to 19 gNBs under ring and hex-grid adjacency, single-
+agent DQN's always-accept collapse becomes total (15/15 eval runs
+across two disjoint seed samples, confirmed at the individual-decision
+level), GAT-CTDE collapses only partially, and independent DQN never
+collapses but never cleanly differentiates either -- a real,
+cluster-size-specific effect distinct from anything at $N=3$, though
+GAT-CTDE's own exact collapse rate does not yet replicate cleanly
+between seed samples (31\% vs.\ 78\%), reported as an open question
+rather than resolved. Together these
 results argue that admission-control evaluation in multi-agent,
 privacy-constrained, disruption-prone settings needs metrics tied to
 the actual training objective, not only to a downstream SLA proxy that
@@ -145,12 +154,15 @@ real O-RAN ratio-ceiling admission-control surface extended from the
 live single-gNB anchor validated in our prior
 work~\cite{mecon-paper1,icraie-paper2}, extended to a federated
 training regimen with differential privacy and evaluated under
-mid-episode gNB dropout, demand spikes, and agent churn. We label
-these three campaigns M2 (centralised), M3 (federated/privacy), and M4
-(disruption) throughout, matching this project's internal milestone
-numbering; a fourth, earlier milestone (M1, live-testbed recalibration)
-motivates the offline stress environment of
-Section~\ref{sec:system-model} but reports no results of its own here.
+mid-episode gNB dropout, demand spikes, and agent churn, then to
+cluster sizes $N \in \{7, 19\}$ under ring and hex-grid adjacency. We
+label these four campaigns M2 (centralised), M3 (federated/privacy), M4
+(disruption), and M6 (cluster-size scaling) throughout, matching this
+project's internal milestone numbering (M5 is this paper's own
+evaluation-integrity reframe, not a separate results campaign); a
+fifth, earlier milestone (M1, live-testbed recalibration) motivates the
+offline stress environment of Section~\ref{sec:system-model} but
+reports no results of its own here.
 The architecture is deliberately not this paper's headline: it is the
 vehicle that makes the metric failure, its fix, and the
 reproduction-replication gap concrete and measurable, and
@@ -185,12 +197,13 @@ setting specifically, Ahmadi~\emph{et al.}~\cite{ahmadi2024generalizable}
 extend a coordinated multi-agent slicing-and-admission line of work
 (discussed further below) to generalise across unseen RAN/MEC
 topologies via graph attention, without retraining -- a topology-
-generalisation question distinct from, and complementary to, the
+generalisation question distinct from, but complementary to, the
 evaluation-integrity question this paper asks on a single fixed
-topology; whether GAT-CTDE's own correctness-aware metrics remain
-reliable across topologies neither paper tests is exactly the kind of
-question our metric pair is built to keep honest, and is a natural
-extension of this work. Beyond admission control specifically, graph
+topology. We test the complementary direction directly
+(Section~\ref{sec:results-m6}): whether GAT-CTDE's own
+correctness-aware metrics remain reliable as cluster size and adjacency
+sparsity change, rather than whether the policy generalises to an
+unseen topology without retraining. Beyond admission control specifically, graph
 learning has been applied to joint user association and resource
 allocation~\cite{tran2026gnnppo}, intent-driven RAN
 optimisation~\cite{silva2025gnnintent}, transferable bandwidth
@@ -454,10 +467,18 @@ weighted equally, since every client runs the same amount of local
 training) and broadcasts the result back. We also implement
 FedProx~\cite{fedprox}, which differs only in the client-side objective (a proximal term
 pulling local weights toward the last broadcast global model), but do
-not run a full campaign with it: our topology treats every gNB as an
+not run a full campaign with it here: at the time of the M2/M3
+campaigns we believed our topology treated every gNB as an
 interchangeable peer with no client heterogeneity for FedProx's
 correction to address, so a full sweep would be evaluating a fix for a
-problem this environment does not have.
+problem this environment did not have. Section~\ref{sec:results-m6}
+corrects this belief -- every client already draws offered demand from
+an implicit, seeded per-gNB load multiplier neither this section nor
+the M2/M3 campaigns had deliberately controlled -- but that correction
+came after M2/M3 were run, so no FedProx sweep is reported in this
+paper; it is left as the natural next step now that genuine,
+deliberately-controlled client heterogeneity is available as an
+experimental variable.
 
 Differential privacy is applied as a standard DP-SGD~\cite{dpsgd} step:
 every client's gradient is clipped to a fixed norm and, when enabled,
@@ -941,6 +962,140 @@ noise -- the finding retracted in Section~\ref{sec:results-m4}-D.}
 \label{fig:replication-forest}
 \end{figure*}
 
+\section{Results: Cluster-Size Scaling}
+\label{sec:results-m6}
+
+\subsection{Setup}
+We extend the cluster from the $N=3$, fully-connected topology used
+throughout Sections~\ref{sec:results-m2}--\ref{sec:results-m4} to
+$N \in \{7, 19\}$, the standard first- and second-ring cellular
+frequency-reuse cluster sizes, under three adjacency structures:
+fully-connected, a ring ($N$-cycle, degenerate to fully-connected at
+$N=3$), and a hex-grid (concentric rings of cells around one centre,
+defined only for $N \in \{7, 19\}$). GAT-CTDE is the only arm whose
+Q-head consumes this adjacency; independent DQN and single-agent DQN
+never read a graph structure, and serve as a topology-invariance check
+on the two metrics below. We scale synthetic arrivals per step with $N$
+to hold offered load per gNB roughly constant; an early pass scaled
+arrivals but left the per-step pending-request cap at its $N=3$ value,
+silently truncating $N=19$'s intended contention to under two-thirds of
+its target rate. We caught this before trusting any $N=19$ result,
+corrected the cap to scale with $N$, and independently re-verified the
+fix at the individual-decision level with a direct Q-value probe (below)
+before treating the corrected data as evidence.
+
+We normalise reward per gNB before averaging, the identical fix
+Section~\ref{sec:results-m4} already applies on the disruption-severity
+axis, since \texttt{action\_mapping.py}'s accepted-request count sums
+across all gNBs in a step rather than per gNB, mechanically inflating
+raw reward with cluster size independent of decision quality.
+\texttt{sla\_compliance\_all\_slices} is OR-aggregated across gNBs per
+step by construction (\texttt{reward.py}'s own documentation), so it
+trends toward 0 as $N$ grows regardless of policy quality -- a third
+instance, now on the cluster-size axis, of this paper's central
+evaluation-integrity finding; we report block precision and per-gNB-
+normalised reward as the primary metrics here for the same reason
+Sections~\ref{sec:results-m2}--\ref{sec:results-m4} already do. The
+primary sample is 12 seeds (900--911) at $N=19$, all three topologies,
+all three arms, judged the more promising thread to power up ahead of
+the broader topology-sparsity/reward-margin questions, which a smaller
+$N=7$ pilot (3 seeds) already suggested were unlikely to show a strong
+effect. An independent-seed replication (1000--1002, disjoint) checks
+whether the $N=19$ findings below generalise.
+
+\subsection{Reward Margin Does Not Grow With Cluster Size}
+An early reading of the $N=7$/$N=19$ pilot appeared to show GAT-CTDE's
+reward edge over single-agent DQN growing with $N$ (raw reward diff
++0.25 to +0.49 at $N=7$, +0.67 at $N=19$) -- confounded by exactly the
+accept-volume-inflation mechanism above, and reversed once corrected
+(per-gNB-normalised diff +0.035--0.070 at $N=7$, +0.035 at $N=19$:
+flat, if anything slightly smaller). At the full 12-seed sample, the
+paired per-gNB reward-margin comparison at $N=19$ is not significant
+for any topology: fully-connected $-$0.175 [95\% CI $-$0.528, +0.076],
+$p=0.7422$; ring $-$0.704 [$-$1.879, +0.042], $p=0.7422$; hex $-$0.695
+[$-$1.873, +0.053], $p=0.9102$ (Wilcoxon, 6/4/2, 5/4/3, and 6/3/3
+wins/ties/losses respectively) -- the mean difference is, if anything,
+slightly negative for GAT-CTDE at this scale. This is mechanically
+explicable, not a red flag: single-agent DQN's always-accept collapse
+(next subsection) collects the reward's service term on every request
+with no rejection cost, while GAT-CTDE pays a real cost every time it
+correctly rejects mmTC -- exactly the reward-optimal action per
+Section~\ref{sec:methodology-perslice}'s own calibration, just not one
+the aggregate reward signal clearly rewards at this $N$. This paper's
+evidence for GAT-CTDE's advantage at $N=19$ lives in collapse
+resistance and block precision, not in the reward-margin metric --
+reporting a reward-margin advantage here would not be supported by
+what actually ran.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/fig8_m6_topology.pdf}
+\caption{$N=19$ cluster, per-seed evidence. (a) Collapse rate (fraction
+of eval runs with zero blocks), pooled across all three topologies,
+primary sample (seeds 900--911) against the independent replication
+sample (1000--1002) -- single-agent DQN collapses totally in both;
+GAT-CTDE's own rate is markedly higher in the replication sample.
+(b) Block precision by topology, primary sample, non-collapsed seeds
+only (single-agent DQN has none to show): GAT-CTDE's non-collapsed
+seeds are mostly near-ceiling but with a low-precision seed at every
+topology, while independent DQN sits in a narrow, mediocre band,
+identical across topologies as expected for an arm that never consumes
+adjacency.}
+\label{fig:m6-topology}
+\end{figure}
+
+\subsection{Collapse Resistance: A Real, Cluster-Size-Specific Effect}
+Fig.~\ref{fig:m6-topology}(a) reports collapse rate at $N=19$. Single-
+agent DQN collapses totally: 12/12 primary-sample cells and 3/3
+replication cells, every topology, zero exceptions across two disjoint
+seed samples (15/15 combined) -- confirmed at the individual-decision
+level by a direct Q-value probe identical in method to
+Section~\ref{sec:collapse}'s original $N=3$ diagnosis: $Q(\text{accept})
+> Q(\text{reject})$ on 100\% of 1{,}347 real pending-request decisions
+in a fresh greedy eval episode, all three slices, mean mmTC gap +29.6.
+GAT-CTDE collapses only partially: 11/36 (31\%) in the primary sample --
+close to its own established $\sim$30\% (9/30) collapse rate at $N=3$
+(Section~\ref{sec:results-m2}), suggesting cluster size does not by
+itself drive GAT-CTDE's collapse rate up. The same probe on GAT-CTDE's
+checkpoint shows unanimous accept-preference for urllc and eMBB and
+unanimous \emph{reject}-preference for mmTC (mean gap $-$16.2) -- the
+differentiated-shedding signature Section~\ref{sec:methodology-perslice}
+defines, confirmed at $N=19$ and, if anything, more confident than the
+same probe's $N=3$ result. Independent DQN never fully collapses at
+$N=19$ (0/36) but never cleanly differentiates either:
+Fig.~\ref{fig:m6-topology}(b) shows its block precision in a narrow,
+mediocre 0.29--0.49 band, identical across all three topologies, as
+expected for an arm that never consumes an adjacency matrix.
+GAT-CTDE's own non-collapsed seeds show a topology-dependent secondary
+failure mode Fig.~\ref{fig:m6-topology}(b) makes visible directly: most
+hold near-perfect precision, but at least one seed per topology drops
+to 0.0--0.5, and one specific seed shows perfect precision (1.000) at
+fully-connected and near-zero (0.000) at ring/hex on the identical
+seed, environment stream, and initial weights -- topology sparsity does
+affect GAT-CTDE's reliability, even though it does not affect its
+overall collapse rate.
+
+\subsection{Independent-Seed Replication: One Finding Holds, One Does Not}
+The replication sample (1000--1002) confirms single-agent DQN's total
+collapse exactly (3/3, every topology) and independent DQN's
+mediocre-but-never-collapsed profile (precisions 0.32--0.34, within the
+primary sample's 0.29--0.49 range, still topology-invariant). GAT-
+CTDE's own collapse rate does not clearly replicate: 7 of 9 (arm,
+topology) cells (78\%) collapse in the replication sample, notably
+higher than the primary sample's 31\%. Both samples agree on the
+qualitative ordering -- single-agent DQN always collapses, GAT-CTDE
+sometimes does, independent DQN never fully collapses but never
+cleanly differentiates either -- but GAT-CTDE's exact collapse rate at
+$N=19$ is not yet a number we are prepared to quote with confidence: at
+$n=3$ per topology this could be sampling variance (if the true rate
+is near 30\%, three-for-three collapsed has roughly a 3\% chance by
+itself, unlikely but not disqualifying), or it could mean the primary
+sample's reading does not generalise as cleanly as it first appeared.
+We report the range rather than either number alone, for the same
+reason Section~\ref{sec:results-m4}'s independent-DQN churn retraction
+does: an unresolved discrepancy honestly reported is more useful to a
+reader than a single sample's point estimate presented as settled.
+
 \section{Discussion}
 Three findings in this paper are, we think, more broadly useful than
 the specific architecture: first, that a class-imbalanced, shared
@@ -968,17 +1123,23 @@ property of one particular sample of seeds. Only the independent-seed
 replication in Section~\ref{sec:results-m4} caught the latter: a
 claimed architectural immunity to agent churn that read as
 ``mechanistically sensible'' on one 10-seed sample was directly
-contradicted by a second, disjoint one. We would not have caught this
+contradicted by a second, disjoint one. Section~\ref{sec:results-m6}'s
+cluster-size campaign caught a second instance of the same pattern:
+GAT-CTDE's own collapse rate at $N=19$ read as $\sim$31\% on the
+primary sample and 78\% on the replication one, a discrepancy we report
+as open rather than resolve by picking whichever number arrived first.
+We would not have caught either gap
 by re-running the same seeds again, however many times, and we think
 any paper reporting an architecture-specific claim from a single
 seed sample -- ours included, elsewhere, before this check -- should
 weigh how much of its evidence is reproduction versus replication.
 
 We are explicit about what remains offline-only. Every result in this
-paper uses the 3-gNB offline stress environment; none of it is a live
-claim, and Section~\ref{sec:system-model} explains why we do not
-believe an offline-trained ranking here would transfer live without
-separate verification. Federated learning across three gNBs
+paper uses the offline stress environment (3, 7, or 19 gNBs depending
+on the campaign); none of it is a live claim, and
+Section~\ref{sec:system-model} explains why we do not believe an
+offline-trained ranking here would transfer live without separate
+verification. Federated learning across three gNBs
 under one operator's cluster is also, as configured, a synthetic
 privacy scenario -- genuine cross-organisation data separation would
 need multiple operators unwilling to pool raw data, which nothing in
@@ -1021,22 +1182,38 @@ just the same seeds reproduced again, caught one architectural claim
 (that independent DQN is immune to agent churn) that a single sample
 had made look confirmed but was not -- retracted before it could
 appear as a finding, with the correction reported alongside it rather
-than silently.
+than silently. Extending the cluster to 19 gNBs under ring and
+hex-grid adjacency, single-agent DQN's collapse becomes total and
+GAT-CTDE's remains only partial, a real cluster-size-specific effect
+distinct from anything at $N=3$; but replication on an independent seed
+sample left GAT-CTDE's own exact collapse rate an open question rather
+than a settled number, reported as such rather than smoothed over.
 
 Everything in this paper is offline-only, and validating whether any of
 these architectural or privacy-cost rankings survive contact with a
 live testbed -- as our single-agent work already did, and as this
 offline environment's own known live-fidelity gap
 (Section~\ref{sec:system-model}) says we should not assume -- is the
-most direct remaining step. Two narrower questions this paper's own
+most direct remaining step. Three narrower questions this paper's own
 results raise are also still open: whether the churn-cost gap between
 coordination-dependent and independent architectures is itself
 statistically real (no formal paired test between architectures'
 disruption costs was run here, only each architecture against its own
-undisrupted baseline), and why the privacy threshold's exact location
+undisrupted baseline); why the privacy threshold's exact location
 shifted between our two seed samples (Section~\ref{sec:results-m4}) --
 whether that reflects genuine sensitivity to which ten seeds are drawn,
-or a factor this paper has not identified.
+or a factor this paper has not identified; and pinning down GAT-CTDE's
+exact collapse rate at $N=19$ with more seeds specifically aimed at
+that question, ahead of the broader topology-sparsity and reward-margin
+axes Section~\ref{sec:results-m6} already found to be weak or null. A
+further, not yet run, extension is a FedProx sweep under genuine
+per-gNB load heterogeneity -- newly available as a controlled variable
+because Section~\ref{sec:results-m6}'s own investigation found every
+M2--M4 result already carries \emph{implicit}, uncontrolled per-gNB
+load heterogeneity (a default in the frozen KPM-source constructor
+neither this paper nor its predecessors had deliberately set), which a
+homogeneous-load override now makes possible to isolate as its own
+experimental variable.
 
 \section*{Acknowledgment}
 \authorTODO{Same acknowledgment text as paper\_conf/main.tex, or updated for this paper -- please fill in.}
