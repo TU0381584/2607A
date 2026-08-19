@@ -58,10 +58,10 @@ import m3_run_experiment as m3  # noqa: E402
 LOAD_MODES = [("homogeneous", "homogeneous"), ("heterogeneous", "default")]
 
 
-def build_cells(fedprox_mus):
-    cells = [(f"fedavg_{tag}", "fedavg", 0.0, mode) for tag, mode in LOAD_MODES]
+def build_cells(fedprox_mus, tag_suffix=""):
+    cells = [(f"fedavg_{tag}{tag_suffix}", "fedavg", 0.0, mode) for tag, mode in LOAD_MODES]
     for mu in fedprox_mus:
-        cells += [(f"fedprox_mu{mu}_{tag}", "fedprox", mu, mode) for tag, mode in LOAD_MODES]
+        cells += [(f"fedprox_mu{mu}_{tag}{tag_suffix}", "fedprox", mu, mode) for tag, mode in LOAD_MODES]
     return cells
 
 
@@ -73,8 +73,15 @@ def main() -> None:
     ap.add_argument("--eval-episodes", type=int, default=50)
     ap.add_argument("--local-steps-per-round", type=int, default=50)
     ap.add_argument("--fedprox-mu", type=float, nargs="+", default=[0.01])
+    ap.add_argument("--dp-clip-norm", type=float, default=1.0,
+                     help="Grad-norm clip applied every step regardless of DP noise "
+                          "(m3_run_experiment.py's own design, isolates the privacy "
+                          "cost) -- also caps FedProx's proximal-term contribution to "
+                          "the update. Non-default values get a _clipnorm{val} tag "
+                          "suffix so they never collide with the clip=1.0 cells.")
     args = ap.parse_args()
 
+    tag_suffix = "" if args.dp_clip_norm == 1.0 else f"_clipnorm{args.dp_clip_norm}"
     out_dir = Path(args.out_dir)
     results_path = out_dir / "campaign_results.json"
     campaign = {"seeds": args.seeds, "fedprox_mu": args.fedprox_mu, "results": {}}
@@ -86,10 +93,10 @@ def main() -> None:
     cfg = m3.load_saclb_config(m3.CONFIG_PATH)
     sd_for_slice = {sid: spec.sd for sid, spec in cfg.slice_by_id.items()}
     print(f"[m7] {len(cfg.gnb_ids)}-gNB config loaded: {cfg.gnb_ids}, "
-          f"fedprox_mu={args.fedprox_mu}, seeds={args.seeds}")
+          f"fedprox_mu={args.fedprox_mu}, dp_clip_norm={args.dp_clip_norm}, seeds={args.seeds}")
 
     t0 = time.time()
-    for tag, aggregator, mu, load_mode in build_cells(args.fedprox_mu):
+    for tag, aggregator, mu, load_mode in build_cells(args.fedprox_mu, tag_suffix):
         if tag in campaign["results"]:
             print(f"[m7] {tag}: already present, skipping")
             continue
@@ -97,6 +104,7 @@ def main() -> None:
             cfg, sd_for_slice, args.seeds, args.train_episodes, args.eval_episodes,
             str(out_dir), tag,
             aggregator=aggregator, fedprox_mu=mu, dp_noise_multiplier=0.0,
+            dp_clip_norm=args.dp_clip_norm,
             local_steps_per_round=args.local_steps_per_round,
             gnb_load_multiplier_mode=load_mode,
         )
