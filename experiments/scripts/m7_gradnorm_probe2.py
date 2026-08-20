@@ -15,6 +15,7 @@ Usage (from repo root, cwd=framework/ required):
     cd framework && ../venv/bin/python3 \
         ../experiments/scripts/m7_gradnorm_probe2.py
 """
+import argparse
 import sys
 import tempfile
 
@@ -40,6 +41,11 @@ MU = 1.0
 
 
 def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--local-steps-per-round", type=int, default=50)
+    ap.add_argument("--episodes", type=int, default=10)
+    args = ap.parse_args()
+
     cfg = load_saclb_config(CONFIG_PATH)
     sd_for_slice = {sid: spec.sd for sid, spec in cfg.slice_by_id.items()}
     n_agents = len(cfg.gnb_ids)
@@ -57,7 +63,7 @@ def main() -> None:
     torch.manual_seed(SEED)
     policy = FederatedGatPolicy(n_agents, node_dim, ctx_dim, ACTION_DIM, adj,
                                  aggregator="fedprox", fedprox_mu=MU,
-                                 local_steps_per_round=50, dp_clip_norm=1.0,
+                                 local_steps_per_round=args.local_steps_per_round, dp_clip_norm=1.0,
                                  dp_noise_multiplier=0.0, dp_seed=SEED)
 
     log = []
@@ -77,14 +83,12 @@ def main() -> None:
     env = RANEnv(cfg, kpm_factory(SEED), seed=SEED, reward_mode="sla")
     with tempfile.NamedTemporaryFile(suffix=".jsonl") as tf:
         with OmegaLogger(tf.name) as omega:
-            # 10 episodes: 60 steps/episode * 10 = 600 steps of real
-            # env interaction, comfortably spanning several real
-            # 50-local-step rounds regardless of how many train_step
-            # calls happen per env step.
-            run_episodes_marl(env, policy, "probe", omega, 10, SEED, "probe_train", "offline_train", True, cfg)
+            run_episodes_marl(env, policy, "probe", omega, args.episodes, SEED,
+                               "probe_train", "offline_train", True, cfg)
     env.close()
 
-    print(f"[m7-probe2] mu={MU}, {len(log)} real train_step._local_loss calls logged, "
+    print(f"[m7-probe2] mu={MU}, local_steps_per_round={args.local_steps_per_round}, "
+          f"{len(log)} real train_step._local_loss calls logged, "
           f"final round_count={policy.round_count}")
     if not log:
         print("no calls logged -- nothing to report")
