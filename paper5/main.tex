@@ -988,6 +988,29 @@ noise -- the finding retracted in Section~\ref{sec:results-m4}-D.}
 \label{fig:replication-forest}
 \end{figure*}
 
+\subsection{A Formal Cross-Architecture Test}
+Every disruption cost so far compares one arm's disrupted performance
+against its own undisrupted baseline -- not against another arm's cost
+directly. We close that gap with a paired Wilcoxon test on
+(GAT-CTDE's cost $-$ independent DQN's cost) across the same 10 seeds,
+for every (kind, severity) cell, computed via the same normalised
+metric this section already uses (reused, not re-derived, from
+\texttt{m4\_correctness\_metrics.py}'s own per-seed function). Only one cell
+reaches significance: dropout at the mildest severity (10\% window),
+where GAT-CTDE's cost is significantly \emph{higher} than independent
+DQN's ($+0.0135$, 95\% CI $[0.0053, 0.0236]$, Wilcoxon $p=0.0059$, 9
+losses / 0 ties / 1 win). Every other cell -- dropout at 30\%/60\% and
+churn at all three severities -- shows no significant difference
+($p \geq 0.23$). The one significant result runs counter to a naive
+expectation that coordination should help more under disruption: at
+the mildest severity, GAT-CTDE's shared, attention-read joint state
+means even a brief corruption to one gNB's row is visible to every
+agent's decision, while independent DQN reads only its own row and is
+affected only when it is itself the dropped target -- a plausible
+mechanism, not one this bounded test isolates directly. We report the
+result as it is: real at one severity, absent everywhere else tested,
+not a general claim that coordination costs more under disruption.
+
 \section{Results: Cluster-Size Scaling}
 \label{sec:results-m6}
 
@@ -1372,13 +1395,16 @@ Whether the multi-gNB, federated, and disruption rankings in
 Sections~\ref{sec:results-m2}--\ref{sec:results-m6} would similarly
 survive contact with a live testbed remains untested -- this rig has
 one physical gNB, so that question needs a multi-gNB rig this project
-does not currently have, not just more live time on this one. Two
-narrower questions this paper's own
-results raise are still open: whether the churn-cost gap between
-coordination-dependent and independent architectures is itself
-statistically real (no formal paired test between architectures'
-disruption costs was run here, only each architecture against its own
-undisrupted baseline); and why the privacy threshold's exact location
+does not currently have, not just more live time on this one. Whether
+the disruption-cost gap between coordination-dependent and independent
+architectures is itself statistically real is answered, not open: a
+formal paired test (Section~\ref{sec:results-m4}) finds it real at only
+one of six tested cells (dropout's mildest severity, where GAT-CTDE
+costs significantly more, not less), absent everywhere else -- a
+narrower, more qualified finding than either "coordination always
+costs more under disruption" or "the two architectures are
+equivalent." One narrower question this paper's own
+results raise is still open: why the privacy threshold's exact location
 shifted between our two seed samples (Section~\ref{sec:results-m4}) --
 whether that reflects genuine sensitivity to which ten seeds are drawn,
 or a factor this paper has not identified. The FedProx-under-
