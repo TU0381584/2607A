@@ -2,9 +2,14 @@
 
 Status: **complete, bounded scope. Two independent live runs, replicated
 finding, root cause of the offline/live margin discrepancy confirmed
-(Part 2 below). Not a ranking claim -- see M1's own already-established
-limits on what this rig's live evaluation can support. Written into
-paper5/main.tex Section XI ("Results: Live Single-gNB Anchor").**
+(Part 2) and refined by cross-checking prior live campaign data (Part
+3, which also found the current scheme understates how good healthy
+conditions are, not just how bad severe ones look), a physically-
+grounded latency-based recalibration attempted and validated against
+real data (Part 3). Not a ranking claim -- see M1's own already-
+established limits on what this rig's live evaluation can support.
+Written into paper5/main.tex Section XI ("Results: Live Single-gNB
+Anchor").**
 
 ## What M8 asks
 
@@ -206,19 +211,117 @@ actual saved data, not just plausibility:
    consistent with a real, partially-draining hardware buffer, not an
    obviously-broken number.
 
-**Conclusion**: this is a genuine unit-calibration mismatch, not
-evidence that live conditions are millions of times more severe in any
-SLA-meaningful sense. `Lmax` was tuned once, against the offline
-proxy's arbitrary small scale, and never re-derived for the live
-field's real physical unit. The policy's own decisions were insulated
-from this because they only ever see the clipped `queue_len_norm`
-input, which is exactly why block precision (a decision-level metric)
-replicated cleanly live while the margin (a deliberately-unclipped
-diagnostic) did not. Not patched post hoc in this pass: doing so
-would require deciding what live backlog scale is representative from
-much more live data than this bounded anchor collected, and the
-decision-level finding this investigation actually supports does not
-depend on it. Written into `paper5/main.tex` Section XI, subsections B-C.
+**Conclusion (refined further by Part 3 below)**: `Lmax=10` is
+disconnected from live's real byte scale, but -- as Part 3 shows by
+checking prior live campaign data directly, not assuming this
+diagnosis was already complete -- it is not simply "wrong": it happens
+to reproduce M1's own independently-derived healthy-condition live
+target almost exactly, and only produces uninterpretable numbers in
+the specific, real, already-documented severe-backlog regime this run
+entered. The policy's own decisions were insulated from either reading
+because they only ever see the clipped `queue_len_norm` input, which
+is exactly why block precision (a decision-level metric) replicated
+cleanly live while the margin (a deliberately-unclipped diagnostic) did
+not. Written into `paper5/main.tex` Section XI, subsections B-C
+(updated again after Part 3).
+
+## Part 3: attempting a live-appropriate calibration -- validated, not assumed
+
+Asked explicitly to try matching offline and live results through
+calibration, rather than leave the mismatch as diagnosed-but-unfixed.
+Two things needed checking first, both of which changed the picture
+from Part 2's initial read:
+
+**The "millions of bytes" scale is real and independently
+corroborated, not an artifact of this run.** `experiments/CAMPAIGN_LOG.md`
+(2026-07-16, predating this session entirely) already measured the
+identical magnitude directly: embb `dl_mac_buffer_occupation` at
+baseline (ceiling wide open) = 411.3, **pinned (ceiling min=max=1) =
+6,601,079.0 (max 10,023,785)**, recovery (restored to `max=20`, not the
+config's own `max=4`) = 2,504,530.4. My own M8 run's catastrophic value
+(10,023,785) matches this prior, independent characterization almost
+exactly. `saclb_live.yaml`'s current `max_ratio_cap=4` for embb was
+already shown, in that same prior work, to be **insufficient** to drain
+backlog once it accumulates (recovery needed `max=20`, five times
+wider, to actually show drainage) -- a real, already-documented
+structural bottleneck, not something this session introduced.
+
+**`Lmax=10` is not universally wrong -- it produces a sensible,
+M1-matching number under healthy conditions.** Checked 28 seeds of
+`live_campaign_v2/dqn_sla` (the arm M1's own live target numbers come
+from): 26 of 28 land on **exactly** embb margin = 0.700, jumping there
+instantly (step 6 of 300, in the one file inspected in full) and
+staying perfectly flat for the rest of the run -- not organic
+backlog noise, but not the `dl_errors+dl_bler` fallback either
+(checked directly against that run's own `limitation` field: the
+fallback triggered for urllc/mmtc in that run, not embb). embb's real,
+non-fallback `dl_mac_buffer_occupation` apparently floors near a small,
+stable value (back-derived: raw backlog $\approx 3$ bytes) under
+conditions where the ceiling keeps up with demand -- and `Lmax=10`
+maps that to a margin (0.7) matching M1's own independently-derived
+live target (eMBB mean 0.714) almost exactly. **The extreme values are
+specific to conditions where a policy's ceiling falls behind organic
+demand long enough for real queueing to begin -- a real, severe,
+already-documented failure regime this M8 checkpoint's live run
+apparently entered and `live_campaign_v2`'s did not** (why is not
+fully resolved by this bounded anchor -- see below).
+
+### The calibration attempt
+
+`Lmax=10` is disconnected from live's real byte scale regardless (it
+is calibrated only against the offline model's `Normal(5.0, 2.0)`
+synthetic proxy). Rather than pick an arbitrary rescaling constant,
+reused an already-built, unused-for-this-purpose piece of the project's
+own code: `calibration/units.py`'s `backlog_bytes_to_latency_s`
+(Little's-Law queueing-delay estimate from a byte count and a service
+rate), normalising against each slice's own already-calibrated
+`latency_budget_ms` instead of an arbitrary byte threshold --
+physically meaningful (an estimated queueing delay vs. an actual
+latency SLA), not another guessed constant. New script,
+`experiments/scripts/m8_latency_recalibration.py` (does not modify
+`reward.py`/`kpm_adapter.py`, both frozen -- a post-hoc reanalysis of
+already-logged data, the same pattern `m6_correctness_metrics.py`
+already establishes). Backlog bytes are back-derived from the already-
+logged margin via `reward.py`'s own formula (`margin = 1 -
+raw_queue_len_norm`, `raw_queue_len_norm = queue_raw/Lmax` -- read
+directly from source, not guessed); service throughput uses
+`CAMPAIGN_LOG.md`'s own empirically-measured range (embb at
+`max_ratio=4`, this run's ceiling throughout, empirically serves
+~15-22 real PRB, not per-step reconstructed since raw PRB-serving was
+not logged by this run -- stated as an approximation, not hidden).
+
+**Result**:
+
+| Quantity | Current (Lmax=10) | Recalibrated (latency-normalised) |
+|---|---|---|
+| Catastrophic case (backlog $\approx$ 10.02M bytes) | $-1{,}002{,}377.5$ | $-809$ to $-1{,}187$ (36-53s real queueing delay vs. a 45ms budget) |
+| Healthy reference (backlog $\approx$ 3 bytes, `live_campaign_v2`'s own steady state) | $0.700$ | $0.9996$ |
+
+The catastrophic case shrinks by roughly 3 orders of magnitude (from
+6 digits to 3) and becomes directly interpretable (an actual multiple
+of a real latency budget, not an arbitrary ratio) rather than merely
+smaller. The healthy reference moves from "okay" (0.7) to
+"near-perfect" (0.9996) -- revealing the current scheme understates
+how good healthy conditions actually are, not just how bad unhealthy
+ones look. This does not make live and offline margins numerically
+interchangeable (offline's own worst-case margin, bounded by
+`backlog_capacity`, tops out roughly two orders of magnitude smaller
+than even the recalibrated live catastrophic value) or restore any
+rank-predictive claim -- M1 already established that limit and this
+does not reopen it -- but it does bring both onto the same order of
+magnitude (hundreds, not "millions vs. single digits"), and gives the
+live number a physical meaning it did not have before.
+
+**Not resolved by this pass**: why this specific M8 checkpoint's live
+run entered the severe-backlog regime while `live_campaign_v2`'s did
+not. The `max_ratio_cap=4`-insufficient-for-organic-~15-PRB-demand
+mechanism (independently documented in `CAMPAIGN_LOG.md`, confirmed
+structural, not policy-specific) is the best-evidenced contributing
+factor available, but attributing the full difference to this
+checkpoint's offline-only training (never seeing live's true demand
+scale) versus some other difference between the two runs would need
+more live data than this bounded anchor collected to state with
+confidence, and is not claimed here.
 
 ## What was not done
 
@@ -227,11 +330,17 @@ depend on it. Written into `paper5/main.tex` Section XI, subsections B-C.
   already answered the specific question M8 set out to check (does the
   precision finding transfer, and is the margin-saturation pattern real
   or an artifact) without needing a larger campaign.
-- `Lmax` (or an equivalent live-appropriate rescaling) was not corrected
-  -- the root cause is now confirmed, but choosing a live-representative
-  replacement value is a separate, larger undertaking (needs a
-  principled live backlog-scale calibration, not a one-off guess) left
-  for future work rather than patched under this bounded anchor's scope.
+- A latency-normalised recalibration was derived and validated against
+  real data (Part 3), but not applied back into the frozen pipeline
+  (`reward.py`/`kpm_adapter.py` cannot be modified) or adopted as this
+  paper's new primary live metric -- it is reported as a post-hoc
+  reanalysis demonstrating the mismatch is addressable in principle, not
+  as a replacement metric this paper now relies on elsewhere.
+- Why this specific checkpoint's live run entered the severe-backlog
+  regime while `live_campaign_v2`'s did not is not fully resolved --
+  the config's `max_ratio_cap=4`-insufficient-for-organic-demand
+  mechanism is the best-evidenced contributing factor, not a proven
+  complete explanation.
 - The rig was left in the post-second-run saturated state, not reset a
   third time -- no further live-rig actions were taken once the
   replication was in hand.

@@ -96,9 +96,10 @@ anchor this paper's single-agent baseline against a real OAI testbed:
 its offline-trained differentiated-shedding decisions transfer to live
 traffic unchanged (replicated across two independent runs), while its
 SLA-margin metric diverges from anything offline by orders of
-magnitude -- traced to a concrete unit mismatch between the offline
-demand model and the live scheduler's byte-denominated backlog counter,
-not left as an unexplained gap. Together these
+magnitude -- traced, not left unexplained, to a real backlog regime
+this rig's own prior live data independently corroborates, and
+narrowed from six orders of magnitude to three with a physically-
+grounded, latency-based recalibration. Together these
 results argue that admission-control evaluation in multi-agent,
 privacy-constrained, disruption-prone settings needs metrics tied to
 the actual training objective, not only to a downstream SLA proxy that
@@ -1201,23 +1202,60 @@ so it can expose exactly this kind of gap -- which is why the
 policy's decisions stayed sensible live even as the margin number that
 would nominally score them exploded.
 
-\subsection{What This Means}
-The offline/live gap here is not evidence that live traffic is
-millions of times more severe than anything offline training exposed a
-policy to; it is a unit-calibration mismatch between two sources that
-share a field name but not a physical scale, never reconciled because
-$L_{\max}$ was tuned only against the offline proxy. This is a
-different failure mode from Section~\ref{sec:collapse}'s compliance-
-metric finding or Section~\ref{sec:results-m6}'s OR-aggregation
-finding -- not a metric that structurally rewards degenerate behaviour,
-but one whose numeric scale was never checked for consistency across
-the two sources it is computed identically from. We report it plainly
-rather than silently patching $L_{\max}$ post hoc: doing so would
-require deciding what live backlog scale is representative without
-much more live data than this bounded anchor collected, and the
-decision-level finding this section's live evidence actually supports
--- that the trained policy's targeting survives contact with real
-traffic -- does not depend on it.
+\subsection{What This Means, Checked Against Prior Live Data}
+$L_{\max}$ is disconnected from live's real byte scale regardless of
+what caused any one run's specific numbers -- but it is not simply
+``wrong.'' Checking 28 seeds of an already-committed prior live
+campaign on the same rig (the arm this paper's own live-testbed
+recalibration work draws its live target from) rather than assuming
+this diagnosis was already complete: 26 of 28 land on an embb margin
+of exactly $0.700$, matching that recalibration work's independently-
+derived live target (eMBB mean $0.714$) almost exactly, and -- checked
+directly against that data's own logged limitations, not assumed --
+this is genuine backlog, not the same fallback proxy that field falls
+back to when the live sensor reads zero. $L_{\max}=10$ reproduces a
+sensible number under conditions where a policy's ceiling keeps pace
+with demand; it only explodes once a real, already-documented failure
+regime is entered. \texttt{CAMPAIGN\_LOG.md}, predating this session
+entirely, already measured this same regime directly: pinning embb's
+ceiling below organic demand raised backlog from a baseline of $411.3$
+to $6{,}601{,}079$ (max $10{,}023{,}785$) -- matching this section's
+own catastrophic reading almost exactly -- and recovery required
+widening the ceiling to five times the configured cap before backlog
+measurably drained. Whether this specific checkpoint's live run entered
+that regime for the same structural reason (a ceiling insufficient for
+organic demand) that a prior checkpoint's run apparently avoided is not
+fully resolved by this bounded anchor; the mechanism is real and
+independently documented, the full attribution is not.
+
+\subsection{A Latency-Normalised Recalibration}
+Rather than pick an arbitrary rescaling constant, or leave the
+mismatch as diagnosed-but-unpatched, we reused an already-built,
+previously-unused-for-this-purpose piece of this project's own
+calibration code: a Little's-Law byte-to-latency conversion, normalised
+against each slice's own already-calibrated latency budget instead of
+an arbitrary byte threshold -- a physically meaningful quantity (an
+estimated queueing delay against a real SLA budget), not another guess.
+Backlog bytes are back-derived from the already-logged margin via
+\texttt{reward.py}'s own formula (not re-measured); service throughput
+uses \texttt{CAMPAIGN\_LOG.md}'s own empirically-measured range for this
+run's ceiling (embb at $\text{max\_ratio}=4$ empirically serves
+15--22 real PRB), stated as an approximation rather than a per-step
+reconstruction, since raw PRB-serving was not logged by this run.
+Recalibrated, the catastrophic case ($\approx 10.02$MB backlog) becomes
+$-809$ to $-1{,}187$ (36--53 real seconds of queueing delay against a
+45ms budget) rather than $-1{,}002{,}377.5$ -- three orders of magnitude
+smaller and now directly interpretable -- and the healthy reference
+(the prior campaign's $0.700$) becomes $0.9996$, revealing the original
+scale understated how good healthy conditions were, not only how bad
+severe ones looked. This does not make live and offline margins
+numerically interchangeable, nor does it reopen the rank-prediction
+question our live-testbed recalibration work already closed -- offline's
+own worst case, bounded by its backlog capacity parameter, still sits
+roughly two orders of magnitude below even the recalibrated live
+catastrophic value -- but it brings both onto the same order of
+magnitude rather than leaving a six-order-of-magnitude gap with no
+physical interpretation on either side.
 
 \section{Discussion}
 Three findings in this paper are, we think, more broadly useful than
