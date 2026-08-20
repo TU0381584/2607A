@@ -714,3 +714,57 @@ The qualitative ordering established in Part 9 (single-agent always
 collapses, GAT-CTDE collapses roughly half the time, independent\_dqn
 never fully collapses) is unchanged and now rests on a properly-powered
 estimate rather than two disagreeing small ones.
+
+## Part 11: a second extension (2006-2014) narrows the estimate further -- 36.7%, not 46.0%
+
+Continuing the same investigation with 9 more seeds (2006-2014,
+disjoint from every prior sample), gat\_ctde only, all three
+topologies, same script/infra as Part 10's extension. Audited the same
+way as every prior stage: all 27 new cells checked for exactly 300
+train / 50 eval rollups, no anomalies found, no concurrent process
+running before or during (14{,}834s total, ~4.1h).
+
+**This second extension: 4/27 collapsed (14.8\%)** -- notably lower
+than the first extension's 61.1\%, itself a real, useful data point
+about just how wide seed-to-seed variability is at this N. Treating
+both extension batches as one unified 15-seed sample (2000-2014, same
+method, same script, launched in two batches only because of a
+mid-session time-budget decision, not a methodological difference):
+**15/45 collapsed (33.3\%)**, close to the primary sample's 31\% and
+notably below the replication sample's 78\%.
+
+**Combined across all four samples now available (90 cells, 30
+independent seeds): 33/90 collapsed, 36.7\%.** Seed-level bootstrap 95%
+CI (10,000 resamples, same seed-level-not-pooled-cell methodology as
+Part 10, since collapse status correlates within a seed across its
+three topologies): **[22.2\%, 52.2\%]** -- narrower than Part 10's
+three-sample estimate (46.0\% [28.6\%, 65.1\%]), and consistent with
+it (Part 10's own interval already contained this final estimate, not
+contradicted by it).
+
+| Sample | Seeds | Collapsed | Rate |
+|---|---|---|---|
+| Primary (900-911) | 12 | 11/36 | 30.6\% |
+| Replication (1000-1002) | 3 | 7/9 | 77.8\% |
+| Extension (2000-2014) | 15 | 15/45 | 33.3\% |
+| **Combined** | **30** | **33/90** | **36.7\%, CI [22.2\%, 52.2\%]** |
+
+**Updated honest read**: three of the four samples (primary, and both
+extension batches individually: 61.1\% and 14.8\%, averaging to the
+combined extension's 33.3\%) cluster reasonably close to the
+combined 36.7\% estimate; the replication sample's 78\% now reads as
+the outlier in hindsight, not because it was measured wrong (n=3 is
+just genuinely noisy) but because more data eventually clarified which
+side of the distribution most samples land on. This is itself a useful
+methodological point, not just a numeric update: a single small sample
+that happens to land far from the eventual estimate cannot be
+distinguished, at the time it is drawn, from a genuinely different
+population -- only more independent sampling resolves that, and in
+this case resolved it toward the smaller, more commonly-observed rate
+rather than the larger one. GAT-CTDE's N=19 collapse rate is now best
+understood as roughly one-in-three with real seed-to-seed spread, a
+number this project is prepared to quote with confidence, unlike the
+31\%/78\%/46\% readings that preceded it. Written into
+`paper5/main.tex` Section VII/X (abstract, Fig. 8, Section X-D,
+Conclusion) -- all instances of the superseded 46.0\%/21-seed numbers
+updated, none left stale.

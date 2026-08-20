@@ -2,7 +2,7 @@
 """Figure 8: M6 cluster-size scaling (N=19), per-seed evidence --
 (a) collapse rate (fraction of arm x topology cells with zero blocks in
 eval) by arm, three independent seed samples (primary 900-911,
-replication 1000-1002, and an M7 extension 2000-2005 aimed specifically
+replication 1000-1002, and an M7 extension 2000-2014 aimed specifically
 at narrowing GAT-CTDE's own collapse-rate estimate -- gat_ctde only,
 the other two arms were not re-run since their profiles were already
 well-supported), pooled across all three topologies per arm -- the same
@@ -82,7 +82,7 @@ def main() -> None:
 
     primary = collect(pilot_dir, "", list(range(900, 912)))
     replication = collect(pilot_dir, "_replication", [1000, 1001, 1002])
-    extension = collect(pilot_dir, "", [2000, 2001, 2002, 2003, 2004, 2005])
+    extension = collect(pilot_dir, "", list(range(2000, 2015)))  # two batches, same method, unified
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(7.16, 3.05))
 
@@ -97,7 +97,7 @@ def main() -> None:
     width = 0.26
     sample_defs = [("Primary\n(900-911)", primary, "#5b5a52", -width),
                    ("Replication\n(1000-1002)", replication, "#c3c2b7", 0.0),
-                   ("Extension\n(2000-2005,\ngat_ctde only)", extension, "#8fa6c9", width)]
+                   ("Extension\n(2000-2014,\ngat_ctde only)", extension, "#8fa6c9", width)]
     for label, sample, color, offset in sample_defs:
         rates, labels = [], []
         for arm in ARMS:
@@ -112,9 +112,9 @@ def main() -> None:
                              textcoords="offset points")
 
     # Combined 3-sample, seed-level bootstrap CI for gat_ctde specifically
-    # (the arm the extension sample targeted) -- 21 independent seeds, each
+    # (the arm the extension sample targeted) -- each independent seed
     # contributing its own collapse fraction across 3 topologies, not the
-    # 63 pooled cells (collapse status correlates within a seed across
+    # pooled cells (collapse status correlates within a seed across
     # topologies, so pooling cells understates the real uncertainty).
     gat_idx = ARMS.index("gat_ctde")
     seed_fracs = []
@@ -131,7 +131,7 @@ def main() -> None:
     ci_lo, ci_hi = np.percentile(boots, [2.5, 97.5])
     ax1.errorbar([gat_idx], [combined_mean], yerr=[[combined_mean - ci_lo], [ci_hi - combined_mean]],
                  color="#0b0b0b", marker="D", markersize=5, linewidth=1.4, capsize=4, zorder=5,
-                 label=f"Combined, n=21 seeds\n({combined_mean:.0%} [{ci_lo:.0%}, {ci_hi:.0%}])")
+                 label=f"Combined, n={len(seed_fracs)} seeds\n({combined_mean:.0%} [{ci_lo:.0%}, {ci_hi:.0%}])")
 
     ax1.set_xticks(x)
     ax1.set_xticklabels([M2_ARM_STYLE[a]["label"].replace(" (proposed)", "") for a in ARMS],
@@ -191,7 +191,7 @@ def main() -> None:
         ext_part = f"extension={ec}/{en} ({ec/en:.2f})" if en else "extension=n/a"
         print(f"  {arm}: primary={pc}/{pn} ({pc/max(pn,1):.2f})  "
               f"replication={rc}/{rn} ({rc/max(rn,1):.2f})  {ext_part}")
-    print(f"  gat_ctde combined (21 seeds): mean={combined_mean:.3f} CI=[{ci_lo:.3f},{ci_hi:.3f}]")
+    print(f"  gat_ctde combined ({len(seed_fracs)} seeds): mean={combined_mean:.3f} CI=[{ci_lo:.3f},{ci_hi:.3f}]")
     for arm in plot_arms:
         for topology in TOPOLOGIES:
             vals = [p for c, p in primary[(arm, topology)] if not c]

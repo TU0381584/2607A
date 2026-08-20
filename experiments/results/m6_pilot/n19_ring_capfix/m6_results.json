@@ -1,27 +1,39 @@
 {
   "gat_ctde": {
-    "2000": {
-      "sla_compliance_all_slices": 0.007666666666666667,
-      "n_episodes": 50
-    },
-    "2001": {
+    "2006": {
       "sla_compliance_all_slices": 0.005,
       "n_episodes": 50
     },
-    "2002": {
+    "2007": {
+      "sla_compliance_all_slices": 0.0036666666666666666,
+      "n_episodes": 50
+    },
+    "2008": {
+      "sla_compliance_all_slices": 0.004,
+      "n_episodes": 50
+    },
+    "2009": {
       "sla_compliance_all_slices": 0.003,
       "n_episodes": 50
     },
-    "2003": {
-      "sla_compliance_all_slices": 0.02166666666666667,
+    "2010": {
+      "sla_compliance_all_slices": 0.006999999999999999,
       "n_episodes": 50
     },
-    "2004": {
-      "sla_compliance_all_slices": 0.009333333333333334,
+    "2011": {
+      "sla_compliance_all_slices": 0.008666666666666666,
       "n_episodes": 50
     },
-    "2005": {
-      "sla_compliance_all_slices": 0.006666666666666666,
+    "2012": {
+      "sla_compliance_all_slices": 0.004333333333333333,
+      "n_episodes": 50
+    },
+    "2013": {
+      "sla_compliance_all_slices": 0.0036666666666666666,
+      "n_episodes": 50
+    },
+    "2014": {
+      "sla_compliance_all_slices": 0.007333333333333333,
       "n_episodes": 50
     }
   }

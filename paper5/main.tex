@@ -88,10 +88,12 @@ level), GAT-CTDE collapses only partially, and independent DQN never
 collapses but never cleanly differentiates either -- a real,
 cluster-size-specific effect distinct from anything at $N=3$.
 GAT-CTDE's own collapse rate initially disagreed sharply between two
-seed samples (31\% vs.\ 78\%); a third, independent sample drawn
-specifically to resolve the discrepancy converged on 46\% [29\%, 65\%]
-across 21 seeds, showing both smaller samples were honest reads of a
-genuinely wide distribution rather than one being wrong. Finally, we
+seed samples (31\% vs.\ 78\%); two further independent samples drawn
+specifically to resolve the discrepancy converged on 36.7\%
+[22.2\%, 52.2\%] across 30 seeds, an estimate three of the four samples
+land close to while the second sample's 78\% reads as the outlier in
+hindsight -- a caution about trusting any single small sample, not just
+the ones that turn out wrong. Finally, we
 anchor this paper's single-agent baseline against a real OAI testbed:
 its offline-trained differentiated-shedding decisions transfer to live
 traffic unchanged (replicated across two independent runs), while its
@@ -1079,14 +1081,14 @@ what actually ran.
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{figures/fig8_m6_topology.pdf}
-\caption{$N=19$ cluster, per-seed evidence across three independent
+\caption{$N=19$ cluster, per-seed evidence across independent
 seed samples. (a) Collapse rate (fraction of eval runs with zero
 blocks), pooled across all three topologies -- single-agent DQN
-collapses totally in all three samples; GAT-CTDE's rate varies
-substantially sample-to-sample (primary 31\%, replication 78\%, a
-third sample targeted specifically at this question 61\%), converging
-to a combined, seed-level-bootstrapped estimate of 46\% [29\%, 65\%]
-across all 21 independent seeds (diamond marker, error bar). (b) Block
+collapses totally in every sample; GAT-CTDE's rate varies
+sample-to-sample (primary 31\%, replication 78\%, a 15-seed extension
+targeted specifically at this question 33\%), converging
+to a combined, seed-level-bootstrapped estimate of 36.7\% [22.2\%, 52.2\%]
+across all 30 independent seeds (diamond marker, error bar). (b) Block
 precision by topology, primary sample, non-collapsed seeds only
 (single-agent DQN has none to show): GAT-CTDE's non-collapsed seeds are
 mostly near-ceiling but with a low-precision seed at every topology,
@@ -1139,28 +1141,36 @@ cleanly differentiates either -- but at $n=3$ per topology, a real
 population rate of 78\% and the primary sample's 31\% cannot both be
 precise readings of the same fixed quantity from samples this small,
 so rather than report the range as an open question we drew a third,
-independent sample (2000--2005, 6 seeds) targeted specifically at this
-one question -- not the broader topology-sparsity or reward-margin
-questions the previous subsection already answered from the first two
-samples.
+independent sample targeted specifically at this one question -- not
+the broader topology-sparsity or reward-margin questions the previous
+subsection already answered from the first two samples -- run in two
+batches (2000--2005, then extended to 2006--2014 once the first batch's
+own result again disagreed with both prior samples) totalling 15 seeds.
 
-The third sample collapses 11/18 (61\%), between the first two.
-Pooling all three samples gives 29/63 cells collapsed (46.0\%), but
-because collapse status for a given seed correlates across its three
-topologies (confirmed directly: several of the 21 seeds collapse at
-all three topologies or none, not a uniform scatter), we bootstrap the
-95\% confidence interval at the seed level -- each of the 21
-independent seeds contributing its own collapse fraction across its
-three topologies -- rather than over the 63 pooled cells, which would
-understate the true uncertainty. This gives $46.0\%$ [$29\%$, $65\%$]
-(Fig.~\ref{fig:m6-topology}(a), diamond marker). Neither of the two
-smaller samples was wrong: both were honest readings of a genuinely
-wide distribution that happened to land on opposite sides of it. GAT-
-CTDE's collapse rate at $N=19$ is best understood as roughly a coin
-flip with substantial seed-to-seed variability -- not a tightly located
-rate the way single-agent DQN's 100\% or independent DQN's
-never-collapses profile are -- and three independent samples, not one,
-is what it took to state that with confidence.
+This extension sample collapses 15/45 (33\%), close to the primary
+sample's 31\% and well below the replication sample's 78\%. Pooling all
+four samples gives 33/90 cells collapsed (36.7\%), but because collapse
+status for a given seed correlates across its three topologies
+(confirmed directly: several of the 30 seeds collapse at all three
+topologies or none, not a uniform scatter), we bootstrap the 95\%
+confidence interval at the seed level -- each of the 30 independent
+seeds contributing its own collapse fraction across its three
+topologies -- rather than over the 90 pooled cells, which would
+understate the true uncertainty. This gives $36.7\%$
+[$22.2\%$, $52.2\%$] (Fig.~\ref{fig:m6-topology}(a), diamond marker),
+narrower than the three-sample estimate this project reported before
+extending further (which was itself already within this final
+interval, not contradicted by it). None of the four samples was wrong:
+each was an honest reading of a genuinely wide distribution, and three
+of the four (primary, and both extension batches) landed close to each
+other while the replication sample's 78\% reads as the outlier once
+more data is in hand -- itself a useful caution about trusting any
+single small sample, including ones that later turn out closer to the
+truth. GAT-CTDE's collapse rate at $N=19$ is best understood as
+roughly one-in-three with substantial seed-to-seed variability -- not a
+tightly located rate the way single-agent DQN's 100\% or independent
+DQN's never-collapses profile are -- and four independent samples, not
+one or two, is what it took to state that with confidence.
 
 \section{Results: Live Single-gNB Anchor}
 \label{sec:results-m8}
@@ -1310,11 +1320,12 @@ claimed architectural immunity to agent churn that read as
 contradicted by a second, disjoint one. Section~\ref{sec:results-m6}'s
 cluster-size campaign caught a second instance of the same pattern:
 GAT-CTDE's own collapse rate at $N=19$ read as $\sim$31\% on the
-primary sample and 78\% on the replication one -- a gap a third,
-targeted sample resolved (46\% [29\%, 65\%], Section~\ref{sec:results-m6})
-rather than one we reported as permanently open, but only because we
-kept sampling until the disagreement was explained rather than
-accepting either single-sample estimate as final.
+primary sample and 78\% on the replication one -- a gap two further
+targeted samples resolved (36.7\% [22.2\%, 52.2\%] across 30 seeds,
+Section~\ref{sec:results-m6}) rather than one we reported as
+permanently open, but only because we kept sampling until the
+disagreement was explained rather than accepting either single-sample
+estimate as final.
 We would not have caught either gap
 by re-running the same seeds again, however many times, and we think
 any paper reporting an architecture-specific claim from a single
@@ -1376,9 +1387,9 @@ hex-grid adjacency, single-agent DQN's collapse becomes total and
 GAT-CTDE's remains only partial, a real cluster-size-specific effect
 distinct from anything at $N=3$; an initial two-sample disagreement on
 GAT-CTDE's exact collapse rate (31\% vs.\ 78\%) was not left open but
-resolved with a third, independently-drawn sample targeted specifically
-at that question, converging on 46\% [29\%, 65\%] across 21 seeds.
-Testing separately whether FedProx earns a measurable benefit under the
+resolved with two further, independently-drawn samples targeted
+specifically at that question, converging on 36.7\% [22.2\%, 52.2\%]
+across 30 seeds. Testing separately whether FedProx earns a measurable benefit under the
 genuine per-gNB load heterogeneity this investigation uncovered, we
 found none at any tested strength (two orders of magnitude in the
 proximal-term weight) -- traced, not left unexplained, to real per-round
