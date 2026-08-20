@@ -2,14 +2,14 @@
 """Figure 8: M6 cluster-size scaling (N=19), per-seed evidence --
 (a) collapse rate (fraction of arm x topology cells with zero blocks in
 eval) by arm, three independent seed samples (primary 900-911,
-replication 1000-1002, and an M7 extension 2000-2014 aimed specifically
+replication 1000-1002, and an M7 extension 2000-2024 aimed specifically
 at narrowing GAT-CTDE's own collapse-rate estimate -- gat_ctde only,
 the other two arms were not re-run since their profiles were already
 well-supported), pooled across all three topologies per arm -- the same
 multi-sample-forest logic fig7_replication_forest already uses
 elsewhere in this paper. GAT-CTDE's bar group also carries the
-seed-level bootstrap 95% CI on the 3-sample combined estimate (21
-independent seeds, not the 63 pooled cells, since collapse status
+seed-level bootstrap 95% CI on the 3-sample combined estimate (computed
+per independent seed, not per pooled cell, since collapse status
 correlates within a seed across its three topologies);
 (b) block precision by topology for the two arms that ever produce a
 defined precision (single_agent_dqn is 100% collapsed at every cell in
@@ -82,7 +82,7 @@ def main() -> None:
 
     primary = collect(pilot_dir, "", list(range(900, 912)))
     replication = collect(pilot_dir, "_replication", [1000, 1001, 1002])
-    extension = collect(pilot_dir, "", list(range(2000, 2015)))  # two batches, same method, unified
+    extension = collect(pilot_dir, "", list(range(2000, 2025)))  # three batches, same method, unified
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(7.16, 3.05))
 
@@ -97,7 +97,7 @@ def main() -> None:
     width = 0.26
     sample_defs = [("Primary\n(900-911)", primary, "#5b5a52", -width),
                    ("Replication\n(1000-1002)", replication, "#c3c2b7", 0.0),
-                   ("Extension\n(2000-2014,\ngat_ctde only)", extension, "#8fa6c9", width)]
+                   ("Extension\n(2000-2024,\ngat_ctde only)", extension, "#8fa6c9", width)]
     for label, sample, color, offset in sample_defs:
         rates, labels = [], []
         for arm in ARMS:
