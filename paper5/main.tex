@@ -958,7 +958,23 @@ degradation \emph{exists} in both samples but the exact noise level it
 begins at does not (perfect through $\sigma=1.0$ in one 10-seed sample,
 already degrading at $\sigma=0.5$ in the other) -- a threshold is real;
 its precise location is not a property we would claim generalises
-beyond the specific ten seeds it was measured on.
+beyond the specific ten seeds it was measured on. Checking each seed's
+own trajectory across the noise sweep, not just the pooled figure,
+explains why: whether a given checkpoint's decisions collapse at a
+given $\sigma$ is not a smooth, monotonic function of noise magnitude
+at the level of one seed -- different $\sigma$ levels use independently
+sampled Gaussian noise draws during training, not a nested or
+cumulative one, so a seed can collapse at $\sigma=1.0$ and recover
+(genuinely re-differentiate, not an artifact) at $\sigma=2.0$, purely
+as a function of that level's own noise realisation. A handful of
+seeds in each sample are robust across the entire tested range and a
+handful collapse early; which specific seeds fall into which group
+differs between the two samples, and the pooled "onset" sigma is
+essentially reporting the minimum collapse point across whichever ten
+noise realisations that sample happened to draw -- an order statistic
+sensitive to sample composition by construction, not a hidden
+population threshold that a bigger sample would eventually pin down to
+one number.
 
 Fig.~\ref{fig:replication-forest} puts every headline paired comparison
 in this paper next to its independent-sample counterpart on one axis,
@@ -1414,11 +1430,16 @@ one of six tested cells (dropout's mildest severity, where GAT-CTDE
 costs significantly more, not less), absent everywhere else -- a
 narrower, more qualified finding than either "coordination always
 costs more under disruption" or "the two architectures are
-equivalent." One narrower question this paper's own
-results raise is still open: why the privacy threshold's exact location
-shifted between our two seed samples (Section~\ref{sec:results-m4}) --
-whether that reflects genuine sensitivity to which ten seeds are drawn,
-or a factor this paper has not identified. The FedProx-under-
+equivalent." Why the privacy threshold's exact location shifted between
+our two seed samples is answered, not open: per-seed inspection
+(Section~\ref{sec:results-m4}) shows each checkpoint's collapse status
+is not a monotonic function of noise magnitude -- different $\sigma$
+levels train under independently sampled noise draws, so a seed can
+collapse at one level and recover at a higher one -- meaning the
+pooled onset sigma one sample reports is an order statistic over which
+seeds happened to be drawn, sensitive to sample composition by
+construction, confirming genuine sensitivity to seed draw rather than
+a hidden fixed threshold. The FedProx-under-
 heterogeneity question this paper's own $N$-scaling investigation
 opened up is answered, not open, but raises its own narrower follow-up:
 whether a substantially longer inter-aggregation round (this paper
