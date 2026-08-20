@@ -2,9 +2,14 @@
 
 Status: **complete. FedProx-under-heterogeneity: null result with a
 verified mechanism (not a bug and not an unexplained absence of
-effect). Collapse-reliability characterization (M7's other half, per
-the original roadmap): complete, GAT-CTDE's N=19 collapse rate now
-resolved to 46.0% [28.6%, 65.1%] across 21 independent seeds.**
+effect), including the longer-round follow-up (below) -- still null
+at 10x the round length despite a real ~48x larger proximal-term
+contribution. Collapse-reliability characterization (M7's other half,
+per the original roadmap): complete, GAT-CTDE's N=19 collapse rate now
+resolved to 36.7% [22.2%, 52.2%] across 30 independent seeds (see
+`docs/PAPER5_M6_topology.md` Part 11 for the final, narrower estimate
+-- this doc's number below is retained for the original 21-seed
+history but is superseded).**
 
 ## What M7 asks
 
@@ -135,13 +140,63 @@ discipline of reporting what actually ran rather than what an
 intuitive story would predict (the same discipline that produced the
 M6 reward-margin null and the M2/M3 architecture-margin corrections).
 
-**Not yet tested**: whether a much longer round (`local_steps_per_round`
-well above 50, letting real drift accumulate further before the next
-reset) would let a heterogeneity dividend emerge. This is a plausible,
-cheap next step if the question is worth reopening, but it changes a
-different variable (round length) than M7 set out to test
-(heterogeneity mode), so it is flagged here rather than run without
-being asked.
+## Follow-up: does a longer round let the dividend emerge? Tested directly, still null.
+
+The paper flagged this as future work rather than assuming an answer.
+A cheap diagnostic first (`m7_gradnorm_probe2.py --local-steps-per-round
+500 --episodes 50`, no full campaign): real per-round drift's scaled
+proximal contribution jumped from a mean 0.03% / max 0.58% of the TD
+loss at the original `local_steps_per_round=50` to **mean 1.44% / max
+12.8%** at `local_steps_per_round=500` -- a ~48x increase in the mean
+ratio, a genuinely promising signal that the mechanism identified above
+might start to matter at 10x the round length.
+
+Ran the full confirmatory campaign on that basis:
+`m7_fedprox_heterogeneity.py --fedprox-mu 0.01 0.1 1.0
+--local-steps-per-round 500`, same 3 seeds (900-902), both load modes,
+full 300/50 episode budget, output
+`experiments/results/m7_campaign_longround/` (8 cells: 2 FedAvg +
+2 load modes x 3 mu values). One operational note: a background
+status check mid-run mistakenly concluded the job was stalled (an
+empty, buffered console-log file was checked rather than the actual
+results directory), leading to an unnecessary kill/restart; the
+results directory's own timestamps, checked afterward, confirmed the
+run had been progressing at a completely normal, expected pace the
+whole time (~17-18 minutes per cell, matching the original sweep) --
+the restart cost one cell's duplicated compute but not correctness,
+since the script resumes at cell granularity and clears any partial
+seed directory before retraining it.
+
+**Result: still bit-identical to FedAvg, in every cell, at full float
+precision**, exactly as at `local_steps_per_round=50`:
+
+| load mode | seed | `sla_compliance_all_slices` (all of fedavg, mu=0.01, mu=0.1, mu=1.0) |
+|---|---|---|
+| homogeneous | 900 | 0.006 |
+| homogeneous | 901 | 0.527 |
+| homogeneous | 902 | 0.004 |
+| heterogeneous | 900 | 0.006 |
+| heterogeneous | 901 | 0.3673333333333333 |
+| heterogeneous | 902 | 0.004 |
+
+Every one of the four aggregator settings (FedAvg, and FedProx at each
+of the three mu values) produces the exact same value, to full float
+precision, within a given (load mode, seed) cell. The load-mode effect
+itself is real (e.g. seed 901: 0.527 homogeneous vs. 0.367
+heterogeneous -- heterogeneity genuinely hurts), but FedProx closes
+none of that gap at any tested mu, at either round length.
+
+**Conclusion of the follow-up**: a longer round does not let a
+heterogeneity dividend emerge, even though it was given a fair chance
+to -- the mechanism's own limiting quantity (real per-round drift)
+grew by more than an order of magnitude (0.03% to 1.44% mean, 0.58% to
+12.8% max) and it still never crossed the threshold needed to flip a
+single eval-time decision. This strengthens rather than merely repeats
+the original null: it rules out "the round just wasn't long enough
+yet" as an alternative explanation, leaving the more fundamental
+reading -- this problem's Q-value gaps are large enough, and FedProx's
+correction at any tested strength small enough, that the two do not
+meet within a practically reachable round length.
 
 ## Collapse-reliability characterization: resolved (Part 10 of docs/PAPER5_M6_topology.md)
 

@@ -1,0 +1,20 @@
+[m7] resuming, 5 cell(s) already present
+[m7] 3-gNB config loaded: ['gnb-0', 'gnb-1', 'gnb-2'], fedprox_mu=[0.01, 0.1, 1.0], dp_clip_norm=1.0, seeds=[900, 901, 902]
+[m7] fedavg_homogeneous: already present, skipping
+[m7] fedavg_heterogeneous: already present, skipping
+[m7] fedprox_mu0.01_homogeneous: already present, skipping
+[m7] fedprox_mu0.01_heterogeneous: already present, skipping
+[m7] fedprox_mu0.1_homogeneous: already present, skipping
+[m3:fedprox_mu0.1_heterogeneous] seed=900: eval sla_compliance_all_slices=0.006 rounds=35 dp_steps=[0, 0, 0]
+[m3:fedprox_mu0.1_heterogeneous] seed=901: eval sla_compliance_all_slices=0.367 rounds=35 dp_steps=[0, 0, 0]
+[m3:fedprox_mu0.1_heterogeneous] seed=902: eval sla_compliance_all_slices=0.004 rounds=35 dp_steps=[0, 0, 0]
+[m7] fedprox_mu0.1_heterogeneous done, elapsed so far: 1259s
+[m3:fedprox_mu1.0_homogeneous] seed=900: eval sla_compliance_all_slices=0.006 rounds=35 dp_steps=[0, 0, 0]
+[m3:fedprox_mu1.0_homogeneous] seed=901: eval sla_compliance_all_slices=0.527 rounds=35 dp_steps=[0, 0, 0]
+[m3:fedprox_mu1.0_homogeneous] seed=902: eval sla_compliance_all_slices=0.004 rounds=35 dp_steps=[0, 0, 0]
+[m7] fedprox_mu1.0_homogeneous done, elapsed so far: 2549s
+[m3:fedprox_mu1.0_heterogeneous] seed=900: eval sla_compliance_all_slices=0.006 rounds=35 dp_steps=[0, 0, 0]
+[m3:fedprox_mu1.0_heterogeneous] seed=901: eval sla_compliance_all_slices=0.367 rounds=35 dp_steps=[0, 0, 0]
+[m3:fedprox_mu1.0_heterogeneous] seed=902: eval sla_compliance_all_slices=0.004 rounds=35 dp_steps=[0, 0, 0]
+[m7] fedprox_mu1.0_heterogeneous done, elapsed so far: 3792s
+[m7] ALL DONE, total elapsed 3792s, wrote ../experiments/results/m7_campaign_longround/campaign_results.json

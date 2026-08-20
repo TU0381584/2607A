@@ -504,7 +504,12 @@ of magnitude): it found no measurable dividend at any tested strength,
 traced to a concrete mechanism rather than left unexplained (real
 per-round client drift within \texttt{local\_steps\_per\_round}
 averages 0.03\% of the TD loss, too small for the proximal term to
-matter regardless of load heterogeneity) -- summarised in
+matter regardless of load heterogeneity). A follow-up campaign at 10x
+the round length (\texttt{local\_steps\_per\_round}=500) let real drift
+grow to a mean 1.44\% of the TD loss (max 12.8\%, a $\sim$48x increase)
+yet still produced eval-time behaviour bit-identical to FedAvg at
+every tested $\mu$ -- ruling out round length as the limiting factor
+rather than merely leaving it untested -- summarised in
 Section~\ref{sec:conclusion}, full investigation in the project's
 supplementary milestone documentation.
 
@@ -1441,12 +1446,15 @@ seeds happened to be drawn, sensitive to sample composition by
 construction, confirming genuine sensitivity to seed draw rather than
 a hidden fixed threshold. The FedProx-under-
 heterogeneity question this paper's own $N$-scaling investigation
-opened up is answered, not open, but raises its own narrower follow-up:
-whether a substantially longer inter-aggregation round (this paper
-tested only the existing 50-local-step default) would let real client
-drift accumulate enough for a heterogeneity dividend to emerge, a
-different variable than the one tested here and flagged rather than
-assumed.
+opened up is answered, not open, and so is the narrower follow-up it
+raised: whether a substantially longer inter-aggregation round (this
+paper's main sweep tested only the existing 50-local-step default)
+would let real client drift accumulate enough for a heterogeneity
+dividend to emerge. It does not -- at ten times the round length real
+drift grows nearly 50-fold (mean 0.03\% to 1.44\% of the TD loss) yet
+still never crosses the threshold needed to change a single eval-time
+decision, ruling out round length as the limiting factor rather than
+leaving it untested.
 
 \section*{Acknowledgment}
 \authorTODO{Same acknowledgment text as paper\_conf/main.tex, or updated for this paper -- please fill in.}
