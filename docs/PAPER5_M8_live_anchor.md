@@ -1,8 +1,10 @@
 # Paper #5 M8: live single-gNB anchor
 
 Status: **complete, bounded scope. Two independent live runs, replicated
-finding. Not a ranking claim -- see M1's own already-established limits
-on what this rig's live evaluation can support.**
+finding, root cause of the offline/live margin discrepancy confirmed
+(Part 2 below). Not a ranking claim -- see M1's own already-established
+limits on what this rig's live evaluation can support. Written into
+paper5/main.tex Section XI ("Results: Live Single-gNB Anchor").**
 
 ## What M8 asks
 
@@ -160,6 +162,64 @@ answer is that the metric itself saturates too fast on this rig's
 traffic scale to be informative -- a limitation of the measurement, not
 evidence against the policy.
 
+## Part 2: root cause of the margin discrepancy -- confirmed, not assumed
+
+Asked explicitly to investigate why offline and live results diverge so
+sharply, rather than leave the saturation pattern as a named-but-
+unconfirmed hypothesis. Traced through the actual code path and the
+actual saved data, not just plausibility:
+
+1. **Where the number comes from**: `reward.py`'s SLA-margin computation
+   is deliberately unclamped (its own comment: "an unclamped, unclipped
+   margin is what actually shows that gap") and computes
+   `queue_margin = 1.0 - agg.raw_queue_len_norm`. `kpm_adapter.py`
+   computes `raw_queue_len_norm = queue_raw / Lmax`, where `queue_raw`
+   is the sum of each UE's `dl_mac_buffer_occupation` for that slice --
+   **unclipped**, unlike the state-facing `queue_len_norm` field the
+   policy actually reads, which is separately clipped to `[0, 2]`
+   (`kpm_adapter.py`, `queue_len_norm = min(2.0, raw_queue_len_norm)`).
+2. **The two sources disagree on what `dl_mac_buffer_occupation` means,
+   confirmed from the framework's own source, not inferred**: offline,
+   `replay_kpm_source.py` generates it as
+   `max(0.0, rng.normal(5.0, 2.0))` -- a synthetic proxy with mean 5,
+   deliberately scaled near `Lmax=10`. Live, `qoe_mapper.py`'s own module
+   docstring states the field is "wired to a real scheduler counter
+   (`sched_ctrl->num_total_bytes` = sum of RLC TX buffer occupancy
+   across logical channels) -- not synthetic, not a stub", and
+   `calibration/units.py`'s own docstring independently confirms it:
+   "`dl_mac_buffer_occupation` as raw scheduler bytes." Both call sites
+   funnel into the exact same `kpm_adapter.aggregate_slice_state`
+   regardless of source (`env.py`'s `_build_cluster_state` is source-
+   agnostic, confirmed by reading it directly) -- so the identical
+   `Lmax=10` divisor, calibrated only against the offline proxy's small
+   scale, is applied to a live quantity that is a genuine physical byte
+   count, reaching into the millions within minutes once a sustained
+   stream (embb's real 4Mbps) outstrips its PRB ceiling.
+3. **Verified against the actual saved data, not just the code**: the
+   live omega log's first step already shows embb's margin at $-122.4$
+   (`raw_queue_len_norm \approx 123.4$, i.e. `queue_raw \approx 1234`
+   bytes) -- consistent with a real byte-count accumulating from the
+   moment traffic starts, not a fixed offset. By the end of the 10-minute
+   run it reaches $-1{,}002{,}377.5$ (`queue_raw \approx 10.02$MB), a
+   small, physically plausible fraction of the 300MB embb's stream could
+   have sent at 4Mbps over that window if nothing drained at all --
+   consistent with a real, partially-draining hardware buffer, not an
+   obviously-broken number.
+
+**Conclusion**: this is a genuine unit-calibration mismatch, not
+evidence that live conditions are millions of times more severe in any
+SLA-meaningful sense. `Lmax` was tuned once, against the offline
+proxy's arbitrary small scale, and never re-derived for the live
+field's real physical unit. The policy's own decisions were insulated
+from this because they only ever see the clipped `queue_len_norm`
+input, which is exactly why block precision (a decision-level metric)
+replicated cleanly live while the margin (a deliberately-unclipped
+diagnostic) did not. Not patched post hoc in this pass: doing so
+would require deciding what live backlog scale is representative from
+much more live data than this bounded anchor collected, and the
+decision-level finding this investigation actually supports does not
+depend on it. Written into `paper5/main.tex` Section XI, subsections B-C.
+
 ## What was not done
 
 - Only one checkpoint (seed 900) was run live; seeds 901 (collapsed) and
@@ -167,13 +227,11 @@ evidence against the policy.
   already answered the specific question M8 set out to check (does the
   precision finding transfer, and is the margin-saturation pattern real
   or an artifact) without needing a larger campaign.
-- The mechanism behind the backlog saturation (offline synthetic-arrival
-  process vs. sustained real UDP traffic producing fundamentally
-  different demand shapes; a possible uncapped-accumulator difference
-  between the live KPM adapter and the offline simulator's
-  `backlog_capacity`-bounded state) was not investigated further -- named
-  as a plausible explanation, not confirmed, and out of scope for a
-  bounded sanity anchor.
+- `Lmax` (or an equivalent live-appropriate rescaling) was not corrected
+  -- the root cause is now confirmed, but choosing a live-representative
+  replacement value is a separate, larger undertaking (needs a
+  principled live backlog-scale calibration, not a one-off guess) left
+  for future work rather than patched under this bounded anchor's scope.
 - The rig was left in the post-second-run saturated state, not reset a
   third time -- no further live-rig actions were taken once the
   replication was in hand.

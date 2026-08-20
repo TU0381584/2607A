@@ -91,7 +91,14 @@ GAT-CTDE's own collapse rate initially disagreed sharply between two
 seed samples (31\% vs.\ 78\%); a third, independent sample drawn
 specifically to resolve the discrepancy converged on 46\% [29\%, 65\%]
 across 21 seeds, showing both smaller samples were honest reads of a
-genuinely wide distribution rather than one being wrong. Together these
+genuinely wide distribution rather than one being wrong. Finally, we
+anchor this paper's single-agent baseline against a real OAI testbed:
+its offline-trained differentiated-shedding decisions transfer to live
+traffic unchanged (replicated across two independent runs), while its
+SLA-margin metric diverges from anything offline by orders of
+magnitude -- traced to a concrete unit mismatch between the offline
+demand model and the live scheduler's byte-denominated backlog counter,
+not left as an unexplained gap. Together these
 results argue that admission-control evaluation in multi-agent,
 privacy-constrained, disruption-prone settings needs metrics tied to
 the actual training objective, not only to a downstream SLA proxy that
@@ -157,14 +164,21 @@ live single-gNB anchor validated in our prior
 work~\cite{mecon-paper1,icraie-paper2}, extended to a federated
 training regimen with differential privacy and evaluated under
 mid-episode gNB dropout, demand spikes, and agent churn, then to
-cluster sizes $N \in \{7, 19\}$ under ring and hex-grid adjacency. We
-label these four campaigns M2 (centralised), M3 (federated/privacy), M4
-(disruption), and M6 (cluster-size scaling) throughout, matching this
-project's internal milestone numbering (M5 is this paper's own
-evaluation-integrity reframe, not a separate results campaign); a
-fifth, earlier milestone (M1, live-testbed recalibration) motivates the
-offline stress environment of Section~\ref{sec:system-model} but
-reports no results of its own here.
+cluster sizes $N \in \{7, 19\}$ under ring and hex-grid adjacency, and
+finally anchored against a real, single-gNB OAI testbed. We
+label these five campaigns M2 (centralised), M3 (federated/privacy), M4
+(disruption), M6 (cluster-size scaling), and M8 (live single-gNB
+anchor) throughout, matching this project's internal milestone
+numbering (M5 is this paper's own evaluation-integrity reframe, not a
+separate results campaign; M7's two results -- a FedProx-under-
+heterogeneity null finding and a collapse-rate-narrowing follow-up --
+are summarised in Section~\ref{sec:methodology} and folded into
+Section~\ref{sec:results-m6} respectively, rather than given a section
+of their own).
+A sixth, earlier milestone (M1, live-testbed recalibration) motivates
+the offline stress environment of Section~\ref{sec:system-model} and
+the bounded scope of Section~\ref{sec:results-m8}, but reports no
+results of its own here.
 The architecture is deliberately not this paper's headline: it is the
 vehicle that makes the metric failure, its fix, and the
 reproduction-replication gap concrete and measurable, and
@@ -339,19 +353,24 @@ supposed to do, not merely whether it scores well on a downstream
 proxy.
 
 \subsection{Offline Stress-Regime Environment}
-All results in this paper are obtained in an offline, closed-loop
-simulation environment deliberately oversubscribed to roughly 110\% of
-one gNB's PRB budget across its three slices, reusing our existing
-multi-gNB configuration unmodified. A separate investigation (held out
-of this paper's scope) found that this offline environment's demand
-process does not reproduce the live testbed's SLA-margin distribution
-closely enough to support a live-rank prediction claim, even after
+Every result in this paper except Section~\ref{sec:results-m8}'s
+bounded live anchor is obtained in an offline, closed-loop simulation
+environment deliberately oversubscribed to roughly 110\% of one gNB's
+PRB budget across its three slices, reusing our existing multi-gNB
+configuration unmodified. A separate investigation (held out of this
+paper's scope) found that this offline environment's demand process
+does not reproduce the live testbed's SLA-margin distribution closely
+enough to support a live-rank prediction claim, even after
 recalibrating the demand model's temporal structure. We therefore use
 it here explicitly as a \emph{stress environment} for the contention
 regime our live rig does not reach, not as a claim that any ranking
-found offline would reproduce live -- the single live gNB validated in
-our prior work remains the only real-hardware anchor, and multi-gNB
-claims in this paper are offline-only throughout.
+found offline would reproduce live -- Section~\ref{sec:results-m8}
+tests this paper's own single-agent baseline against a real gNB
+directly rather than relying only on prior work's anchor, and finds
+exactly this limit again, more starkly, on a metric this paper
+computes itself. Multi-gNB claims in this paper remain offline-only
+throughout; no rig with more than one physical gNB exists to test them
+against.
 
 \section{Methodology}
 \label{sec:methodology}
@@ -468,19 +487,23 @@ the server averages all clients' online weights (FedAvg~\cite{fedavg};
 weighted equally, since every client runs the same amount of local
 training) and broadcasts the result back. We also implement
 FedProx~\cite{fedprox}, which differs only in the client-side objective (a proximal term
-pulling local weights toward the last broadcast global model), but do
-not run a full campaign with it here: at the time of the M2/M3
-campaigns we believed our topology treated every gNB as an
-interchangeable peer with no client heterogeneity for FedProx's
-correction to address, so a full sweep would be evaluating a fix for a
+pulling local weights toward the last broadcast global model). At the
+time of the M2/M3 campaigns we believed our topology treated every gNB
+as an interchangeable peer with no client heterogeneity for FedProx's
+correction to address, so a full sweep would have evaluated a fix for a
 problem this environment did not have. Section~\ref{sec:results-m6}
 corrects this belief -- every client already draws offered demand from
 an implicit, seeded per-gNB load multiplier neither this section nor
-the M2/M3 campaigns had deliberately controlled -- but that correction
-came after M2/M3 were run, so no FedProx sweep is reported in this
-paper; it is left as the natural next step now that genuine,
-deliberately-controlled client heterogeneity is available as an
-experimental variable.
+the M2/M3 campaigns had deliberately controlled -- which motivated a
+FedProx sweep under both a genuine homogeneous-load control and this
+already-present heterogeneity ($\mu \in \{0.01, 0.1, 1.0\}$, two orders
+of magnitude): it found no measurable dividend at any tested strength,
+traced to a concrete mechanism rather than left unexplained (real
+per-round client drift within \texttt{local\_steps\_per\_round}
+averages 0.03\% of the TD loss, too small for the proximal term to
+matter regardless of load heterogeneity) -- summarised in
+Section~\ref{sec:conclusion}, full investigation in the project's
+supplementary milestone documentation.
 
 Differential privacy is applied as a standard DP-SGD~\cite{dpsgd} step:
 every client's gradient is clipped to a fixed norm and, when enabled,
@@ -1115,6 +1138,87 @@ rate the way single-agent DQN's 100\% or independent DQN's
 never-collapses profile are -- and three independent samples, not one,
 is what it took to state that with confidence.
 
+\section{Results: Live Single-gNB Anchor}
+\label{sec:results-m8}
+
+\subsection{Setup}
+Prior live-testbed recalibration work on this rig (motivating the
+offline stress environment of Section~\ref{sec:system-model}, though
+reporting no results of its own in this paper) already found that the
+offline environment cannot predict live \emph{ranking}: Spearman
+$\rho=0.097$ ($p=0.855$) between offline and live compliance across six
+single-gNB checkpoints, unmoved by a 162-configuration recalibration
+grid search, with live compliance itself compressed near-ceiling for
+most of those checkpoints. We do not repeat that attempt. Instead we
+ask a narrower, bounded question this rig can actually answer: does the
+offline-trained \emph{decision logic} -- not its offline-reported
+outcome numbers -- survive contact with real traffic at all. Only the
+admission-control question is testable here: this rig has one physical
+gNB, so GAT-CTDE's multi-gNB coordination benefit and the federated/DP
+results are architecturally untestable on it. We trained a fresh
+single-agent-DQN checkpoint against a single-gNB config
+dimension-matched to the live evaluation path (a checkpoint trained on
+this paper's 3-gNB configuration does not load into a single-gNB policy
+at all -- confirmed directly, a real shape mismatch, not assumed) and
+ran it through the existing live-evaluation xApp against a real OAI
+gNB, 3 UEs, and real per-slice UDP traffic, twice: once from a
+backlog state left over from prior testing, once from a verified-clean
+baseline.
+
+\subsection{Decision Logic Transfers; the Margin Metric Does Not}
+Both live runs blocked only mmTC (46/32 requests in the first run,
+45/32 in the second -- zero urllc or eMBB blocks in either), exactly
+matching this same checkpoint's offline block precision of 1.000. The
+offline-trained differentiated-shedding decision transfers to live
+traffic essentially unchanged, replicated across two independent runs.
+
+Both runs' SLA-margin readings, by contrast, diverged from anything the
+offline environment produces: eMBB's per-slice margin fell from
+$+1.0$ at the first live step to $-122.4$ within seconds and to
+$-1{,}002{,}377.5$ by the end of a 10-minute run -- and this exact
+value recurred, to the decimal, in the independent second run. We
+first read this as contamination from an earlier, unrelated live test
+and nearly discarded it; the second run's identical result from a
+confirmed-clean starting state ruled that out; the eventual cause was
+a concrete, code-level unit mismatch, confirmed rather than assumed.
+\texttt{reward.py}'s SLA-margin computation is deliberately unclamped
+and divides a per-slice backlog reading by $L_{\max}$
+(\texttt{kpm\_adapter.py}). Offline, that backlog reading is a
+synthetic proxy, $\mathcal{N}(5.0, 2.0)$
+(\texttt{replay\_kpm\_source.py}), calibrated to sit near
+$L_{\max}=10$'s own scale. Live, the identically-named field is wired
+to the real MAC scheduler's RLC transmit-buffer byte count
+(\texttt{sched\_ctrl->num\_total\_bytes}, confirmed directly against
+the framework's own source comment, not the offline model's synthetic
+distribution) -- a physically real quantity that reaches into the
+millions of bytes within minutes once a sustained stream outstrips its
+PRB ceiling, and is divided by the same $L_{\max}=10$ calibrated for a
+value two to three orders of magnitude smaller. The policy's own
+\emph{input} state escapes this: \texttt{kpm\_adapter.py} separately
+clips the state-facing backlog term to $[0,2]$ before it ever reaches
+the network, while the margin diagnostic is deliberately left unclipped
+so it can expose exactly this kind of gap -- which is why the
+policy's decisions stayed sensible live even as the margin number that
+would nominally score them exploded.
+
+\subsection{What This Means}
+The offline/live gap here is not evidence that live traffic is
+millions of times more severe than anything offline training exposed a
+policy to; it is a unit-calibration mismatch between two sources that
+share a field name but not a physical scale, never reconciled because
+$L_{\max}$ was tuned only against the offline proxy. This is a
+different failure mode from Section~\ref{sec:collapse}'s compliance-
+metric finding or Section~\ref{sec:results-m6}'s OR-aggregation
+finding -- not a metric that structurally rewards degenerate behaviour,
+but one whose numeric scale was never checked for consistency across
+the two sources it is computed identically from. We report it plainly
+rather than silently patching $L_{\max}$ post hoc: doing so would
+require deciding what live backlog scale is representative without
+much more live data than this bounded anchor collected, and the
+decision-level finding this section's live evidence actually supports
+-- that the trained policy's targeting survives contact with real
+traffic -- does not depend on it.
+
 \section{Discussion}
 Three findings in this paper are, we think, more broadly useful than
 the specific architecture: first, that a class-imbalanced, shared
@@ -1156,12 +1260,14 @@ any paper reporting an architecture-specific claim from a single
 seed sample -- ours included, elsewhere, before this check -- should
 weigh how much of its evidence is reproduction versus replication.
 
-We are explicit about what remains offline-only. Every result in this
-paper uses the offline stress environment (3, 7, or 19 gNBs depending
-on the campaign); none of it is a live claim, and
-Section~\ref{sec:system-model} explains why we do not believe an
-offline-trained ranking here would transfer live without separate
-verification. Federated learning across three gNBs
+We are explicit about what remains offline-only. Every result except
+Section~\ref{sec:results-m8}'s bounded single-gNB anchor uses the
+offline stress environment (3, 7, or 19 gNBs depending on the
+campaign); none of the multi-gNB, federated, or disruption results are
+live claims, and Section~\ref{sec:system-model} explains why we do not
+believe an offline-trained ranking here would transfer live without
+separate verification -- a limit Section~\ref{sec:results-m8} itself
+demonstrates directly rather than only argues for. Federated learning across three gNBs
 under one operator's cluster is also, as configured, a synthetic
 privacy scenario -- genuine cross-organisation data separation would
 need multiple operators unwilling to pool raw data, which nothing in
@@ -1219,12 +1325,17 @@ client drift being too small relative to the loss scale for the
 proximal term to matter at this architecture's round length, a verified
 mechanism rather than an unexplained null.
 
-Everything in this paper is offline-only, and validating whether any of
-these architectural or privacy-cost rankings survive contact with a
-live testbed -- as our single-agent work already did, and as this
-offline environment's own known live-fidelity gap
-(Section~\ref{sec:system-model}) says we should not assume -- is the
-most direct remaining step. Two narrower questions this paper's own
+Section~\ref{sec:results-m8} took the most direct remaining step for
+the one architecture a single-gNB rig can test: the offline-trained
+admission-control decision logic transferred live essentially
+unchanged, while the SLA-margin metric did not, for reasons traced to
+a concrete unit mismatch rather than left as an unexplained gap.
+Whether the multi-gNB, federated, and disruption rankings in
+Sections~\ref{sec:results-m2}--\ref{sec:results-m6} would similarly
+survive contact with a live testbed remains untested -- this rig has
+one physical gNB, so that question needs a multi-gNB rig this project
+does not currently have, not just more live time on this one. Two
+narrower questions this paper's own
 results raise are still open: whether the churn-cost gap between
 coordination-dependent and independent architectures is itself
 statistically real (no formal paired test between architectures'
