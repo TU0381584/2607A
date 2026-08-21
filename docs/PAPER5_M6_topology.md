@@ -874,3 +874,57 @@ and the FedProx-adjacent Conclusion mention) -- all instances of the
 superseded 37.5\%/40-seed point estimate updated to 36.2\%/58 seeds,
 the prior estimate retained in one place only as an explicit historical
 comparison, not left as a stale current number.
+
+## Part 14: a fifth extension (2043-2048), per direct user request -- 35.4%, still converging
+
+Direct user instruction: "run another batch for 3 hours." 6 more seeds
+(2043-2048, disjoint from every prior sample), gat\_ctde only, all
+three topologies, same script/infra as Parts 10-13's extensions
+(`m6_gatctde_collapse_rate_extension5.sh`). Sized against the blended
+per-cell cost of the three prior extensions (~500s/cell) to fit a
+3-hour budget with margin. Launched only after confirming via `pgrep`
+that no other `m6_run_experiment.py` process was running. Completed in
+8,118s (~2.25h, all three topology blocks landing at a consistent
+~2,700s each), all 18 new cells verified present (non-empty eval omega
+logs) before analysis.
+
+**This fifth batch: 5/18 collapsed (27.8\%)** -- close to the combined
+estimate so far (36.2\%), not a new outlier. Treating all five
+extension batches as one unified 49-seed sample (2000-2048, same
+method/script throughout, batched only for time-budget reasons each
+time): **50/147 collapsed (34.0\%)**.
+
+**Combined across primary, replication, and the full five-batch
+extension (192 cells, 64 independent seeds): 68/192 collapsed, 35.4\%.**
+Seed-level bootstrap 95% CI (10,000 resamples, same
+seed-level-not-pooled-cell methodology as Parts 10-13): **[25.5\%,
+45.8\%]** -- narrower than Part 13's estimate (36.2\% [25.9\%, 46.6\%]:
+20.7-point-wide interval down to 20.3 points, a smaller step than
+prior rounds as expected -- each additional batch narrows the CI less
+in absolute terms as the sample grows), and consistent with it (Part
+13's own interval already contained this final estimate).
+
+| Sample | Seeds | Collapsed | Rate |
+|---|---|---|---|
+| Primary (900-911) | 12 | 11/36 | 30.6\% |
+| Replication (1000-1002) | 3 | 7/9 | 77.8\% |
+| Extension (2000-2048, 5 batches) | 49 | 50/147 | 34.0\% |
+| **Combined** | **64** | **68/192** | **35.4\%, CI [25.5\%, 45.8\%]** |
+
+**Updated honest read**: the point estimate continues to hold steady
+across four successive extensions (36.7\% to 37.5\% to 36.2\% to
+35.4\%, all well within each other's CIs), with the CI's narrowing rate
+now visibly slowing (36.5, 30.0, 25.8, 20.7, 20.3 points wide) --
+exactly the diminishing-returns behaviour expected as an estimate
+converges and each additional seed contributes proportionally less
+new information. GAT-CTDE's N=19 collapse rate is best stated as
+**roughly 35%**, with the replication sample's 78\% remaining the
+clear outlier across all five extension batches now drawn (61.1\%,
+14.8\%, 40.0\%, 33.3\%, 27.8\% -- individually noisy at n=6-18, but
+averaging to 34.0\% and tracking the primary sample far more closely
+than the replication one). Written into `paper5/main.tex` (abstract,
+Fig. 8, Section X-D, Conclusion, and the FedProx-adjacent Conclusion
+mention) -- all instances of the superseded 36.2\%/58-seed point
+estimate updated to 35.4\%/64 seeds, the prior estimate retained in one
+place only as an explicit historical comparison, not left as a stale
+current number.
