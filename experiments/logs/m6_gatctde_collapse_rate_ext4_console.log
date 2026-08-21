@@ -1,0 +1,67 @@
+=== [m6-gatctde-ext4] n19_fully_connected_capfix (seeds 2025-2042, gat_ctde only) ===
+[m6] 19-gNB config loaded: ['gnb-0', 'gnb-1', 'gnb-2', 'gnb-3', 'gnb-4', 'gnb-5', 'gnb-6', 'gnb-7', 'gnb-8', 'gnb-9', 'gnb-10', 'gnb-11', 'gnb-12', 'gnb-13', 'gnb-14', 'gnb-15', 'gnb-16', 'gnb-17', 'gnb-18'], topology=fully_connected, arrivals/step=19, gnb_load_multiplier_mode=default
+[m6:gat_ctde] seed=2025: eval sla_compliance_all_slices=0.004
+[m6:gat_ctde] seed=2026: eval sla_compliance_all_slices=0.004
+[m6:gat_ctde] seed=2027: eval sla_compliance_all_slices=0.003
+[m6:gat_ctde] seed=2028: eval sla_compliance_all_slices=0.013
+[m6:gat_ctde] seed=2029: eval sla_compliance_all_slices=0.014
+[m6:gat_ctde] seed=2030: eval sla_compliance_all_slices=0.004
+[m6:gat_ctde] seed=2031: eval sla_compliance_all_slices=0.015
+[m6:gat_ctde] seed=2032: eval sla_compliance_all_slices=0.008
+[m6:gat_ctde] seed=2033: eval sla_compliance_all_slices=0.003
+[m6:gat_ctde] seed=2034: eval sla_compliance_all_slices=0.004
+[m6:gat_ctde] seed=2035: eval sla_compliance_all_slices=0.005
+[m6:gat_ctde] seed=2036: eval sla_compliance_all_slices=0.003
+[m6:gat_ctde] seed=2037: eval sla_compliance_all_slices=0.003
+[m6:gat_ctde] seed=2038: eval sla_compliance_all_slices=0.003
+[m6:gat_ctde] seed=2039: eval sla_compliance_all_slices=0.010
+[m6:gat_ctde] seed=2040: eval sla_compliance_all_slices=0.025
+[m6:gat_ctde] seed=2041: eval sla_compliance_all_slices=0.005
+[m6:gat_ctde] seed=2042: eval sla_compliance_all_slices=0.010
+[m6] wrote ../experiments/results/m6_pilot/n19_fully_connected_capfix/m6_results.json, total elapsed 8106s
+=== [m6-gatctde-ext4] n19_fully_connected_capfix done, elapsed so far: 8108s ===
+=== [m6-gatctde-ext4] n19_ring_capfix (seeds 2025-2042, gat_ctde only) ===
+[m6] 19-gNB config loaded: ['gnb-0', 'gnb-1', 'gnb-2', 'gnb-3', 'gnb-4', 'gnb-5', 'gnb-6', 'gnb-7', 'gnb-8', 'gnb-9', 'gnb-10', 'gnb-11', 'gnb-12', 'gnb-13', 'gnb-14', 'gnb-15', 'gnb-16', 'gnb-17', 'gnb-18'], topology=ring, arrivals/step=19, gnb_load_multiplier_mode=default
+[m6:gat_ctde] seed=2025: eval sla_compliance_all_slices=0.004
+[m6:gat_ctde] seed=2026: eval sla_compliance_all_slices=0.004
+[m6:gat_ctde] seed=2027: eval sla_compliance_all_slices=0.003
+[m6:gat_ctde] seed=2028: eval sla_compliance_all_slices=0.005
+[m6:gat_ctde] seed=2029: eval sla_compliance_all_slices=0.014
+[m6:gat_ctde] seed=2030: eval sla_compliance_all_slices=0.005
+[m6:gat_ctde] seed=2031: eval sla_compliance_all_slices=0.015
+[m6:gat_ctde] seed=2032: eval sla_compliance_all_slices=0.003
+[m6:gat_ctde] seed=2033: eval sla_compliance_all_slices=0.003
+[m6:gat_ctde] seed=2034: eval sla_compliance_all_slices=0.004
+[m6:gat_ctde] seed=2035: eval sla_compliance_all_slices=0.005
+[m6:gat_ctde] seed=2036: eval sla_compliance_all_slices=0.003
+[m6:gat_ctde] seed=2037: eval sla_compliance_all_slices=0.003
+[m6:gat_ctde] seed=2038: eval sla_compliance_all_slices=0.003
+[m6:gat_ctde] seed=2039: eval sla_compliance_all_slices=0.010
+[m6:gat_ctde] seed=2040: eval sla_compliance_all_slices=0.025
+[m6:gat_ctde] seed=2041: eval sla_compliance_all_slices=0.005
+[m6:gat_ctde] seed=2042: eval sla_compliance_all_slices=0.004
+[m6] wrote ../experiments/results/m6_pilot/n19_ring_capfix/m6_results.json, total elapsed 8155s
+=== [m6-gatctde-ext4] n19_ring_capfix done, elapsed so far: 16264s ===
+=== [m6-gatctde-ext4] n19_hex_capfix (seeds 2025-2042, gat_ctde only) ===
+[m6] 19-gNB config loaded: ['gnb-0', 'gnb-1', 'gnb-2', 'gnb-3', 'gnb-4', 'gnb-5', 'gnb-6', 'gnb-7', 'gnb-8', 'gnb-9', 'gnb-10', 'gnb-11', 'gnb-12', 'gnb-13', 'gnb-14', 'gnb-15', 'gnb-16', 'gnb-17', 'gnb-18'], topology=hex, arrivals/step=19, gnb_load_multiplier_mode=default
+[m6:gat_ctde] seed=2025: eval sla_compliance_all_slices=0.004
+[m6:gat_ctde] seed=2026: eval sla_compliance_all_slices=0.004
+[m6:gat_ctde] seed=2027: eval sla_compliance_all_slices=0.003
+[m6:gat_ctde] seed=2028: eval sla_compliance_all_slices=0.013
+[m6:gat_ctde] seed=2029: eval sla_compliance_all_slices=0.014
+[m6:gat_ctde] seed=2030: eval sla_compliance_all_slices=0.005
+[m6:gat_ctde] seed=2031: eval sla_compliance_all_slices=0.015
+[m6:gat_ctde] seed=2032: eval sla_compliance_all_slices=0.003
+[m6:gat_ctde] seed=2033: eval sla_compliance_all_slices=0.003
+[m6:gat_ctde] seed=2034: eval sla_compliance_all_slices=0.004
+[m6:gat_ctde] seed=2035: eval sla_compliance_all_slices=0.005
+[m6:gat_ctde] seed=2036: eval sla_compliance_all_slices=0.003
+[m6:gat_ctde] seed=2037: eval sla_compliance_all_slices=0.003
+[m6:gat_ctde] seed=2038: eval sla_compliance_all_slices=0.003
+[m6:gat_ctde] seed=2039: eval sla_compliance_all_slices=0.010
+[m6:gat_ctde] seed=2040: eval sla_compliance_all_slices=0.025
+[m6:gat_ctde] seed=2041: eval sla_compliance_all_slices=0.005
+[m6:gat_ctde] seed=2042: eval sla_compliance_all_slices=0.010
+[m6] wrote ../experiments/results/m6_pilot/n19_hex_capfix/m6_results.json, total elapsed 8093s
+=== [m6-gatctde-ext4] n19_hex_capfix done, elapsed so far: 24359s ===
+[m6-gatctde-ext4] ALL DONE, total elapsed 24359s
