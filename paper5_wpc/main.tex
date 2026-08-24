@@ -44,10 +44,7 @@ a real noise threshold. Under gNB dropout, demand spikes, and agent
 churn, its disruption cost accelerates with severity like every arm
 tested, with a coordination-specific penalty only at the mildest
 severity. On the metric that reflects the actual training objective,
-GAT-CTDE decisively beats an independent-learner ablation, though its
-edge over the single-agent baseline remains small and not statistically
-decisive at this sample size -- an honest limit we report rather than
-obscure. These results were made trustworthy, not just favourable, by
+GAT-CTDE decisively beats an independent-learner ablation, though its edge over the single-agent baseline remains small and not statistically decisive at this sample size. This is an honest limit we report rather than obscure. These results were made trustworthy, not just favourable, by
 two safeguards this paper also contributes: a correctness-aware metric
 pair that caught a real training collapse the standard SLA-compliance
 metric scored no worse than correct behaviour, and a
@@ -61,41 +58,17 @@ transfers to real traffic unchanged.}
 \maketitle
 
 \section{Introduction}
-Network slicing lets a single physical radio access network serve
-heterogeneous service classes -- Ultra-Reliable Low-Latency
-Communication (URLLC), enhanced Mobile Broadband (eMBB), and massive
-Machine-Type Communication (mMTC) -- under distinct per-slice Service
-Level Agreements (SLAs). Our earlier work~\cite{mecon-paper1,icraie-paper2}
+Network slicing lets a single physical radio access network serve heterogeneous service classes, namely Ultra-Reliable Low-Latency Communication (URLLC), enhanced Mobile Broadband (eMBB), and massive Machine-Type Communication (mMTC), under distinct per-slice Service Level Agreements (SLAs). Our earlier work~\cite{mecon-paper1,icraie-paper2}
 established that a Deep Q-Network (DQN) admission controller can learn
 to enforce these SLAs under a single gNodeB (gNB), validated on a live
-OpenAirInterface (OAI) testbed. A real multi-cell deployment does not
-admit requests at one gNB in isolation: neighbouring cells share
-backhaul, spectrum planning, and a cluster-wide load-balance
-objective, making coordinated admission a genuinely multi-agent
-problem -- does a shared, graph-structured representation of the
-cluster's state help a set of per-gNB agents make better joint
-decisions than a single agent using the flattened joint state, or
-independent per-gNB agents with no shared representation at all?
+OpenAirInterface (OAI) testbed. A real multi-cell deployment does not admit requests at one gNB in isolation, since neighbouring cells share backhaul, spectrum planning, and a cluster-wide load-balance objective, making coordinated admission a genuinely multi-agent problem. This raises a direct question: does a shared, graph-structured representation of the cluster's state help a set of per-gNB agents make better joint decisions than a single agent using the flattened joint state, or independent per-gNB agents with no shared representation at all?
 
 This paper's contribution is GAT-CTDE, a centralised-training,
 decentralised-execution multi-agent architecture built on a shared
 Graph Attention Network~\cite{gat} encoder over the gNB topology
 feeding decentralised per-slice Q-heads, and the evidence for how it
 scales, coordinates, and degrades under realistic operating
-conditions. Extended to federated training with differential privacy
-and evaluated under mid-episode gNB dropout, demand spikes, and agent
-churn, we scale the architecture to cluster sizes $N \in \{7, 19\}$
-under ring and hex-grid adjacency and find it resists a training
-collapse that becomes total for a flattened-state single-agent
-baseline, converging on a residual 35.4\% collapse rate across 64
-independently-drawn seeds rather than either of two disagreeing
-small-sample estimates. On the metric that reflects the actual
-training objective, the architecture decisively beats an
-independent-learner ablation that isolates the same coordination
-contribution, though its edge over the single-agent baseline
-specifically is small and not statistically decisive at this sample
-size -- an honest limit we report rather than smooth over to fit a
-cleaner architecture story. Federating the architecture costs nothing
+conditions. Extended to federated training with differential privacy and evaluated under mid-episode gNB dropout, demand spikes, and agent churn, we scale the architecture to cluster sizes $N \in \{7, 19\}$ under ring and hex-grid adjacency. It resists a training collapse that becomes total for a flattened-state single-agent baseline, converging on a residual 35.4\% collapse rate across 64 independently-drawn seeds rather than either of two disagreeing small-sample estimates. On the metric that reflects the actual training objective, the architecture decisively beats an independent-learner ablation that isolates the same coordination contribution, though its edge over the single-agent baseline specifically is small and not statistically decisive at this sample size. This is an honest limit we report rather than smooth over to fit a cleaner architecture story. Federating the architecture costs nothing
 measurable in reward, and differential privacy degrades decision
 precision only past a real threshold rather than a smooth trade-off;
 under disruption, its cost accelerates with severity like every arm
@@ -104,85 +77,35 @@ severity tested.
 
 Reporting these results honestly required two methodological
 safeguards we also contribute, since neither is standard practice in
-this literature. First, the standard episode-level SLA-compliance
-metric can score a degenerate, always-accept policy no worse than
-genuinely differentiated decision-making, because blocking a
-low-priority slice under congestion -- the reward-optimal action --
-costs compliance without ever recovering it; we introduce a
-correctness-aware metric pair (mean reward per step and block
-precision, both computed from data every run already logs) that
-exposes this gap, and use it to diagnose and fix a real training
-collapse our first encoder suffered on all 30 campaign seeds. Second,
-we establish a reproduction-versus-replication discipline -- checking
-every headline result against an independent seed sample, not only
-reproducing the same seeds -- which caught and retracted a real
-architectural overclaim under mid-episode disruption before it could
-be reported as a finding. We finally anchor the architecture's
+this literature. First, the standard episode-level SLA-compliance metric can score a degenerate, always-accept policy no worse than genuinely differentiated decision-making, because blocking a low-priority slice under congestion is the reward-optimal action, yet it costs compliance without ever recovering it. We introduce a correctness-aware metric pair (mean reward per step and block precision, both computed from data every run already logs) that exposes this gap, and use it to diagnose and fix a real training collapse our first encoder suffered on all 30 campaign seeds. Second, we establish a reproduction-versus-replication discipline. Every headline result is checked against an independent seed sample rather than only reproduced on the same seeds, a distinction that caught and retracted a real architectural overclaim under mid-episode disruption before it could be reported as a finding. We finally anchor the architecture's
 single-gNB baseline against a real OAI testbed, confirming its
 offline-trained decision logic transfers to live traffic unchanged.
 
 \section{Related Work}
 \label{sec:litreview}
-Our own systematic review~\cite{ref:access} screened 6{,}286 records
-down to 67 core 2024--2026 studies on machine-learning-driven,
-user-centric distributed network slicing, organised around three
-enabling pillars -- topology-aware graph representation, distributed
-multi-agent control, and privacy-preserving federation -- and found
-individual pillars well developed but rarely combined under realistic
-constraints, and never with a validated live deployment. None of the
-works we reviewed, there or here, checks whether its own evaluation
-metric can mask a degenerate policy, or replicates a headline finding
-on an independent seed sample -- the gap this paper fills.
+Our own systematic review~\cite{ref:access} screened 6{,}286 records down to 67 core 2024--2026 studies on machine-learning-driven, user-centric distributed network slicing, organised around three enabling pillars, namely topology-aware graph representation, distributed multi-agent control, and privacy-preserving federation, and found individual pillars well developed but rarely combined under realistic constraints, and never with a validated live deployment. None of the works we reviewed, there or here, checks whether its own evaluation metric can mask a degenerate policy, or replicates a headline finding on an independent seed sample. This is the gap this paper fills.
 
 The canonical result behind our own encoder choice is
 Shao~\emph{et al.}~\cite{shao2021gatmarl}, who show a graph attention
 encoder strengthens inter-agent cooperation over plain DQN/A2C
-baselines in dense-cellular slicing. Closest to our admission-control
-setting, Ahmadi~\emph{et al.}~\cite{ahmadi2024generalizable} generalise
-coordinated multi-agent slicing across unseen topologies via graph
-attention -- a topology-generalisation question distinct from, but
-complementary to, the evaluation-integrity question we ask on a fixed
-topology (we test the complementary direction directly in
-Section~\ref{sec:results-m6}: whether correctness-aware metrics remain
-reliable as cluster size and adjacency sparsity change, rather than
-whether a policy generalises to an unseen topology). Sulaiman~\emph{et
+baselines in dense-cellular slicing. Closest to our admission-control setting, Ahmadi~\emph{et al.}~\cite{ahmadi2024generalizable} generalise coordinated multi-agent slicing across unseen topologies via graph attention, a topology-generalisation question distinct from, but complementary to, the evaluation-integrity question we ask on a fixed topology. We test the complementary direction directly in Section~\ref{sec:results-m6}, asking whether correctness-aware metrics remain reliable as cluster size and adjacency sparsity change, rather than whether a policy generalises to an unseen topology. Sulaiman~\emph{et
 al.}~\cite{sulaiman2023coordinated} is the closest prior art to our own
 problem, multi-agent DRL jointly solving slicing and admission control
 across the substrate network; neither that work nor its
 topology-generalisation follow-up reports whether its own
 reward-optimal policy could be mistaken for a degenerate one, or
-checks a headline result against an independent seed sample. Tashman
-and Cherkaoui~\cite{tashman2026adversarial} and Fatehi~\emph{et
-al.}~\cite{fatehi2026attentionmarl} both study robustness to a
-disruptive condition, as our disruption campaign
-(Section~\ref{sec:results-m4}) does; neither checks whether the metric
-reporting that robustness is itself trustworthy, or replicates a
-robustness finding on an independent sample -- exactly the gap our own
-disruption campaign's independent-seed replication closes, and not
-hypothetically: it is what overturned our own initial churn-immunity
-reading.
+checks a headline result against an independent seed sample. Tashman and Cherkaoui~\cite{tashman2026adversarial} and Fatehi~\emph{et al.}~\cite{fatehi2026attentionmarl} both study robustness to a disruptive condition, as our disruption campaign (Section~\ref{sec:results-m4}) does; neither checks whether the metric reporting that robustness is itself trustworthy, or replicates a robustness finding on an independent sample. This is exactly the gap our own disruption campaign's independent-seed replication closes, and not hypothetically, since it is what overturned our own initial churn-immunity reading.
 
 On the federated side, Zhang~\emph{et
 al.}~\cite{zhang2022federatedoran} coordinate independent O-RAN xApps
 via federated DRL, the closest precedent to our own periodic-
 synchronisation motivation, but without a differential-privacy step or
 a correctness-aware metric to check whether federating changed
-decision quality. Yasin~\emph{et al.}~\cite{yasin2025dpfl} combine
-federated edge learning with differential privacy to secure the O-RAN
-RIC -- the closest FL+DP precedent -- but target a different threat
-model (securing the controller) rather than characterising a control
-policy's own privacy-utility trade-off, which our $\sigma$-sweep
-(Section~\ref{sec:results-m3}) reports. A small further set of works
+decision quality. Yasin~\emph{et al.}~\cite{yasin2025dpfl} combine federated edge learning with differential privacy to secure the O-RAN RIC (the closest FL+DP precedent) but target a different threat model (securing the controller) rather than characterising a control policy's own privacy-utility trade-off, which our $\sigma$-sweep (Section~\ref{sec:results-m3}) reports. A small further set of works
 begins to combine two of these three
 pillars~\cite{mohajer2026pronto,bouroudi2025gnnmarl,qasim2025tgnnfl,gong2026femaddpg},
 but, like every work surveyed here, evaluates exclusively on its own
-reported outcome metric, computed once, on one seed or run. This is
-the gap this paper fills: not a new point in the GAT/MARL/FL design
-space, but a demonstration -- on GAT-CTDE, extended to federation,
-privacy, and disruption -- that checking a metric's own trustworthiness
-and replicating a finding on an independent sample are both necessary,
-and that skipping either changes what a reader is entitled to believe
-the resulting numbers mean.
+reported outcome metric, computed once, on one seed or run. This is the gap this paper fills, not a new point in the GAT/MARL/FL design space but a demonstration (on GAT-CTDE, extended to federation, privacy, and disruption) that checking a metric's own trustworthiness and replicating a finding on an independent sample are both necessary, and that skipping either changes what a reader is entitled to believe the resulting numbers mean.
 
 \section{System Model and Problem Formulation}
 \label{sec:system-model}
@@ -207,9 +130,7 @@ cluster-wide load-balance penalty, weighted by a per-slice
 \texttt{priority\_weight} (URLLC highest, mMTC lowest) and a congestion
 coefficient tuned, in prior work, so that the reward-optimal policy
 under congestion is \emph{differentiated shedding}: continue accepting
-URLLC, mostly accept eMBB, and reject mMTC -- confirmed directly by
-Q-value inspection on a working baseline policy
-(Section~\ref{sec:collapse}), not assumed. Every result in this paper
+URLLC, mostly accept eMBB, and reject mMTC. This is confirmed directly by Q-value inspection on a working baseline policy (Section~\ref{sec:collapse}), not assumed. Every result in this paper
 except Section~\ref{sec:results-m8}'s bounded live anchor is obtained
 in an offline, closed-loop simulation environment deliberately
 oversubscribed to roughly 110\% of one gNB's PRB budget, reusing our
@@ -217,11 +138,7 @@ existing multi-gNB configuration unmodified. A separate investigation
 found this offline environment's demand process does not reproduce the
 live testbed's SLA-margin distribution closely enough to support a
 live-rank prediction claim, even after recalibrating the demand
-model's temporal structure; we therefore use it explicitly as a
-\emph{stress environment} for a contention regime our live rig does
-not reach, not as a claim that any offline ranking would reproduce
-live -- Section~\ref{sec:results-m8} tests this directly rather than
-only arguing for it. Multi-gNB claims in this paper remain
+model's temporal structure; we therefore use it explicitly as a \emph{stress environment} for a contention regime our live rig does not reach, not as a claim that any offline ranking would reproduce live. Section~\ref{sec:results-m8} tests this directly rather than only arguing for it. Multi-gNB claims in this paper remain
 offline-only throughout; no rig with more than one physical gNB exists
 to test them against.
 
@@ -248,32 +165,17 @@ queue-length-norm] features form that node's row in a joint
 node-feature matrix. A two-layer, four-head GAT~\cite{gat}, implemented
 directly (the small graph sizes here make a dense, masked-attention
 implementation as fast as a sparse one), produces one embedding per
-gNB. Centralisation comes from this encoder: its parameters are
-updated by every agent's loss jointly, so it sees the full cluster's
-state during training. Decentralised execution comes from what happens
-next: at action-selection time, each agent consumes only its own
-node's embedding row to decide its own pending requests.
+gNB. Centralisation comes from this encoder, since its parameters are updated by every agent's loss jointly, so it sees the full cluster's state during training. Decentralised execution comes from what happens next. At action-selection time, each agent consumes only its own node's embedding row to decide its own pending requests.
 
 \label{sec:methodology-perslice}
 An early version fed each embedding, concatenated with a one-hot slice
 context, into a single shared Q-head MLP. Under this design, mmTC's
 true reward-optimal margin under congestion is small by the reward's
 own calibration, while URLLC's much larger priority weight produces
-proportionally larger gradients; because all three slices update the
-\emph{same} shared parameters, URLLC's abundant, large-magnitude
-gradients overwrite mmTC's much smaller true signal before it
-registers -- a standard shared-parameter/class-imbalance failure mode.
-We replace the single shared head with \emph{one small MLP per slice},
-selected by the context one-hot where the head is applied
-(Fig.~\ref{fig:architecture}(a)): each slice's decision boundary now
-has its own parameters, so one slice's gradients can no longer
-directly overwrite another's.
+proportionally larger gradients; because all three slices update the \emph{same} shared parameters, URLLC's abundant, large-magnitude gradients overwrite mmTC's much smaller true signal before it registers. This is a standard shared-parameter/class-imbalance failure mode.
+We replace the single shared head with \emph{one small MLP per slice}, selected by the context one-hot where the head is applied (Fig.~\ref{fig:architecture}(a)). Each slice's decision boundary now has its own parameters, so one slice's gradients can no longer directly overwrite another's.
 
-Algorithm~\ref{alg:gat-ctde} states the training loop: the encoder is
-updated from every request in a sampled minibatch regardless of gNB or
-slice (centralised training), while action selection at rollout time
-consults only the acting agent's own embedding row (decentralised
-execution). Every pending request in a step is its own independent
+Algorithm~\ref{alg:gat-ctde} states the training loop, in which the encoder is updated from every request in a sampled minibatch regardless of gNB or slice (centralised training), while action selection at rollout time consults only the acting agent's own embedding row (decentralised execution). Every pending request in a step is its own independent
 temporal-difference sample, never summed or averaged across a step
 before the loss is computed, matching our existing single-agent DQN's
 own granularity.
@@ -311,44 +213,17 @@ own granularity.
 \end{algorithm}
 
 \subsection{Federated Training with Differential Privacy}
-Fig.~\ref{fig:architecture}(b) shows the federated variant: each gNB
-becomes an FL client with a private copy of the same network, training
-only on its own requests -- transitions are partitioned by owning
-agent, so no client sees another client's raw admission data -- while
-its GAT encoder still consumes the full joint node-feature snapshot
-every arm observes. Every $R$ local steps, the server averages all
+Fig.~\ref{fig:architecture}(b) shows the federated variant, in which each gNB becomes an FL client with a private copy of the same network, training only on its own requests. Transitions are partitioned by owning agent, so no client sees another client's raw admission data, while its GAT encoder still consumes the full joint node-feature snapshot every arm observes. Every $R$ local steps, the server averages all
 clients' online weights (FedAvg~\cite{fedavg}) and broadcasts the
-result back. We also implement FedProx~\cite{fedprox} (a proximal term
-pulling local weights toward the last broadcast global model),
-motivated by an implicit, seeded per-gNB load multiplier this
-project's own cluster-scaling investigation
-(Section~\ref{sec:results-m6}) later revealed as genuine, uncontrolled
-client heterogeneity: swept at $\mu \in \{0.01, 0.1, 1.0\}$ under both a
-homogeneous-load control and this heterogeneity, FedProx earns no
-measurable dividend at any tested strength, traced to a concrete
-mechanism -- real per-round client drift within
-\texttt{local\_steps\_per\_round} averages only 0.03\% of the TD loss,
-too small for the proximal term to matter -- and a follow-up at
-10$\times$ the round length lets real drift grow nearly 50-fold (to a
-mean 1.44\%) yet still produces eval-time behaviour bit-identical to
-FedAvg, ruling out round length as the limiting factor rather than
-leaving it untested.
+result back. We also implement FedProx~\cite{fedprox} (a proximal term pulling local weights toward the last broadcast global model), motivated by an implicit, seeded per-gNB load multiplier this project's own cluster-scaling investigation (Section~\ref{sec:results-m6}) later revealed as genuine, uncontrolled client heterogeneity. Swept at $\mu \in \{0.01, 0.1, 1.0\}$ under both a homogeneous-load control and this heterogeneity, FedProx earns no measurable dividend at any tested strength. This traces to a concrete mechanism, since real per-round client drift within \texttt{local\_steps\_per\_round} averages only 0.03\% of the TD loss, too small for the proximal term to matter. A follow-up at 10$\times$ the round length lets real drift grow nearly 50-fold (to a mean 1.44\%) yet still produces eval-time behaviour bit-identical to FedAvg, ruling out round length as the limiting factor rather than leaving it untested.
 
-Differential privacy is applied as a standard DP-SGD~\cite{dpsgd} step:
-every client's gradient is clipped to a fixed norm and, when enabled,
-perturbed with Gaussian noise scaled by a noise multiplier $\sigma$,
-before that client's own optimiser step. We report $\sigma$ as the
+Differential privacy is applied as a standard DP-SGD~\cite{dpsgd} step, in which every client's gradient is clipped to a fixed norm and, when enabled, perturbed with Gaussian noise scaled by a noise multiplier $\sigma$, before that client's own optimiser step. We report $\sigma$ as the
 primary privacy parameter, alongside a formal $(\varepsilon,\delta)$
 bound computed via zero-concentrated differential privacy
 (zCDP)~\cite{zcdp} composition of the Gaussian mechanism ($\rho =
 k/(2\sigma^2)$ over $k$ per-client releases,
-$\varepsilon(\delta)=\rho+2\sqrt{\rho\ln(1/\delta)}$) -- a conservative,
-non-subsampled bound, reported alongside $\sigma$ rather than in place
-of it. Algorithm~\ref{alg:fed-dp} states one federated round precisely;
-clipping is applied identically whether or not noise is added, so a
-$\sigma{=}0$ run and a $\sigma{>}0$ run differ only in whether noise is
-injected -- the isolation the privacy-cost comparison
-(Section~\ref{sec:results-m3}) depends on.
+$\varepsilon(\delta)=\rho+2\sqrt{\rho\ln(1/\delta)}$). This is a conservative, non-subsampled bound, reported alongside $\sigma$ rather than in place of it. Algorithm~\ref{alg:fed-dp} states one federated round precisely;
+clipping is applied identically whether or not noise is added, so a $\sigma{=}0$ run and a $\sigma{>}0$ run differ only in whether noise is injected. This is the isolation the privacy-cost comparison (Section~\ref{sec:results-m3}) depends on.
 
 \begin{algorithm}[t]
 \caption{Federated GAT-CTDE round with DP-SGD}
@@ -397,42 +272,13 @@ Wilcoxon signed-rank test.
 While generating a privacy-utility sweep for the federated variant
 (Section~\ref{sec:results-m3}), noise levels that should have produced
 genuinely different, stochastically-trained checkpoints instead
-produced bit-identical per-seed evaluation compliance. Tracing this
-back, we found that our first GAT-CTDE encoder's eval policy blocked
-zero requests across every evaluation episode, on all 30 campaign
-seeds -- an always-accept policy is a functional no-op, so any two
-checkpoints that reach it produce identical trajectories regardless of
-their internal weights. We confirmed, rather than assumed, that this
-was a genuine failure and not a legitimate optimum: a direct Q-value
-probe on the collapsed checkpoint showed $Q(\text{accept}) -
-Q(\text{reject})$ positive and large for every slice, including mmTC,
-while the independent-DQN ablation (Section~\ref{sec:results-m2}),
-which sees identical raw features through no encoder at all, does not
-exhibit this collapse -- isolating the encoder, not the reward or
-training loop, as the fault.
+produced bit-identical per-seed evaluation compliance. Tracing this back, we found that our first GAT-CTDE encoder's eval policy blocked zero requests across every evaluation episode, on all 30 campaign seeds. An always-accept policy is a functional no-op, so any two checkpoints that reach it produce identical trajectories regardless of their internal weights. We confirmed, rather than assumed, that this was a genuine failure and not a legitimate optimum. A direct Q-value probe on the collapsed checkpoint showed $Q(\text{accept}) - Q(\text{reject})$ positive and large for every slice, including mmTC, while the independent-DQN ablation (Section~\ref{sec:results-m2}), which sees identical raw features through no encoder at all, does not exhibit this collapse. This isolates the encoder, not the reward or training loop, as the fault.
 
-Comparing the encoder's own embedding for a synthetic idle state
-against a congested one on the collapsed checkpoint: the raw input
-difference has $\ell_2$ norm 2.55 and the resulting embedding
-difference has norm 19.6 -- an apparently large, congestion-sensitive
-response -- but the cosine similarity between the two embeddings is
-0.99997: the encoder was encoding congestion almost entirely as
-embedding \emph{magnitude}, with no mechanism preventing this and no
-rotation of direction. Since the downstream Q-head is roughly linear
-in its input, larger magnitude pushes $Q(\text{accept})$ up faster
-than $Q(\text{reject})$ as congestion increases -- backwards from the
-reward's intent.
+We compared the encoder's own embedding for a synthetic idle state against a congested one on the collapsed checkpoint. The raw input difference has $\ell_2$ norm 2.55 and the resulting embedding difference has norm 19.6, an apparently large, congestion-sensitive response, but the cosine similarity between the two embeddings is 0.99997. This means the encoder was encoding congestion almost entirely as embedding \emph{magnitude}, with no mechanism preventing this and no rotation of direction. Since the downstream Q-head is roughly linear in its input, larger magnitude pushes $Q(\text{accept})$ up faster than $Q(\text{reject})$ as congestion increases, which runs backwards from the reward's intent.
 
-We add a per-layer \texttt{LayerNorm} to the encoder, constraining
-every node's embedding to zero-mean, unit-variance regardless of input
-magnitude -- a real, verified improvement (collapse drops from 30/30
-to 27/30 seeds) but not a complete fix. We then apply the per-slice
+We add a per-layer \texttt{LayerNorm} to the encoder, constraining every node's embedding to zero-mean, unit-variance regardless of input magnitude. This is a real, verified improvement (collapse drops from 30/30 to 27/30 seeds) but not a complete fix. We then apply the per-slice
 Q-heads of Section~\ref{sec:methodology-perslice}, which reduces
-collapse further, to 9/30 seeds (Fig.~\ref{fig:collapse}); a further
-variant disabling LayerNorm's learnable affine transform made results
-\emph{worse} (0/3 pilot seeds differentiated versus 1/3 with it
-enabled) and was reverted -- not every plausible fix helped, and we
-report the one that did not.
+collapse further, to 9/30 seeds (Fig.~\ref{fig:collapse}); a further variant disabling LayerNorm's learnable affine transform made results \emph{worse} (0/3 pilot seeds differentiated versus 1/3 with it enabled) and was reverted. Not every plausible fix helped, and we report the one that did not.
 
 \begin{figure}[t]
 \centering
@@ -445,14 +291,7 @@ fixes described in Section~\ref{sec:collapse}.}
 \end{figure}
 
 \label{sec:eval-log-bug}
-A separate, unrelated bug was caught while building an evaluation-time
-disruption harness: our logging utility opens its output file in
-append mode and never truncates it, and GAT-CTDE was retrained in
-place three times while diagnosing the collapse above, each time
-writing evaluation results to the same per-seed path -- every one of
-the 30 seeds' evaluation logs had silently accumulated all three runs'
-episodes stacked together, confirmed directly by each log's own
-episode index resetting to 1 twice. Every GAT-CTDE number reported
+A separate, unrelated bug was caught while building an evaluation-time disruption harness. Our logging utility opens its output file in append mode and never truncates it, and GAT-CTDE was retrained in place three times while diagnosing the collapse above, each time writing evaluation results to the same per-seed path. Every one of the 30 seeds' evaluation logs had silently accumulated all three runs' episodes stacked together, confirmed directly by each log's own episode index resetting to 1 twice. Every GAT-CTDE number reported
 through an earlier draft of this paper, and every M3 result reusing
 GAT-CTDE's centralised evaluation as a reference point, was therefore
 a hidden three-way average across two architecturally-obsolete runs
@@ -466,47 +305,20 @@ clear its output path before any future run. All numbers in this paper
 reflect that corrected data.
 
 \label{sec:correctness-metrics}
-The fixes above make the architecture more correct while making its
-\texttt{sla\_compliance\_all\_slices} score \emph{worse}
-(Section~\ref{sec:results-m2}): blocking mmTC under congestion, the
-reward-optimal action, does not recover mmTC's own SLA margin in this
-stress regime, so every newly-correct decision costs compliance the
-metric never credits back. We therefore report two further metrics,
+The fixes above make the architecture more correct while making its \texttt{sla\_compliance\_all\_slices} score \emph{worse} (Section~\ref{sec:results-m2}), because blocking mmTC under congestion, the reward-optimal action, does not recover mmTC's own SLA margin in this stress regime, so every newly-correct decision costs compliance the metric never credits back. We therefore report two further metrics,
 both computed from data every arm already logs: \textbf{mean reward
 per step}, the actual training objective; and \textbf{block
 precision}, the fraction of blocked requests that target mmTC
 specifically, the only slice the reward calibration ever makes
 reject-optimal (undefined, and reported as such, for seeds that never
-block anything). Any admission-control evaluation where correct
-behaviour cannot recover an already-stressed slice's compliance should
-report a decision-level correctness metric alongside, not instead of,
-an outcome-level compliance one -- the general lesson this specific
-collapse makes concrete.
+block anything). Any admission-control evaluation where correct behaviour cannot recover an already-stressed slice's compliance should report a decision-level correctness metric alongside, not instead of, an outcome-level compliance one. This is the general lesson this specific collapse makes concrete.
 
 \section{Multi-gNB Results: Centralised, Federated, and Disruption}
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/fig3_multi_gnb_results.pdf}
-\caption{Multi-gNB results, per-seed evidence for the correctness-aware
-metrics (Section~\ref{sec:correctness-metrics}). (a) M2, 30 seeds:
-paired per-seed comparison against single-agent DQN on mean reward per
-step -- each line is one seed, coloured by whether GAT-CTDE scored
-higher (green, 20), tied (grey, 3), or lower (red, 7) -- the source of
-this figure's borderline $p=0.0577$. (b) M2: full per-seed reward
-distribution for all three arms; GAT-CTDE is split into seeds that
-learned genuine differentiated shedding (blue, 21) versus seeds still
-stuck at the always-accept collapse (grey $\times$, 9) -- shown
-without claiming the split predicts reward, since several
-still-collapsed seeds score among the arm's highest. (c) M3, same 10
-seeds: paired per-seed federation cost on mean reward per step --
-centralised scores higher on 2 seeds, federated on 3, 5 ties, no
-measurable difference (Wilcoxon $p=0.8125$). (d) M3: privacy-utility
-curve using block precision against the DP noise multiplier $\sigma$,
-individual seed values (light dots) behind the mean, with the seed
-count that ever blocked anything at each $\sigma$ printed below
-(precision is undefined otherwise) -- perfect through $\sigma=1.0$,
-dropping sharply by $\sigma=4.0$.}
+\caption{Multi-gNB results, per-seed evidence for the correctness-aware metrics (Section~\ref{sec:correctness-metrics}). (a) M2, 30 seeds: paired per-seed comparison against single-agent DQN on mean reward per step. Each line is one seed, coloured by whether GAT-CTDE scored higher (green, 20), tied (grey, 3), or lower (red, 7), the source of this figure's borderline $p=0.0577$. (b) M2: full per-seed reward distribution for all three arms; GAT-CTDE is split into seeds that learned genuine differentiated shedding (blue, 21) versus seeds still stuck at the always-accept collapse (grey $\times$, 9), shown without claiming the split predicts reward, since several still-collapsed seeds score among the arm's highest. (c) M3, same 10 seeds: paired per-seed federation cost on mean reward per step. Centralised scores higher on 2 seeds, federated on 3, 5 ties, no measurable difference (Wilcoxon $p=0.8125$). (d) M3: privacy-utility curve using block precision against the DP noise multiplier $\sigma$, individual seed values (light dots) behind the mean, with the seed count that ever blocked anything at each $\sigma$ printed below (precision is undefined otherwise). Precision is perfect through $\sigma=1.0$, dropping sharply by $\sigma=4.0$.}
 \label{fig:multi-gnb-results}
 \end{figure}
 
@@ -516,23 +328,7 @@ dropping sharply by $\sigma=4.0$.}
 Table~\ref{tab:m2-results} and Fig.~\ref{fig:multi-gnb-results}(a)-(b) report the
 final, post-fix 30-seed campaign. On \texttt{sla\_compliance\_all\_slices},
 GAT-CTDE's mean is 0.151, below its own pre-fix number (0.353) since
-the metric penalises newly-correct mmTC-blocking decisions, and the
-paired comparison against single-agent DQN shows no clear direction:
-+0.036 (95\% CI [$-$0.050, 0.126], Wilcoxon $p=0.4549$, 11 wins / 9
-ties / 10 losses). On mean reward per step, the metric that reflects
-the actual objective, GAT-CTDE beats the independent-DQN ablation
-decisively -- +1.461 (95\% CI [0.550, 2.782], $p<0.0001$, 27/0/3),
-isolating a real contribution from the shared GAT encoder and
-centralised training -- but its edge over single-agent DQN is small
-and not statistically decisive at this sample size: +0.195 (95\% CI
-[$-$0.017, 0.442], $p=0.0577$, 20/3/7). Its block precision (0.952) is
-high regardless: when GAT-CTDE blocks a request, it is almost always
-the reward-correct slice. 21 of the 30 seeds show genuine,
-correctly-targeted differentiated shedding, up from 3/30 under the
-LayerNorm-only fix and 0/30 originally -- a real, substantial
-behavioural improvement that does not, at this sample size, translate
-into a decisive reward edge over the single-agent baseline
-specifically.
+the metric penalises newly-correct mmTC-blocking decisions, and the paired comparison against single-agent DQN shows no clear direction, at +0.036 (95\% CI [$-$0.050, 0.126], Wilcoxon $p=0.4549$, 11 wins / 9 ties / 10 losses). On mean reward per step, the metric that reflects the actual objective, GAT-CTDE beats the independent-DQN ablation decisively, by +1.461 (95\% CI [0.550, 2.782], $p<0.0001$, 27/0/3), isolating a real contribution from the shared GAT encoder and centralised training, but its edge over single-agent DQN is small and not statistically decisive at this sample size, at +0.195 (95\% CI [$-$0.017, 0.442], $p=0.0577$, 20/3/7). Its block precision (0.952) is high regardless, since when GAT-CTDE blocks a request, it is almost always the reward-correct slice. 21 of the 30 seeds show genuine, correctly-targeted differentiated shedding, up from 3/30 under the LayerNorm-only fix and 0/30 originally. This is a real, substantial behavioural improvement that does not, at this sample size, translate into a decisive reward edge over the single-agent baseline specifically.
 
 \begin{table}[t]
 \caption{M2 campaign results, 30 seeds/arm, 95\% bootstrap CIs.}
@@ -583,22 +379,7 @@ DP noise multiplier sweep $\sigma$ & $\{0, 0.5, 1, 2, 4\}$ \\
 \subsection{Federated Training and Differential Privacy}
 \label{sec:results-m3}
 
-Comparing the centralised campaign against the federated variant with
-no DP noise, on the same 10 seeds: mean reward per step moves from
-14.073 to 13.940, +0.133 (95\% CI [$-$0.138, 0.470], Wilcoxon
-$p=0.8125$) -- no measurable cost to federating at this sample size,
-and both arms' block precision is perfect (1.000) on seeds that block
-anything at all. Sweeping the DP noise multiplier (Fig.~\ref{fig:multi-gnb-results}(d)),
-block precision is perfect through $\sigma=1.0$ then drops sharply --
-0.834 at $\sigma=2.0$, 0.584 at $\sigma=4.0$ -- a real threshold, not a
-smooth degradation, while mean reward per step stays in a comparatively
-narrow band across the whole sweep (12.45--14.19): DP noise erodes
-\emph{which} slice gets blocked, not whether the policy tries to
-differentiate at all. The compliance-based version of this same sweep
-(not shown) is non-monotonic with sign flips between adjacent $\sigma$
-levels -- a second instance, independent of Section~\ref{sec:collapse}'s
-architectural finding, of \texttt{sla\_compliance\_all\_slices} failing
-to track the quantity we actually care about.
+Comparing the centralised campaign against the federated variant with no DP noise, on the same 10 seeds, mean reward per step moves from 14.073 to 13.940, a change of +0.133 (95\% CI [$-$0.138, 0.470], Wilcoxon $p=0.8125$). This is no measurable cost to federating at this sample size, and both arms' block precision is perfect (1.000) on seeds that block anything at all. Sweeping the DP noise multiplier (Fig.~\ref{fig:multi-gnb-results}(d)), block precision is perfect through $\sigma=1.0$ then drops sharply, to 0.834 at $\sigma=2.0$ and 0.584 at $\sigma=4.0$. This is a real threshold, not a smooth degradation, while mean reward per step stays in a comparatively narrow band across the whole sweep (12.45--14.19), since DP noise erodes \emph{which} slice gets blocked, not whether the policy tries to differentiate at all. The compliance-based version of this same sweep (not shown) is non-monotonic with sign flips between adjacent $\sigma$ levels. This is a second instance, independent of Section~\ref{sec:collapse}'s architectural finding, of \texttt{sla\_compliance\_all\_slices} failing to track the quantity we actually care about.
 
 \subsection{Disruption Resilience}
 \label{sec:results-m4}
@@ -607,11 +388,7 @@ retraining) against three mid-episode disruptions injected at
 evaluation time: \emph{gNB dropout} (one gNB's requests are forced to
 reject and its row in the joint feature matrix is zeroed, for a
 window); \emph{demand spike} (a transient arrival-rate multiplier for a
-fixed window); and \emph{agent churn} (one gNB's decisions are made by
-a fresh, never-trained copy of its own policy class instead of the
-loaded checkpoint, for a window) -- a different, well-motivated failure
-mode from dropout (active-but-uncoordinated vs.\ absent) that applies
-to every genuinely multi-agent arm; single-agent DQN is excluded.
+fixed window); and \emph{agent churn} (one gNB's decisions are made by a fresh, never-trained copy of its own policy class instead of the loaded checkpoint, for a window). Agent churn is a different, well-motivated failure mode from dropout (active-but-uncoordinated vs.\ absent) that applies to every genuinely multi-agent arm; single-agent DQN is excluded.
 Severity is the window's duration (10\%/30\%/60\% of the episode) for
 dropout and churn, and the arrival-rate multiplier
 (2$\times$/4$\times$/8$\times$) for spike. We normalise reward by each
@@ -622,13 +399,7 @@ quality.
 \begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/fig4_m4_disruption.pdf}
-\caption{M4 disruption campaign, 10 seeds/arm. (a)-(b) Normalised
-reward cost (baseline $-$ disrupted) vs.\ severity for dropout and
-agent churn -- every arm, every severity, shows a real cost that
-accelerates with severity rather than growing linearly. (c) Block
-precision vs.\ demand-spike multiplier: flat and near-ceiling for
-every arm, unlike (a)-(b) -- spike does not threshold on the metric
-that matters.}
+\caption{M4 disruption campaign, 10 seeds/arm. (a)-(b) Normalised reward cost (baseline $-$ disrupted) vs.\ severity for dropout and agent churn. Every arm, every severity, shows a real cost that accelerates with severity rather than growing linearly. (c) Block precision vs.\ demand-spike multiplier: flat and near-ceiling for every arm, unlike (a)-(b), since spike does not threshold on the metric that matters.}
 \label{fig:m4-disruption}
 \end{figure}
 
@@ -640,54 +411,21 @@ agent churn substitutes a fresh, never-trained policy's actions for
 the target gNB only, leaving every other agent's decisions untouched;
 demand spike is entirely external to the policy, acting on the
 arrival process the environment synthesises for the following step.
-All three are evaluation-only perturbations -- the policy itself is
-never updated.
+All three are evaluation-only perturbations, and the policy itself is never updated.
 
-Dropout costs every arm significantly at every severity (Wilcoxon
-$p\leq0.03$, 9 or 10 of 10 seeds hurt in every case), and the cost
-accelerates with severity rather than growing proportionally: for
-GAT-CTDE, +0.165 at the 10\% window, +0.601 at 30\%, +1.710 at 60\% --
-the same super-linear pattern holds for every arm. Agent churn shows
+Dropout costs every arm significantly at every severity (Wilcoxon $p\leq0.03$, 9 or 10 of 10 seeds hurt in every case), and the cost accelerates with severity rather than growing proportionally. For GAT-CTDE, the cost is +0.165 at the 10\% window, +0.601 at 30\%, and +1.710 at 60\%, and the same super-linear pattern holds for every arm. Agent churn shows
 the same accelerating shape for GAT-CTDE (+0.059/+0.200/+0.529,
 $p=0.0039$ throughout) and the federated arm (+0.073/+0.240/+0.585,
-$p=0.0039$ throughout). Independent DQN's own churn cost needs both
-samples reported together to state honestly: on the seeds used
-throughout the rest of this paper (900--909), it is small and not
-conventionally significant (+0.000/+0.168/+0.640,
-$p=0.084/0.106/0.065$) -- which an earlier pass read as independent
-DQN being architecturally immune to churn, since it never attends to
-another agent's features. An independent-seed replication (seeds
-1000--1009, disjoint from every other result in this paper) contradicts
-that reading directly: independent DQN's churn cost there is
-significant at every severity (+0.097/+0.657/+1.223, $p=0.0020$
-throughout) and \emph{larger} than GAT-CTDE's or the federated arm's
-at matched severities -- the opposite of immune. We do not conclude
-independent DQN is immune to churn: the direction was consistent
-across both samples (churn always hurts, never helps); what was wrong
-was treating a borderline, underpowered $n=10$ result as a confirmed
-architectural property, and this section reports the corrected
-reading, not the retracted one, as this paper's discipline of checking
-every headline result against an independent seed sample -- not the
-same seeds reproduced again -- requires.
+$p=0.0039$ throughout). Independent DQN's own churn cost needs both samples reported together to state honestly. On the seeds used throughout the rest of this paper (900--909), it is small and not conventionally significant (+0.000/+0.168/+0.640, $p=0.084/0.106/0.065$), which an earlier pass read as independent DQN being architecturally immune to churn, since it never attends to another agent's features. An independent-seed replication (seeds 1000--1009, disjoint from every other result in this paper) contradicts that reading directly. Independent DQN's churn cost there is significant at every severity (+0.097/+0.657/+1.223, $p=0.0020$ throughout) and \emph{larger} than GAT-CTDE's or the federated arm's at matched severities, the opposite of immune. We do not conclude independent DQN is immune to churn, since the direction was consistent across both samples (churn always hurts, never helps). What was wrong was treating a borderline, underpowered $n=10$ result as a confirmed architectural property, and this section reports the corrected reading, not the retracted one, as this paper's discipline of checking every headline result against an independent seed sample, not the same seeds reproduced again, requires.
 
 Demand spike shows no threshold at all on block precision, which stays
 flat and near-ceiling through the highest tested multiplier for every
 arm; a reward-based signal that spike \emph{improves} per-step reward
 is real and reproduces across both seed samples for GAT-CTDE,
-independent DQN, and the federated arm ($p\leq0.014$ in both), but
-traces to a fixed per-step violation penalty diluted by a larger
-request-volume denominator, not better decision-making -- block
-precision, a volume-invariant ratio, is the metric that actually
-answers whether spike corrupts decision quality, and it says no.
-Single-agent DQN's version of this same signal is significant in the
-original sample ($p=0.0020$) but not the replication ($p=0.084$) --
-direction consistent, significance sample-dependent, reported as such.
+independent DQN, and the federated arm ($p\leq0.014$ in both), but traces to a fixed per-step violation penalty diluted by a larger request-volume denominator, not better decision-making. Block precision, a volume-invariant ratio, is the metric that actually answers whether spike corrupts decision quality, and it says no.
+Single-agent DQN's version of this same signal is significant in the original sample ($p=0.0020$) but not the replication ($p=0.084$); the direction is consistent, the significance is sample-dependent, and both are reported as such.
 
-Every dropout and churn result above was independently checked against
-the 1000--1009 sample and holds up in direction and approximate
-magnitude -- e.g.\ GAT-CTDE's dropout costs there are
-+0.170/+0.552/+1.449, close to the 900--909 sample's
-+0.165/+0.601/+1.710. Every headline paired comparison in this paper
+Every dropout and churn result above was independently checked against the 1000--1009 sample and holds up in direction and approximate magnitude. For example, GAT-CTDE's dropout costs there are +0.170/+0.552/+1.449, close to the 900--909 sample's +0.165/+0.601/+1.710. Every headline paired comparison in this paper
 was checked this way, recomputed from raw logs on both samples:
 GAT-CTDE's edge over independent DQN (Section~\ref{sec:results-m2})
 holds decisively on the replication sample too (+0.767, 95\% CI
@@ -698,21 +436,9 @@ both (+0.445 [$-$0.049, 1.280], $p=0.111$, versus +0.195 [$-$0.017,
 indistinguishable from zero on both, with the point estimate's sign
 flipping between samples ($-$0.080 [$-$0.241, 0.001] on replication
 versus +0.133 [$-$0.138, 0.470] committed) but neither ever
-significant. Of the seven headline paired comparisons checked this way
-across the whole paper, six show overlapping confidence intervals
-across samples; the one exception -- independent DQN's churn cost --
-is the retraction above.
+significant. Of the seven headline paired comparisons checked this way across the whole paper, six show overlapping confidence intervals across samples; the one exception, independent DQN's churn cost, is the retraction above.
 
-A formal paired Wilcoxon test on (GAT-CTDE's cost $-$ independent
-DQN's cost), computed across the same 10 seeds for every (kind,
-severity) cell, reaches significance only once: dropout at the mildest
-severity (10\% window), where GAT-CTDE's cost is significantly
-\emph{higher} than independent DQN's (+0.0135, 95\% CI [0.0053,
-0.0236], Wilcoxon $p=0.0059$, 9 losses / 0 ties / 1 win). Every other
-cell -- dropout at 30\%/60\% and churn at all three severities -- shows
-no significant difference ($p \geq 0.23$). We report the result as it
-is: real at one severity, absent everywhere else tested, not a general
-claim that coordination costs more under disruption.
+A formal paired Wilcoxon test on (GAT-CTDE's cost $-$ independent DQN's cost), computed across the same 10 seeds for every (kind, severity) cell, reaches significance only once, at dropout at the mildest severity (10\% window), where GAT-CTDE's cost is significantly \emph{higher} than independent DQN's (+0.0135, 95\% CI [0.0053, 0.0236], Wilcoxon $p=0.0059$, 9 losses / 0 ties / 1 win). Every other cell, dropout at 30\%/60\% and churn at all three severities, shows no significant difference ($p \geq 0.23$). We report the result as it is, real at one severity and absent everywhere else tested, not a general claim that coordination costs more under disruption.
 
 \section{Cluster-Size Scaling}
 \label{sec:results-m6}
@@ -724,71 +450,33 @@ adjacency; independent DQN and single-agent DQN never read a graph
 structure and serve as a topology-invariance check. We normalise
 reward per gNB before averaging (the same fix Section~\ref{sec:results-m4}
 applies on the severity axis) and report block precision alongside,
-since \texttt{sla\_compliance\_all\_slices} is OR-aggregated across
-gNBs and trends toward 0 as $N$ grows regardless of policy quality --
-a third instance of this paper's central evaluation-integrity finding,
-now on the cluster-size axis. The primary sample is 12 seeds
+since \texttt{sla\_compliance\_all\_slices} is OR-aggregated across gNBs and trends toward 0 as $N$ grows regardless of policy quality. This is a third instance of this paper's central evaluation-integrity finding, now on the cluster-size axis. The primary sample is 12 seeds
 (900--911) at $N=19$, all three topologies, all three arms; an
 independent-seed replication (1000--1002, disjoint) checks
 generalisation.
 
-At the full 12-seed sample, the paired per-gNB reward-margin
-comparison at $N=19$ is not significant for any topology
-(fully-connected $-$0.175 [95\% CI $-$0.528, +0.076], $p=0.7422$; ring
-$-$0.704 [$-$1.879, +0.042], $p=0.7422$; hex $-$0.695 [$-$1.873,
-+0.053], $p=0.9102$) -- mechanically explicable, not a red flag:
-single-agent DQN's always-accept collapse (below) collects the
-reward's service term on every request with no rejection cost, while
-GAT-CTDE pays a real cost every time it correctly rejects mmTC. This
+At the full 12-seed sample, the paired per-gNB reward-margin comparison at $N=19$ is not significant for any topology (fully-connected $-$0.175 [95\% CI $-$0.528, +0.076], $p=0.7422$; ring $-$0.704 [$-$1.879, +0.042], $p=0.7422$; hex $-$0.695 [$-$1.873, +0.053], $p=0.9102$). This is mechanically explicable, not a red flag, since single-agent DQN's always-accept collapse (below) collects the reward's service term on every request with no rejection cost, while GAT-CTDE pays a real cost every time it correctly rejects mmTC. This
 paper's evidence for GAT-CTDE's advantage at $N=19$ lives in collapse
 resistance and block precision, not the reward-margin metric.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{figures/fig5_m6_topology.pdf}
-\caption{$N=19$ cluster, per-seed evidence across independent
-seed samples. (a) Collapse rate (fraction of eval runs with zero
-blocks), pooled across all three topologies -- single-agent DQN
-collapses totally in every sample; GAT-CTDE's rate varies
-sample-to-sample (primary 31\%, replication 78\%, a 49-seed extension
-targeted specifically at this question 34\%), converging
-to a combined, seed-level-bootstrapped estimate of 35.4\% [25.5\%, 45.8\%]
-across all 64 independent seeds (diamond marker, error bar). (b) Block
-precision by topology, primary sample, non-collapsed seeds only
-(single-agent DQN has none to show): GAT-CTDE's non-collapsed seeds are
-mostly near-ceiling but with a low-precision seed at every topology,
-while independent DQN sits in a narrow, mediocre band, identical across
-topologies as expected for an arm that never consumes adjacency.}
+\caption{$N=19$ cluster, per-seed evidence across independent seed samples. (a) Collapse rate (fraction of eval runs with zero blocks), pooled across all three topologies. Single-agent DQN collapses totally in every sample; GAT-CTDE's rate varies sample-to-sample (primary 31\%, replication 78\%, a 49-seed extension targeted specifically at this question 34\%), converging to a combined, seed-level-bootstrapped estimate of 35.4\% [25.5\%, 45.8\%] across all 64 independent seeds (diamond marker, error bar). (b) Block precision by topology, primary sample, non-collapsed seeds only (single-agent DQN has none to show). GAT-CTDE's non-collapsed seeds are mostly near-ceiling but with a low-precision seed at every topology, while independent DQN sits in a narrow, mediocre band, identical across topologies as expected for an arm that never consumes adjacency.}
 \label{fig:m6-topology}
 \end{figure}
 
-Single-agent DQN collapses totally at $N=19$: 12/12 primary-sample
-cells and 3/3 replication cells, every topology, zero exceptions
-(15/15 combined) -- confirmed at the individual-decision level by a
-direct Q-value probe identical in method to Section~\ref{sec:collapse}'s
-original diagnosis. GAT-CTDE collapses only partially, and independent
+Single-agent DQN collapses totally at $N=19$: 12/12 primary-sample cells and 3/3 replication cells, every topology, zero exceptions (15/15 combined). This is confirmed at the individual-decision level by a direct Q-value probe identical in method to Section~\ref{sec:collapse}'s original diagnosis. GAT-CTDE collapses only partially, and independent
 DQN never fully collapses (0/36) but never cleanly differentiates
 either, sitting in a narrow, mediocre 0.29--0.49 block-precision band
 identical across all three topologies, as expected for an arm that
-never consumes adjacency. GAT-CTDE's own non-collapsed seeds show a
-topology-dependent secondary failure mode: most hold near-perfect
-precision, but at least one seed per topology drops to 0.0--0.5,
-including one seed showing perfect precision (1.000) at
-fully-connected and near-zero (0.000) at ring/hex on the identical
-seed, environment stream, and initial weights.
+never consumes adjacency. GAT-CTDE's own non-collapsed seeds show a topology-dependent secondary failure mode, since most hold near-perfect precision, but at least one seed per topology drops to 0.0--0.5, including one seed showing perfect precision (1.000) at fully-connected and near-zero (0.000) at ring/hex on the identical seed, environment stream, and initial weights.
 
 GAT-CTDE's own collapse rate initially disagreed sharply between the
 primary sample (31\%) and the replication sample (78\%); rather than
 report the range as open, we drew a third, independent sample targeted
 specifically at this question (49 seeds, disjoint from both prior
-samples). Pooling all three samples gives 68/192 cells collapsed,
-35.4\% (seed-level bootstrap 95\% CI [25.5\%, 45.8\%] across the 64
-independent seeds, since collapse status correlates within a seed
-across its three topologies) -- GAT-CTDE's collapse rate at $N=19$ is
-best understood as roughly 35\% with substantial seed-to-seed
-variability, and none of the three samples was wrong: each was an
-honest reading of a genuinely wide distribution, and no single small
-sample should be trusted alone.
+samples). Pooling all three samples gives 68/192 cells collapsed, 35.4\% (seed-level bootstrap 95\% CI [25.5\%, 45.8\%] across the 64 independent seeds, since collapse status correlates within a seed across its three topologies). GAT-CTDE's collapse rate at $N=19$ is best understood as roughly 35\% with substantial seed-to-seed variability, and none of the three samples was wrong, since each was an honest reading of a genuinely wide distribution, and no single small sample should be trusted alone.
 
 \section{Live Single-gNB Anchor}
 \label{sec:results-m8}
@@ -799,64 +487,21 @@ repeat that attempt, and instead ask a narrower, bounded question this
 rig can answer: does the offline-trained \emph{decision logic} survive
 contact with real traffic at all. This rig has one physical gNB, so
 GAT-CTDE's multi-gNB coordination benefit and the federated/DP results
-are architecturally untestable on it; we trained a fresh
-single-agent-DQN checkpoint dimension-matched to the live evaluation
-path and ran it against a real OAI gNB, 3 UEs, and real per-slice UDP
-traffic, twice -- once from a leftover backlog state, once from a
-verified-clean baseline.
+are architecturally untestable on it; we trained a fresh single-agent-DQN checkpoint dimension-matched to the live evaluation path and ran it against a real OAI gNB, 3 UEs, and real per-slice UDP traffic, twice, once from a leftover backlog state and once from a verified-clean baseline.
 
-Both live runs blocked only mmTC (46/32 and 45/32 requests, zero urllc
-or eMBB blocks in either), exactly matching this checkpoint's offline
-block precision of 1.000: the offline-trained differentiated-shedding
-decision transfers to live traffic essentially unchanged, replicated
-across two independent runs. Both runs' SLA-margin readings, by
-contrast, diverged from anything offline produces -- eMBB's margin
-fell from $+1.0$ to $-1{,}002{,}377.5$ within a 10-minute run,
-recurring to the decimal in the independent second run -- traced to a
-concrete unit mismatch, not left unexplained: the margin computation
-divides a per-slice backlog reading by a fixed calibration constant
-tuned for the offline environment's synthetic proxy, but live, the
-identically-named field is wired to the real MAC scheduler's
-transmit-buffer byte count, a physically real quantity two to three
-orders of magnitude larger in scale. The policy's own decision-facing
+Both live runs blocked only mmTC (46/32 and 45/32 requests, zero urllc or eMBB blocks in either), exactly matching this checkpoint's offline block precision of 1.000. The offline-trained differentiated-shedding decision transfers to live traffic essentially unchanged, replicated across two independent runs. Both runs' SLA-margin readings, by contrast, diverged from anything offline produces. eMBB's margin fell from $+1.0$ to $-1{,}002{,}377.5$ within a 10-minute run, recurring to the decimal in the independent second run. This traces to a concrete unit mismatch, not left unexplained, since the margin computation divides a per-slice backlog reading by a fixed calibration constant tuned for the offline environment's synthetic proxy, but live, the identically-named field is wired to the real MAC scheduler's transmit-buffer byte count, a physically real quantity two to three orders of magnitude larger in scale. The policy's own decision-facing
 input escapes this (a separate path clips the state-facing backlog
 term before it reaches the network), which is why the policy's
 decisions stayed sensible live even as this diagnostic margin
-exploded. Checking 28 seeds of an already-committed prior live
-campaign on this rig confirms the calibration constant is not simply
-``wrong'': it reproduces a sensible number under normal conditions and
-only explodes once a real, independently-documented backlog failure
-regime is entered. Rather than leave the mismatch diagnosed-but-
-unpatched, we recalibrated using a Little's-Law byte-to-latency
-conversion against each slice's own latency budget -- a physically
-meaningful quantity rather than an arbitrary rescaling constant --
-which brings the catastrophic case ($\approx$10.02MB backlog) to
-$-809$ to $-1{,}187$ (36--53 real seconds of queueing delay against a
-45ms budget) rather than $-1{,}002{,}377.5$: three orders of magnitude
-smaller and directly interpretable, without reopening the
-rank-prediction question already closed above.
+exploded. Checking 28 seeds of an already-committed prior live campaign on this rig confirms the calibration constant is not simply ``wrong'', since it reproduces a sensible number under normal conditions and only explodes once a real, independently-documented backlog failure regime is entered. Rather than leave the mismatch diagnosed-but-unpatched, we recalibrated using a Little's-Law byte-to-latency conversion against each slice's own latency budget, a physically meaningful quantity rather than an arbitrary rescaling constant, which brings the catastrophic case ($\approx$10.02MB backlog) to $-809$ to $-1{,}187$ (36--53 real seconds of queueing delay against a 45ms budget) rather than $-1{,}002{,}377.5$. This is three orders of magnitude smaller and directly interpretable, without reopening the rank-prediction question already closed above.
 
 \section{Conclusion}
 \label{sec:conclusion}
 We set out to test whether a standard evaluation metric can be
 trusted in multi-agent, privacy-constrained, disruption-prone slice
-admission control, and found it cannot go unchecked. A standard
-SLA-compliance metric, an unguarded append-only log, and an unseeded
-weight-initialisation path together hid three distinct failures -- a
-training collapse the compliance metric scored no worse than correct
-behaviour, a hidden eval-data contamination bug, and a same-seed-only
-reproducibility gap -- none of which a standard pipeline without this
-paper's correctness-aware metrics and reproduction-replication
-discipline would have caught.
+admission control, and found it cannot go unchecked. A standard SLA-compliance metric, an unguarded append-only log, and an unseeded weight-initialisation path together hid three distinct failures, namely a training collapse the compliance metric scored no worse than correct behaviour, a hidden eval-data contamination bug, and a same-seed-only reproducibility gap, none of which a standard pipeline without this paper's correctness-aware metrics and reproduction-replication discipline would have caught.
 
-On GAT-CTDE, the multi-agent architecture that served as this
-evaluation's substrate: on the correctness-aware reward metric it
-delivers a decisive, statistically significant improvement over an
-independent-learner ablation, though its edge over our existing
-single-agent baseline specifically is small and not decisive at this
-sample size -- an honest, non-inflated architectural finding, not the
-headline result this paper argues evaluation practice should not be
-built around alone.
+GAT-CTDE, the multi-agent architecture that served as this evaluation's substrate, delivers a decisive, statistically significant improvement over an independent-learner ablation on the correctness-aware reward metric, though its edge over our existing single-agent baseline specifically is small and not decisive at this sample size. This is an honest, non-inflated architectural finding, not the headline result this paper argues evaluation practice should not be built around alone.
 
 Extending to federated training with differential privacy, federation
 adds no measurable reward cost, and privacy is costly only past a real
@@ -864,14 +509,7 @@ threshold in decision precision, not a smooth trade-off; FedProx earns
 no measurable dividend under genuine per-gNB load heterogeneity at any
 tested strength, traced to real per-round client drift being too small
 relative to the loss scale to matter, even at ten times the round
-length. Under mid-episode gNB dropout, demand spikes, and agent churn,
-dropout and churn produce a real, accelerating cost with severity,
-while demand spikes do not threshold at all on the metric that matters
--- and cross-checking every result against an independent seed sample,
-not just the same seeds reproduced again, caught one architectural
-claim (that independent DQN is immune to agent churn) that a single
-sample had made look confirmed but was not, retracted here rather than
-reported.
+length. Under mid-episode gNB dropout, demand spikes, and agent churn, dropout and churn produce a real, accelerating cost with severity, while demand spikes do not threshold at all on the metric that matters. Cross-checking every result against an independent seed sample, not just the same seeds reproduced again, caught one architectural claim (that independent DQN is immune to agent churn) that a single sample had made look confirmed but was not, and it is retracted here rather than reported.
 
 Scaling the cluster to 19 gNBs, single-agent DQN's collapse becomes
 total and GAT-CTDE's remains only partial, a real cluster-size-specific
@@ -884,16 +522,8 @@ testbed essentially unchanged, while its SLA-margin metric diverged by
 orders of magnitude for reasons traced to a concrete unit mismatch
 rather than left unexplained.
 
-Two limits bound every claim in this paper. First, every multi-gNB,
-federated, and disruption result is offline-only: this rig has one
-physical gNB, so whether these rankings would survive contact with a
-live, multi-gNB testbed remains untested, not just under-tested.
-Second, this paper's federated scenario is a synthetic privacy setting
--- one operator's cluster, not genuine cross-organisation data
-separation -- so we lead with the operational benefit of periodic, not
-per-step, synchronisation for disaggregated RAN Intelligent
-Controllers rather than a privacy motivation this scale cannot
-substantiate. Together, these results argue that admission-control
+Two limits bound every claim in this paper. First, every multi-gNB, federated, and disruption result is offline-only, since this rig has one physical gNB, so whether these rankings would survive contact with a live, multi-gNB testbed remains untested, not just under-tested.
+Second, this paper's federated scenario is a synthetic privacy setting (one operator's cluster, not genuine cross-organisation data separation), so we lead with the operational benefit of periodic, not per-step, synchronisation for disaggregated RAN Intelligent Controllers rather than a privacy motivation this scale cannot substantiate. Together, these results argue that admission-control
 evaluation in multi-agent, privacy-constrained, disruption-prone
 settings needs metrics tied to the actual training objective, not only
 to a downstream SLA proxy that can reward the wrong policy, and that
@@ -915,10 +545,10 @@ this manuscript unless otherwise indicated.
 \begin{itemize}
 \item \textbf{Funding:} This work was supported by the Fundamental Research Grant Scheme (FRGS), Ministry of Higher Education (MOHE), Malaysia, under grant number FRGS/1/2024/ICT06/TAYLOR/02/1.
 \item \textbf{Competing interests:} The authors declare no competing interests.
-\item \textbf{Ethics approval and consent to participate:} Not applicable -- this study involves no human participants, animal subjects, or identifiable patient data; all reported results are either offline simulation campaigns or measurements from a laboratory radio testbed.
-\item \textbf{Consent for publication:} Not applicable -- this manuscript contains no personal data or identifying information about any individual.
+\item \textbf{Ethics approval and consent to participate:} Not applicable, since this study involves no human participants, animal subjects, or identifiable patient data; all reported results are either offline simulation campaigns or measurements from a laboratory radio testbed.
+\item \textbf{Consent for publication:} Not applicable, since this manuscript contains no personal data or identifying information about any individual.
 \item \textbf{Data availability:} The experiment logs, checkpoints, and campaign result files underlying this paper's findings are available from the corresponding author on reasonable request.
-\item \textbf{Materials availability:} Not applicable -- this study involves no physical or biological materials.
+\item \textbf{Materials availability:} Not applicable, since this study involves no physical or biological materials.
 \item \textbf{Code availability:} The framework and experiment scripts used to produce this paper's results are available from the corresponding author on reasonable request.
 \item \textbf{Author contribution:} \authorTODO{State each author's individual contribution (e.g., conceptualisation, methodology, software, investigation, writing, supervision), per CRediT taxonomy or equivalent.}
 \end{itemize}
