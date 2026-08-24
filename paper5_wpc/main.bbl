@@ -1,4 +1,4 @@
-\begin{thebibliography}{45}
+\begin{thebibliography}{19}
 \providecommand{\natexlab}[1]{#1}
 \providecommand{\url}[1]{{#1}}
 \providecommand{\urlprefix}{URL }
@@ -12,31 +12,11 @@ Abadi M, Chu A, Goodfellow I, et~al (2016) Deep learning with differential
   privacy. In: Proceedings of the 2016 ACM SIGSAC Conference on Computer and
   Communications Security (CCS), pp 308--318
 
-\bibitem[{Abdisarabshali et~al.(2026)Abdisarabshali, Accurso, Malandra, Su, and
-  Hosseinalipour}]{abdisarabshali2026elasticfl}
-Abdisarabshali P, Accurso N, Malandra F, et~al (2026) Elastic federated
-  learning over open radio access network ({O-RAN}) for concurrent execution of
-  multiple distributed learning tasks. IEEE Internet Things Mag 9(2):124--133.
-  \doi{10.1109/MIOT.2025.3625904}
-
 \bibitem[{Ahmadi et~al.(2024)Ahmadi, Moayyedi, Sulaiman, Salahuddin, Boutaba,
   and Saleh}]{ahmadi2024generalizable}
 Ahmadi M, Moayyedi A, Sulaiman M, et~al (2024) Generalizable {5G} {RAN}/{MEC}
   slicing and admission control for reliable network operation. IEEE Trans Netw
   Service Manag \doi{10.1109/TNSM.2024.3437217}
-
-\bibitem[{Amiri et~al.(2024)Amiri, Wang, Shojafar, and
-  Tafazolli}]{amiri2024fedvnf}
-Amiri E, Wang N, Shojafar M, et~al (2024) Edge-{AI} empowered dynamic {VNF}
-  splitting in {O-RAN} slicing: A federated {DRL} approach. IEEE Commun Lett
-  28(2):318--322. \doi{10.1109/LCOMM.2023.3341302}
-
-\bibitem[{Asheralieva et~al.(2024)Asheralieva, Niyato, and
-  Miyanaga}]{asheralieva2024admmgnn}
-Asheralieva A, Niyato D, Miyanaga Y (2024) Efficient dynamic distributed
-  resource slicing in {6G} multi-access edge computing networks with online
-  {ADMM} and message passing graph neural networks. IEEE Trans Mobile Comput
-  23(4):2614--2638. \doi{10.1109/TMC.2023.3262514}
 
 \bibitem[{Bouroudi et~al.(2025)Bouroudi, Outtagarts, and
   Hadjadj-Aoul}]{bouroudi2025gnnmarl}
@@ -50,23 +30,6 @@ Bun M, Steinke T (2016) Concentrated differential privacy: Simplifications,
   extensions, and lower bounds. In: Theory of Cryptography Conference (TCC), pp
   635--658
 
-\bibitem[{Chen et~al.(2025)Chen, Mu, Liang, Zeng, and Zhang}]{chen2025matd3}
-Chen G, Mu X, Liang H, et~al (2025) Distributed {RAN} slicing based on {MATD3}
-  joint with evolutionary game assisted user association for {MEC}-enabled
-  {HetNets}. IEEE Trans Wireless Commun 24(1):260--276.
-  \doi{10.1109/TWC.2024.3491359}
-
-\bibitem[{Do et~al.(2026)Do, Nguyen, Luu, Nguyen, Tran, and
-  Nguyen}]{tran2026gnnppo}
-Do KH, Nguyen TH, Luu QT, et~al (2026) Graph neural {PPO} for joint user
-  association and resource allocation in open {RAN}. In: Proc. Int. Conf. Inf.
-  Netw. (ICOIN), pp 37--42, \doi{10.1109/ICOIN68469.2026.11480477}
-
-\bibitem[{Doanis and Spyropoulos(2024)}]{doanis2024samarl}
-Doanis P, Spyropoulos T (2024) Sample-efficient multi-agent {DQNs} for scalable
-  multi-domain {5G+} inter-slice orchestration. IEEE Trans Mach Learn Commun
-  Netw 2:956--977. \doi{10.1109/TMLCN.2024.3420268}
-
 \bibitem[{Fatehi et~al.(2026)Fatehi, {Rahmani Ghourtani}, Sonee, Yadav, Russo,
   Ahmadi, and Calinescu}]{fatehi2026attentionmarl}
 Fatehi K, {Rahmani Ghourtani} M, Sonee A, et~al (2026) Interpretable
@@ -74,49 +37,12 @@ Fatehi K, {Rahmani Ghourtani} M, Sonee A, et~al (2026) Interpretable
   slicing. In: Proc. IEEE Int. Conf. Commun. (ICC),
   \doi{10.1109/ICC59461.2026.11586913}
 
-\bibitem[{Gong et~al.(2024)Gong, Yang, Yu, Yao, Liu, and Zhang}]{gong2024dqnfl}
-Gong S, Yang H, Yu T, et~al (2024) High-efficient resource allocation based on
-  deep {Q}-network enhanced federated learning in slicing packet network for
-  {5G} {ToB} service. In: Proc. IEEE Int. Conf. Adv. Infocomm Technol. (ICAIT),
-  pp 68--71, \doi{10.1109/ICAIT62580.2024.10808124}
-
 \bibitem[{Gong et~al.(2026)Gong, Gong, Jiang, Xie, Wang, and
   Xu}]{gong2026femaddpg}
 Gong Y, Gong P, Jiang H, et~al (2026) Intelligent resource allocation for
   multiaccess edge computing in {5G} ultra-dense slicing network using
   federated multiagent {DDPG}. China Commun 23(1):273--289.
   \doi{10.23919/JCC.fa.2022-0187.202601}
-
-\bibitem[{Gonz{\'a}lez et~al.(2024)Gonz{\'a}lez, Pupo, Iradier, Angueira,
-  Murroni, and Montalban}]{gonzalez2024fedns}
-Gonz{\'a}lez CC, Pupo EF, Iradier E, et~al (2024) Network selection over
-  {5G}-advanced heterogeneous networks based on federated learning and
-  cooperative game theory. IEEE Trans Veh Technol 73(8):11862--11877.
-  \doi{10.1109/TVT.2024.3373638}
-
-\bibitem[{Hao et~al.(2024)Hao, She, Yeoh, Liu, Vucetic, and Li}]{hao2024html}
-Hao X, She C, Yeoh PL, et~al (2024) Hybrid-task meta-learning: A {GNN} approach
-  for scalable and transferable bandwidth allocation. IEEE Trans Wireless
-  Commun 23(12):19820--19835. \doi{10.1109/TWC.2024.3487533}
-
-\bibitem[{Huang et~al.(2025)Huang, Wang, Min, Wang, and Wu}]{huang2025qosgdrl}
-Huang H, Wang Q, Min G, et~al (2025) {QoS} prediction for component services in
-  {5G} via graph-based deep reinforcement learning. IEEE Trans Mobile Comput
-  24(12):13520--13534. \doi{10.1109/TMC.2025.3591783}
-
-\bibitem[{Jing et~al.(2025)Jing, Wang, Ren, Lu, Shao, and
-  Wen}]{jing2025gnnoffline}
-Jing W, Wang J, Ren J, et~al (2025) Radio resource allocation optimization for
-  delay-sensitive services based on graph neural networks and offline dataset.
-  IEEE Trans Veh Technol 74(3):4510--4525. \doi{10.1109/TVT.2024.3497603}
-
-\bibitem[{Koursioumpas et~al.(2024)Koursioumpas, Magoula, Petropouleas,
-  Thanopoulos, Panagea, Alonistioti, {Gutierrez-Estevez}, and
-  Khalili}]{koursioumpas2024safefl}
-Koursioumpas N, Magoula L, Petropouleas N, et~al (2024) A safe deep
-  reinforcement learning approach for energy efficient federated learning in
-  wireless communication networks. IEEE Trans Green Commun Netw
-  8(4):1862--1874. \doi{10.1109/TGCN.2024.3372695}
 
 \bibitem[{Kunasegran et~al.(2025{\natexlab{a}})Kunasegran, Pang, and
   Phang}]{mecon-paper1}
@@ -137,41 +63,11 @@ Kunasegran MP, Pang WL, Phang SK (2026) Comprehensive review of optimisation
   techniques for user-centric distributed network slicing in {5G} networks.
   IEEE Access 14:114630--114648. \doi{10.1109/ACCESS.2026.3716911}
 
-\bibitem[{Kurapati et~al.(2025)Kurapati, Koneti, and
-  Muppala}]{kurapati2025hybridgnn}
-Kurapati S, Koneti SB, Muppala M (2025) A hybrid graph neural network and deep
-  reinforcement learning framework for adaptive network optimization. In: Proc.
-  Int. Conf. Smart Electron. Commun. (ICOSEC), pp 1616--1622,
-  \doi{10.1109/ICOSEC67334.2025.11459523}
-
-\bibitem[{Kwantwi et~al.(2025)Kwantwi, Sun, Kuadey, Maale, and
-  Liu}]{kwantwi2025pfl}
-Kwantwi T, Sun G, Kuadey NAE, et~al (2025) Personalized federated learning for
-  intelligent slice-based task offloading and slice resource allocation in
-  sliced {B5G} {MEC}-enabled network. IEEE Internet Things J
-  12(23):49992--50011. \doi{10.1109/JIOT.2025.3610269}
-
 \bibitem[{Li et~al.(2020)Li, Sahu, Zaheer, Sanjabi, Talwalkar, and
   Smith}]{fedprox}
 Li T, Sahu AK, Zaheer M, et~al (2020) Federated optimization in heterogeneous
   networks. In: Proceedings of Machine Learning and Systems (MLSys), pp
   429--450
-
-\bibitem[{Li et~al.(2026)Li, Wang, Min, Wang, and Wang}]{li2026scalablemarl}
-Li Y, Wang H, Min G, et~al (2026) A flexible and scalable multi-agent learning
-  framework for dynamic {RAN} slicing in {6G} native-{AI} networks. IEEE Trans
-  Mobile Comput 25(5):7258--7273. \doi{10.1109/TMC.2025.3642213}
-
-\bibitem[{Liu et~al.(2026)Liu, Zheng, Zheng, Liu, Taleb, and
-  Shiratori}]{liu2026aoifl}
-Liu X, Zheng J, Zheng K, et~al (2026) {AoI} minimization in heterogeneous {MEC}
-  networks: A federated learning-assisted hybrid {DRL} and convex approach.
-  IEEE Trans Mobile Comput \doi{10.1109/TMC.2026.3674155}, early access
-
-\bibitem[{Lotfi et~al.(2026)Lotfi, Rajoli, and Afghah}]{lotfi2026sharpmarl}
-Lotfi F, Rajoli H, Afghah F (2026) Task-specific sharpness-aware {O-RAN}
-  resource management using multi-agent reinforcement learning. IEEE Trans Mach
-  Learn Commun Netw 4:98--114. \doi{10.1109/TMLCN.2025.3634994}
 
 \bibitem[{McMahan et~al.(2017)McMahan, Moore, Ramage, Hampson, and
   y~Arcas}]{fedavg}
@@ -180,23 +76,12 @@ McMahan B, Moore E, Ramage D, et~al (2017) Communication-efficient learning of
   International Conference on Artificial Intelligence and Statistics (AISTATS),
   pp 1273--1282
 
-\bibitem[{Ming et~al.(2024)Ming, Yu, and Taleb}]{ming2024fedmobility}
-Ming Z, Yu H, Taleb T (2024) Federated deep reinforcement learning for
-  prediction-based network slice mobility in {6G} mobile networks. IEEE Trans
-  Mobile Comput 23(12):11937--11953. \doi{10.1109/TMC.2024.3404125}
-
 \bibitem[{Mohajer et~al.(2026)Mohajer, Mirzaei, Darabi, and
   Fernando}]{mohajer2026pronto}
 Mohajer A, Mirzaei A, Darabi M, et~al (2026) Joint {SLA}-aware task offloading
   and adaptive service orchestration with graph-attentive multi-agent
   reinforcement learning. IEEE Trans Netw Service Manag 23:3737--3754.
   \doi{10.1109/TNSM.2026.3673188}
-
-\bibitem[{Phyu et~al.(2025)Phyu, Naboulsi, and Stanica}]{phyu2025icecream}
-Phyu HP, Naboulsi D, Stanica R (2025) {ICE-CREAM}: Multi-agent fully
-  cooperative decentralized framework for energy efficiency in {RAN} slicing.
-  IEEE Trans Netw Service Manag 22(2):1859--1873.
-  \doi{10.1109/TNSM.2024.3524503}
 
 \bibitem[{Qasim et~al.(2025)Qasim, Imran, Akram, {Ahmad Bilal}, and {Jaleed
   Khan}}]{qasim2025tgnnfl}
@@ -210,12 +95,6 @@ Shao Y, Li R, Hu B, et~al (2021) Graph attention network-based multi-agent
   reinforcement learning for slicing resource management in dense cellular
   network. IEEE Trans Veh Technol 70(10):10792--10803.
   \doi{10.1109/TVT.2021.3103416}
-
-\bibitem[{Silva et~al.(2025)Silva, {Azene Temesgene}, Klautau, {Aben-Athar},
-  and Nahum}]{silva2025gnnintent}
-Silva A, {Azene Temesgene} D, Klautau A, et~al (2025) Leveraging {GNNs} for
-  intent-driven {5G} {RAN} optimization in autonomous networks. IEEE Access
-  13:189096--189110. \doi{10.1109/ACCESS.2025.3624754}
 
 \bibitem[{Sulaiman et~al.(2023)Sulaiman, Moayyedi, Ahmadi, Salahuddin, Boutaba,
   and Saleh}]{sulaiman2023coordinated}
@@ -233,54 +112,16 @@ Tashman DH, Cherkaoui S (2026) Adversarial attacks in {AI}-driven {RAN}
 Veli{\v{c}}kovi{\'c} P, Cucurull G, Casanova A, et~al (2018) Graph attention
   networks. In: International Conference on Learning Representations (ICLR)
 
-\bibitem[{Wang et~al.(2024)Wang, Tang, Liu, He, Liang, and
-  Chen}]{wang2024madqnvnf}
-Wang W, Tang L, Liu T, et~al (2024) Toward reliability-enhanced,
-  delay-guaranteed dynamic network slicing: A multiagent {DQN} approach with an
-  action space reduction strategy. IEEE Internet Things J 11(6):9282--9297.
-  \doi{10.1109/JIOT.2023.3323817}
-
-\bibitem[{Wu et~al.(2024)Wu, Qu, Liu, Dai, Dong, and Cao}]{wu2024cefl}
-Wu T, Qu Y, Liu C, et~al (2024) Cost-efficient federated learning for edge
-  intelligence in multi-cell networks. IEEE/ACM Trans Netw 32(5):4472--4487.
-  \doi{10.1109/TNET.2024.3423316}
-
-\bibitem[{Wu et~al.(2025{\natexlab{a}})Wu, Farooq, and
-  Chen}]{wu2025admissionmarl}
-Wu X, Farooq J, Chen J (2025{\natexlab{a}}) Joint admission control and
-  resource provisioning for {URLLC} traffic in {O-RAN}: A constrained
-  multi-agent reinforcement learning approach. In: Proc. IEEE Int. Conf.
-  Commun. (ICC), pp 1426--1431, \doi{10.1109/ICC52391.2025.11160834}
-
-\bibitem[{Wu et~al.(2025{\natexlab{b}})Wu, Wang, Farooq, Ghazzai, and
-  Setti}]{wu2025slicewise}
-Wu X, Wang Y, Farooq J, et~al (2025{\natexlab{b}}) {SliceWise}: Traffic-aware
-  multi-agent {RL} with temporal encoding for joint slice admission and
-  resource orchestration in {O-RAN}. IEEE Netw Lett 7(4):323--327.
-  \doi{10.1109/LNET.2025.3633686}
-
 \bibitem[{Yasin et~al.(2025)Yasin, Yu, and Wang}]{yasin2025dpfl}
 Yasin TV, Yu CM, Wang LC (2025) Differential privacy federated edge
   learning-assisted for securing {RAN} intelligent controller in {O-RAN} {6G}
   communications. In: Proc. IEEE VTS Asia Pacific Wireless Commun. Symp.
   (APWCS), \doi{10.1109/APWCS67981.2025.11151868}
 
-\bibitem[{Zangooei et~al.(2024)Zangooei, Golkarifard, Rouili, Saha, and
-  Boutaba}]{zangooei2024flexran}
-Zangooei M, Golkarifard M, Rouili M, et~al (2024) Flexible {RAN} slicing in
-  open {RAN} with constrained multi-agent reinforcement learning. IEEE J Sel
-  Areas Commun 42(2):280--294. \doi{10.1109/JSAC.2023.3336156}
-
 \bibitem[{Zhang et~al.(2022)Zhang, Zhou, and
   Erol-Kantarci}]{zhang2022federatedoran}
 Zhang H, Zhou H, Erol-Kantarci M (2022) Federated deep reinforcement learning
   for resource allocation in {O-RAN} slicing. In: Proc. IEEE Global Commun.
   Conf. (GLOBECOM), pp 958--963, \doi{10.1109/GLOBECOM48099.2022.10001658}
-
-\bibitem[{Zhu et~al.(2025)Zhu, Zhang, Chi, and Zhang}]{zhu2025hgatdt}
-Zhu R, Zhang S, Chi K, et~al (2025) Heterogeneous graph attention-based deep
-  reinforcement learning for latency-optimal digital twin placement in edge
-  networks. In: Proc. IEEE Int. Symp. Parallel Distrib. Process. Appl. (ISPA),
-  pp 964--969, \doi{10.1109/ISPA67752.2025.00131}
 
 \end{thebibliography}
