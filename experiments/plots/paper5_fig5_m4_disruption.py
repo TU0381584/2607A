@@ -45,6 +45,9 @@ def main() -> None:
     ap.add_argument("--m2-campaign-dir", default="experiments/results/m2_campaign")
     ap.add_argument("--m3-campaign-dir", default="experiments/results/m3_campaign")
     ap.add_argument("--out", default="paper5/figures/fig5_m4_disruption")
+    ap.add_argument("--no-titles", action="store_true",
+                     help="Bare (a)/(b)/(c) panel tags, no descriptive words, no suptitle "
+                          "(WPC copy: caption carries the description instead).")
     args = ap.parse_args()
 
     with open(args.m4_results) as fh:
@@ -121,7 +124,7 @@ def main() -> None:
     ax1.set_xticklabels(["10%", "30%", "60%"])
     ax1.set_xlabel("Dropout window (% of episode)")
     ax1.set_ylabel("Normalised reward cost\n(baseline $-$ disrupted)")
-    ax1.set_title("(a) gNB dropout")
+    ax1.set_title("(a)" if args.no_titles else "(a) gNB dropout", loc="left")
     ax1.axhline(0, color="#c3c2b7", linewidth=0.6, zorder=0)
 
     for arm in churn_arms:
@@ -133,7 +136,7 @@ def main() -> None:
     ax2.set_xticklabels(["10%", "30%", "60%"])
     ax2.set_xlabel("Churn window (% of episode)")
     ax2.set_ylabel("Normalised reward cost\n(baseline $-$ disrupted)")
-    ax2.set_title("(b) Agent churn")
+    ax2.set_title("(b)" if args.no_titles else "(b) Agent churn", loc="left")
     ax2.axhline(0, color="#c3c2b7", linewidth=0.6, zorder=0)
 
     for arm in M4_ARM_ORDER:
@@ -146,12 +149,13 @@ def main() -> None:
     ax3.set_xlabel("Spike multiplier")
     ax3.set_ylabel("Block precision\n(fraction targeting mMTC)")
     ax3.set_ylim(-0.05, 1.08)
-    ax3.set_title("(c) Demand spike")
+    ax3.set_title("(c)" if args.no_titles else "(c) Demand spike", loc="left")
 
     handles, labels = ax1.get_legend_handles_labels()
     fig.legend(handles, labels, loc="lower center", bbox_to_anchor=(0.5, -0.16), ncol=4, frameon=False)
 
-    fig.suptitle("M4: disruption cost vs. severity, 10 seeds/arm", y=1.05, fontsize=9)
+    if not args.no_titles:
+        fig.suptitle("M4: disruption cost vs. severity, 10 seeds/arm", y=1.05, fontsize=9)
     fig.subplots_adjust(bottom=0.05, wspace=0.45)
 
     out_path = Path(args.out)

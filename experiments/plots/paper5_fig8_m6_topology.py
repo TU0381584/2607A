@@ -77,6 +77,9 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--pilot-dir", default="experiments/results/m6_pilot")
     ap.add_argument("--out", default="paper5/figures/fig8_m6_topology")
+    ap.add_argument("--no-titles", action="store_true",
+                     help="Bare (a)/(b) panel tags, no descriptive words, no suptitle "
+                          "(WPC copy: caption carries the description instead).")
     args = ap.parse_args()
     pilot_dir = Path(args.pilot_dir)
 
@@ -138,7 +141,7 @@ def main() -> None:
                          fontsize=6.5)
     ax1.set_ylabel("Collapse rate\n(fraction of cells, 0 blocks in eval)")
     ax1.set_ylim(0, 1.30)
-    ax1.set_title("(a) N=19 collapse rate, 3 samples")
+    ax1.set_title("(a)" if args.no_titles else "(a) N=19 collapse rate, 3 samples", loc="left")
     ax1.legend(loc="upper center", frameon=False, fontsize=5.3, ncol=2, bbox_to_anchor=(0.5, -0.24))
 
     # ---- (b) block precision by topology, primary sample, non-collapsed seeds ----
@@ -173,10 +176,11 @@ def main() -> None:
     ax2.set_xticklabels([TOPOLOGY_LABELS[t] for t in TOPOLOGIES])
     ax2.set_ylabel("Block precision\n(non-collapsed seeds only)")
     ax2.set_ylim(-0.05, 1.08)
-    ax2.set_title("(b) Precision by topology, primary sample")
+    ax2.set_title("(b)" if args.no_titles else "(b) Precision by topology, primary sample", loc="left")
     ax2.legend(loc="lower left", frameon=False, fontsize=6.5)
 
-    fig.suptitle("M6/M7 (N=19): collapse rate and precision across 3 seed samples", y=1.03, fontsize=9)
+    if not args.no_titles:
+        fig.suptitle("M6/M7 (N=19): collapse rate and precision across 3 seed samples", y=1.03, fontsize=9)
     fig.subplots_adjust(bottom=0.34, wspace=0.35)
 
     out_path = Path(args.out)

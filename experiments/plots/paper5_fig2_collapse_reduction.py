@@ -41,6 +41,8 @@ N_SEEDS = 30
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--out", default="paper5/figures/fig2_collapse_reduction")
+    ap.add_argument("--no-titles", action="store_true",
+                     help="Omit the in-figure title (WPC copy: caption carries it instead).")
     args = ap.parse_args()
 
     color = M2_ARM_STYLE["gat_ctde"]["color"]
@@ -56,7 +58,8 @@ def main() -> None:
     ax.set_xticklabels(STAGES)
     ax.set_ylabel("Seeds with genuine\ndifferentiated shedding (%)")
     ax.set_ylim(0, 100)
-    ax.set_title("GAT-CTDE collapse reduction across encoder fixes")
+    if not args.no_titles:
+        ax.set_title("GAT-CTDE collapse reduction across encoder fixes")
 
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)

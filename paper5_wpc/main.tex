@@ -485,29 +485,35 @@ collapse makes concrete.
 
 \section{Multi-gNB Results: Centralised, Federated, and Disruption}
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/fig3_multi_gnb_results.pdf}
+\caption{Multi-gNB results, per-seed evidence for the correctness-aware
+metrics (Section~\ref{sec:correctness-metrics}). (a) M2, 30 seeds:
+paired per-seed comparison against single-agent DQN on mean reward per
+step -- each line is one seed, coloured by whether GAT-CTDE scored
+higher (green, 20), tied (grey, 3), or lower (red, 7) -- the source of
+this figure's borderline $p=0.0577$. (b) M2: full per-seed reward
+distribution for all three arms; GAT-CTDE is split into seeds that
+learned genuine differentiated shedding (blue, 21) versus seeds still
+stuck at the always-accept collapse (grey $\times$, 9) -- shown
+without claiming the split predicts reward, since several
+still-collapsed seeds score among the arm's highest. (c) M3, same 10
+seeds: paired per-seed federation cost on mean reward per step --
+centralised scores higher on 2 seeds, federated on 3, 5 ties, no
+measurable difference (Wilcoxon $p=0.8125$). (d) M3: privacy-utility
+curve using block precision against the DP noise multiplier $\sigma$,
+individual seed values (light dots) behind the mean, with the seed
+count that ever blocked anything at each $\sigma$ printed below
+(precision is undefined otherwise) -- perfect through $\sigma=1.0$,
+dropping sharply by $\sigma=4.0$.}
+\label{fig:multi-gnb-results}
+\end{figure}
+
 \subsection{Centralised Campaign}
 \label{sec:results-m2}
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.92\textwidth]{figures/fig3_m2_campaign.pdf}
-\caption{30-seed campaign, per-seed evidence for mean reward per step,
-the correctness-aware metric (Section~\ref{sec:correctness-metrics}).
-(a) Paired per-seed comparison against single-agent DQN: each line is
-one seed, coloured by whether GAT-CTDE scored higher (green, 20),
-tied (grey, 3), or lower (red, 7) than the baseline on that seed --
-the same paired unit the Wilcoxon test is computed over, and the
-source of this figure's borderline $p=0.0577$. (b) Full
-per-seed distribution for all three arms; GAT-CTDE is split into seeds
-that learned genuine differentiated shedding (blue, 21) versus seeds
-still stuck at the always-accept collapse (grey $\times$, 9) -- shown
-without claiming the split predicts reward, since several
-still-collapsed seeds score among the arm's highest (always accepting
-never pays the reject cost).}
-\label{fig:m2-campaign}
-\end{figure}
-
-Table~\ref{tab:m2-results} and Fig.~\ref{fig:m2-campaign} report the
+Table~\ref{tab:m2-results} and Fig.~\ref{fig:multi-gnb-results}(a)-(b) report the
 final, post-fix 30-seed campaign. On \texttt{sla\_compliance\_all\_slices},
 GAT-CTDE's mean is 0.151, below its own pre-fix number (0.353) since
 the metric penalises newly-correct mmTC-blocking decisions, and the
@@ -543,33 +549,46 @@ Single-agent & 0.115 [0.061, 0.176] & 13.867 [13.69, 14.05] & 0.987 \\
 \end{tabular}
 \end{table}
 
+\begin{table}[t]
+\caption{Training hyperparameters, all fixed across seeds.}
+\label{tab:hyperparams}
+\centering
+\begin{tabular}{ll}
+\toprule
+Hyperparameter & Value \\
+\midrule
+Learning rate (GAT-CTDE) & $1{\times}10^{-4}$ \\
+Learning rate (DQN baselines) & $1{\times}10^{-3}$ \\
+Discount $\gamma$ & 0.95 \\
+Epsilon: start $\to$ end (decay/episode) & $1.0 \to 0.05$ (0.985) \\
+Target-network sync & every 10 episodes \\
+Optimiser & Adam \\
+Training / evaluation episodes & 300 / 50 \\
+\midrule
+\multicolumn{2}{l}{\emph{GAT encoder (GAT-CTDE only)}} \\
+Hidden / output dim & 16 / 16 \\
+Attention heads & 4 \\
+Encoder layers & 2 \\
+Q-head hidden dim & 32 \\
+\midrule
+\multicolumn{2}{l}{\emph{Federated + DP (federated GAT-CTDE only)}} \\
+Local steps per round & 50 \\
+Aggregator & FedAvg ($\mu$=0) \\
+DP gradient clip norm & 1.0 \\
+DP noise multiplier sweep $\sigma$ & $\{0, 0.5, 1, 2, 4\}$ \\
+\botrule
+\end{tabular}
+\end{table}
+
 \subsection{Federated Training and Differential Privacy}
 \label{sec:results-m3}
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.92\textwidth]{figures/fig4_m3_privacy.pdf}
-\caption{Federated GAT-CTDE, per-seed evidence. (a) Paired per-seed
-federation cost on mean reward per step (same 10 seeds): centralised
-training scores higher on 2 seeds, federated on 3, with 5 ties --
-no measurable difference (Wilcoxon $p=0.8125$), shown as
-individual seed trajectories rather than two independent bars, since
-the significance test itself is paired. (b) Privacy-utility curve
-using block precision, the metric that survives the compliance-based
-curve's non-monotonic, uninterpretable pattern at the same noise
-levels: individual seed values (light dots) are shown behind the mean,
-along with the seed count that ever blocked anything at each $\sigma$
-(precision is undefined otherwise) -- precision is perfect through
-$\sigma=1.0$ and drops sharply by $\sigma=4.0$.}
-\label{fig:m3-privacy}
-\end{figure}
 
 Comparing the centralised campaign against the federated variant with
 no DP noise, on the same 10 seeds: mean reward per step moves from
 14.073 to 13.940, +0.133 (95\% CI [$-$0.138, 0.470], Wilcoxon
 $p=0.8125$) -- no measurable cost to federating at this sample size,
 and both arms' block precision is perfect (1.000) on seeds that block
-anything at all. Sweeping the DP noise multiplier (Fig.~\ref{fig:m3-privacy}(b)),
+anything at all. Sweeping the DP noise multiplier (Fig.~\ref{fig:multi-gnb-results}(d)),
 block precision is perfect through $\sigma=1.0$ then drops sharply --
 0.834 at $\sigma=2.0$, 0.584 at $\sigma=4.0$ -- a real threshold, not a
 smooth degradation, while mean reward per step stays in a comparatively
@@ -602,7 +621,7 @@ quality.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\textwidth]{figures/fig5_m4_disruption.pdf}
+\includegraphics[width=\textwidth]{figures/fig4_m4_disruption.pdf}
 \caption{M4 disruption campaign, 10 seeds/arm. (a)-(b) Normalised
 reward cost (baseline $-$ disrupted) vs.\ severity for dropout and
 agent churn -- every arm, every severity, shows a real cost that
@@ -613,20 +632,16 @@ that matters.}
 \label{fig:m4-disruption}
 \end{figure}
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.92\textwidth]{figures/fig6_m4_disruption_loop.pdf}
-\caption{Where each M4 disruption kind intercepts the frozen policy's
-per-step evaluation loop. Dropout acts twice (corrupting the target
-gNB's input row, then separately forcing that gNB's own requests to
-reject, so a policy cannot simply learn around the corrupted feature);
-agent churn substitutes a fresh, never-trained policy's actions for the
-target gNB only, leaving every other agent's decisions untouched; demand
-spike is entirely external to the policy, acting on the arrival process
-the environment synthesises for the following step. All three are
-evaluation-only perturbations -- the policy itself is never updated.}
-\label{fig:m4-injection}
-\end{figure}
+Each disruption kind intercepts the frozen policy's per-step
+evaluation loop differently: dropout acts twice, corrupting the target
+gNB's input row and separately forcing that gNB's own requests to
+reject, so a policy cannot simply learn around the corrupted feature;
+agent churn substitutes a fresh, never-trained policy's actions for
+the target gNB only, leaving every other agent's decisions untouched;
+demand spike is entirely external to the policy, acting on the
+arrival process the environment synthesises for the following step.
+All three are evaluation-only perturbations -- the policy itself is
+never updated.
 
 Dropout costs every arm significantly at every severity (Wilcoxon
 $p\leq0.03$, 9 or 10 of 10 seeds hurt in every case), and the cost
@@ -672,25 +687,21 @@ Every dropout and churn result above was independently checked against
 the 1000--1009 sample and holds up in direction and approximate
 magnitude -- e.g.\ GAT-CTDE's dropout costs there are
 +0.170/+0.552/+1.449, close to the 900--909 sample's
-+0.165/+0.601/+1.710. Fig.~\ref{fig:replication-forest} puts every
-headline paired comparison in this paper next to its independent-sample
-counterpart on one axis, recomputed from raw logs for both: six of
-seven rows show overlapping confidence intervals across samples, and
-the one exception -- independent DQN's churn cost -- is the retraction
-above.
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.92\textwidth]{figures/fig7_replication_forest.pdf}
-\caption{Every headline paired comparison in this paper, committed
-sample (seeds 900--929/909) against the independent replication sample
-(seeds 1000--1029/1009), recomputed from raw logs for both. (a) M2/M3
-reward comparisons. (b) M4 disruption cost at the most severe (60\%)
-window. The bottom row of (b), independent DQN's churn cost, is the one
-comparison whose two samples visibly disagree on more than point-estimate
-noise -- the finding retracted above.}
-\label{fig:replication-forest}
-\end{figure}
++0.165/+0.601/+1.710. Every headline paired comparison in this paper
+was checked this way, recomputed from raw logs on both samples:
+GAT-CTDE's edge over independent DQN (Section~\ref{sec:results-m2})
+holds decisively on the replication sample too (+0.767, 95\% CI
+[0.391, 1.233], $p<0.0001$, versus the committed sample's +1.461
+[0.550, 2.782]); its edge over single-agent DQN stays non-decisive on
+both (+0.445 [$-$0.049, 1.280], $p=0.111$, versus +0.195 [$-$0.017,
+0.442], $p=0.058$); federation's reward cost stays statistically
+indistinguishable from zero on both, with the point estimate's sign
+flipping between samples ($-$0.080 [$-$0.241, 0.001] on replication
+versus +0.133 [$-$0.138, 0.470] committed) but neither ever
+significant. Of the seven headline paired comparisons checked this way
+across the whole paper, six show overlapping confidence intervals
+across samples; the one exception -- independent DQN's churn cost --
+is the retraction above.
 
 A formal paired Wilcoxon test on (GAT-CTDE's cost $-$ independent
 DQN's cost), computed across the same 10 seeds for every (kind,
@@ -734,7 +745,7 @@ resistance and block precision, not the reward-margin metric.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{figures/fig8_m6_topology.pdf}
+\includegraphics[width=\columnwidth]{figures/fig5_m6_topology.pdf}
 \caption{$N=19$ cluster, per-seed evidence across independent
 seed samples. (a) Collapse rate (fraction of eval runs with zero
 blocks), pooled across all three topologies -- single-agent DQN
