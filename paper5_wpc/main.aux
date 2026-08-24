@@ -1,0 +1,181 @@
+\relax 
+\bibstyle{sn-basic}
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\Newlabel{1}{1}
+\citation{mecon-paper1,icraie-paper2}
+\citation{gat}
+\citation{mecon-paper1,icraie-paper2}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{2}{section.1}\protected@file@percent }
+\citation{ref:access}
+\citation{shao2021gatmarl}
+\citation{ahmadi2024generalizable}
+\citation{tran2026gnnppo}
+\citation{silva2025gnnintent}
+\citation{hao2024html}
+\citation{zhu2025hgatdt}
+\citation{kurapati2025hybridgnn}
+\citation{jing2025gnnoffline}
+\citation{huang2025qosgdrl}
+\citation{asheralieva2024admmgnn}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Literature Review}{3}{section.2}\protected@file@percent }
+\newlabel{sec:litreview}{{2}{3}{Literature Review}{section.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.1}Graph-Attention State Representation for Slicing}{3}{subsection.2.1}\protected@file@percent }
+\citation{sulaiman2023coordinated}
+\citation{doanis2024samarl}
+\citation{zangooei2024flexran}
+\citation{wu2025admissionmarl,wu2025slicewise}
+\citation{lotfi2026sharpmarl}
+\citation{phyu2025icecream}
+\citation{chen2025matd3}
+\citation{li2026scalablemarl}
+\citation{wang2024madqnvnf}
+\citation{tashman2026adversarial}
+\citation{fatehi2026attentionmarl}
+\citation{zhang2022federatedoran}
+\citation{yasin2025dpfl}
+\citation{amiri2024fedvnf}
+\citation{ming2024fedmobility}
+\citation{kwantwi2025pfl}
+\citation{gonzalez2024fedns}
+\citation{abdisarabshali2026elasticfl}
+\citation{gong2024dqnfl}
+\citation{koursioumpas2024safefl,wu2024cefl}
+\citation{liu2026aoifl}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.2}Multi-Agent RL for Coordinated Slicing and Admission Control}{4}{subsection.2.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.3}Federated and Privacy-Preserving Learning for Slicing}{4}{subsection.2.3}\protected@file@percent }
+\citation{mohajer2026pronto}
+\citation{bouroudi2025gnnmarl}
+\citation{qasim2025tgnnfl}
+\citation{gong2026femaddpg}
+\citation{ref:access}
+\@writefile{toc}{\contentsline {subsection}{\numberline {2.4}Positioning}{5}{subsection.2.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3}System Model and Problem Formulation}{5}{section.3}\protected@file@percent }
+\newlabel{sec:system-model}{{3}{5}{System Model and Problem Formulation}{section.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Cluster Topology and Admission Decisions}{5}{subsection.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Reward and the Differentiated-Shedding Regime}{5}{subsection.3.2}\protected@file@percent }
+\citation{gat}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Offline Stress-Regime Environment}{6}{subsection.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4}Methodology}{6}{section.4}\protected@file@percent }
+\newlabel{sec:methodology}{{4}{6}{Methodology}{section.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}GAT-CTDE: Shared Encoder, Decentralised Q-Heads}{6}{subsection.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.1}Per-Slice Q-Heads}{6}{subsubsection.4.1.1}\protected@file@percent }
+\newlabel{sec:methodology-perslice}{{4.1.1}{6}{Per-Slice Q-Heads}{subsubsection.4.1.1}{}}
+\citation{fedavg}
+\citation{fedprox}
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces GAT-CTDE architecture. (a) A shared Graph Attention encoder over the fully-connected 3-gNB topology produces one embedding per node; per-slice Q-heads, each with its own parameters, consume that node's own embedding row at action-selection time (decentralised execution). (b) The federated training variant: each gNB is a client with a private copy of the same network, synchronised via periodic FedAvg with an optional per-client DP-SGD clip-and-noise step.}}{7}{figure.1}\protected@file@percent }
+\newlabel{fig:architecture}{{1}{7}{GAT-CTDE architecture. (a) A shared Graph Attention encoder over the fully-connected 3-gNB topology produces one embedding per node; per-slice Q-heads, each with its own parameters, consume that node's own embedding row at action-selection time (decentralised execution). (b) The federated training variant: each gNB is a client with a private copy of the same network, synchronised via periodic FedAvg with an optional per-client DP-SGD clip-and-noise step}{figure.1}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.1.2}Training Procedure}{7}{subsubsection.4.1.2}\protected@file@percent }
+\@writefile{loa}{\contentsline {algorithm}{\numberline {1}{\ignorespaces GAT-CTDE: centralised training, decentralised execution}}{8}{algorithm.1}\protected@file@percent }
+\newlabel{alg:gat-ctde}{{1}{8}{Training Procedure}{algorithm.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Federated Training with Differential Privacy}{8}{subsection.4.2}\protected@file@percent }
+\citation{dpsgd}
+\citation{zcdp}
+\citation{dpsgd}
+\citation{fedavg}
+\@writefile{toc}{\contentsline {section}{\numberline {5}A Training Collapse, Diagnosed and Fixed}{9}{section.5}\protected@file@percent }
+\newlabel{sec:collapse}{{5}{9}{A Training Collapse, Diagnosed and Fixed}{section.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Discovery}{9}{subsection.5.1}\protected@file@percent }
+\@writefile{loa}{\contentsline {algorithm}{\numberline {2}{\ignorespaces Federated GAT-CTDE round with DP-SGD}}{10}{algorithm.2}\protected@file@percent }
+\newlabel{alg:fed-dp}{{2}{10}{Federated Training with Differential Privacy}{algorithm.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}This Was Not the Reward-Optimal Policy}{10}{subsection.5.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Root Cause: Magnitude, Not Pattern}{10}{subsection.5.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Fraction of the 30 campaign seeds reaching genuine, correctly-targeted differentiated shedding (mMTC-only blocking under congestion), across the original unnormalised encoder and the two fixes described in Section~\ref {sec:collapse}.}}{11}{figure.2}\protected@file@percent }
+\newlabel{fig:collapse}{{2}{11}{Fraction of the 30 campaign seeds reaching genuine, correctly-targeted differentiated shedding (mMTC-only blocking under congestion), across the original unnormalised encoder and the two fixes described in Section~\ref {sec:collapse}}{figure.2}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Fixes}{11}{subsection.5.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.5}A Second Bug: Eval-Log Contamination}{11}{subsection.5.5}\protected@file@percent }
+\newlabel{sec:eval-log-bug}{{5.5}{11}{A Second Bug: Eval-Log Contamination}{subsection.5.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.6}Correctness-Aware Metrics}{12}{subsection.5.6}\protected@file@percent }
+\newlabel{sec:correctness-metrics}{{5.6}{12}{Correctness-Aware Metrics}{subsection.5.6}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {6}Experimental Setup}{12}{section.6}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces 30-seed campaign, per-seed evidence for mean reward per step, the correctness-aware metric (Section~\ref {sec:correctness-metrics}). (a) Paired per-seed comparison against single-agent DQN: each line is one seed, coloured by whether GAT-CTDE scored higher (green, 20), tied (grey, 3), or lower (red, 7) than the baseline on that seed -- the same paired unit the Wilcoxon test is computed over, and the source of this figure's borderline $p=0.0577$. (b) Full per-seed distribution for all three arms; GAT-CTDE is split into seeds that learned genuine differentiated shedding (blue, 21) versus seeds still stuck at the always-accept collapse (grey $\times $, 9) -- shown without claiming the split predicts reward, since several still-collapsed seeds score among the arm's highest (always accepting never pays the reject cost).}}{13}{figure.3}\protected@file@percent }
+\newlabel{fig:m2-campaign}{{3}{13}{30-seed campaign, per-seed evidence for mean reward per step, the correctness-aware metric (Section~\ref {sec:correctness-metrics}). (a) Paired per-seed comparison against single-agent DQN: each line is one seed, coloured by whether GAT-CTDE scored higher (green, 20), tied (grey, 3), or lower (red, 7) than the baseline on that seed -- the same paired unit the Wilcoxon test is computed over, and the source of this figure's borderline $p=0.0577$. (b) Full per-seed distribution for all three arms; GAT-CTDE is split into seeds that learned genuine differentiated shedding (blue, 21) versus seeds still stuck at the always-accept collapse (grey $\times $, 9) -- shown without claiming the split predicts reward, since several still-collapsed seeds score among the arm's highest (always accepting never pays the reject cost)}{figure.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {7}Results: Centralised GAT-CTDE Campaign}{13}{section.7}\protected@file@percent }
+\newlabel{sec:results-m2}{{7}{13}{Results: Centralised GAT-CTDE Campaign}{section.7}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces M2 campaign results, 30 seeds/arm, 95\% bootstrap CIs.}}{14}{table.1}\protected@file@percent }
+\newlabel{tab:m2-results}{{1}{14}{M2 campaign results, 30 seeds/arm, 95\% bootstrap CIs}{table.1}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Federated GAT-CTDE, per-seed evidence. (a) Paired per-seed federation cost on mean reward per step (same 10 seeds): centralised training scores higher on 2 seeds, federated on 3, with 5 ties -- no measurable difference (Wilcoxon $p=0.8125$), shown as individual seed trajectories rather than two independent bars, since the significance test itself is paired. (b) Privacy-utility curve using block precision, the metric that survives the compliance-based curve's non-monotonic, uninterpretable pattern at the same noise levels: individual seed values (light dots) are shown behind the mean, along with the seed count that ever blocked anything at each $\sigma $ (precision is undefined otherwise) -- precision is perfect through $\sigma =1.0$ and drops sharply by $\sigma =4.0$.}}{14}{figure.4}\protected@file@percent }
+\newlabel{fig:m3-privacy}{{4}{14}{Federated GAT-CTDE, per-seed evidence. (a) Paired per-seed federation cost on mean reward per step (same 10 seeds): centralised training scores higher on 2 seeds, federated on 3, with 5 ties -- no measurable difference (Wilcoxon $p=0.8125$), shown as individual seed trajectories rather than two independent bars, since the significance test itself is paired. (b) Privacy-utility curve using block precision, the metric that survives the compliance-based curve's non-monotonic, uninterpretable pattern at the same noise levels: individual seed values (light dots) are shown behind the mean, along with the seed count that ever blocked anything at each $\sigma $ (precision is undefined otherwise) -- precision is perfect through $\sigma =1.0$ and drops sharply by $\sigma =4.0$}{figure.4}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {8}Results: Federated Training and Differential Privacy}{14}{section.8}\protected@file@percent }
+\newlabel{sec:results-m3}{{8}{14}{Results: Federated Training and Differential Privacy}{section.8}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.1}Federation Cost}{14}{subsection.8.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.2}Privacy Cost: A Threshold, Not a Smooth Curve}{15}{subsection.8.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {9}Results: Disruption Resilience}{15}{section.9}\protected@file@percent }
+\newlabel{sec:results-m4}{{9}{15}{Results: Disruption Resilience}{section.9}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.1}Setup}{15}{subsection.9.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5}{\ignorespaces M4 disruption campaign, 10 seeds/arm. (a)-(b) Normalised reward cost (baseline $-$ disrupted) vs.\ severity for dropout and agent churn -- every arm, every severity, shows a real cost that accelerates with severity rather than growing linearly. (c) Block precision vs.\ demand-spike multiplier: flat and near-ceiling for every arm, unlike (a)-(b) -- spike does not threshold on the metric that matters.}}{16}{figure.5}\protected@file@percent }
+\newlabel{fig:m4-disruption}{{5}{16}{M4 disruption campaign, 10 seeds/arm. (a)-(b) Normalised reward cost (baseline $-$ disrupted) vs.\ severity for dropout and agent churn -- every arm, every severity, shows a real cost that accelerates with severity rather than growing linearly. (c) Block precision vs.\ demand-spike multiplier: flat and near-ceiling for every arm, unlike (a)-(b) -- spike does not threshold on the metric that matters}{figure.5}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Where each M4 disruption kind intercepts the frozen policy's per-step evaluation loop. Dropout acts twice (corrupting the target gNB's input row, then separately forcing that gNB's own requests to reject, so a policy cannot simply learn around the corrupted feature); agent churn substitutes a fresh, never-trained policy's actions for the target gNB only, leaving every other agent's decisions untouched; demand spike is entirely external to the policy, acting on the arrival process the environment synthesises for the following step. All three are evaluation-only perturbations -- the policy itself is never updated.}}{16}{figure.6}\protected@file@percent }
+\newlabel{fig:m4-injection}{{6}{16}{Where each M4 disruption kind intercepts the frozen policy's per-step evaluation loop. Dropout acts twice (corrupting the target gNB's input row, then separately forcing that gNB's own requests to reject, so a policy cannot simply learn around the corrupted feature); agent churn substitutes a fresh, never-trained policy's actions for the target gNB only, leaving every other agent's decisions untouched; demand spike is entirely external to the policy, acting on the arrival process the environment synthesises for the following step. All three are evaluation-only perturbations -- the policy itself is never updated}{figure.6}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.2}Dropout and Agent Churn: A Real, Accelerating Threshold Effect}{17}{subsection.9.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.3}Demand Spike: A Different, Cleaner Story}{17}{subsection.9.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.4}Independent-Seed Replication}{18}{subsection.9.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {9.5}A Formal Cross-Architecture Test}{18}{subsection.9.5}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Every headline paired comparison in this paper, committed sample (seeds 900--929/909) against the independent replication sample (seeds 1000--1029/1009), recomputed from raw logs for both. (a) M2/M3 reward comparisons. (b) M4 disruption cost at the most severe (60\%) window. The bottom row of (b), independent DQN's churn cost, is the one comparison whose two samples visibly disagree on more than point-estimate noise -- the finding retracted in Section~\ref {sec:results-m4}-D.}}{19}{figure.7}\protected@file@percent }
+\newlabel{fig:replication-forest}{{7}{19}{Every headline paired comparison in this paper, committed sample (seeds 900--929/909) against the independent replication sample (seeds 1000--1029/1009), recomputed from raw logs for both. (a) M2/M3 reward comparisons. (b) M4 disruption cost at the most severe (60\%) window. The bottom row of (b), independent DQN's churn cost, is the one comparison whose two samples visibly disagree on more than point-estimate noise -- the finding retracted in Section~\ref {sec:results-m4}-D}{figure.7}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {10}Results: Cluster-Size Scaling}{19}{section.10}\protected@file@percent }
+\newlabel{sec:results-m6}{{10}{19}{Results: Cluster-Size Scaling}{section.10}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.1}Setup}{19}{subsection.10.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.2}Reward Margin Does Not Grow With Cluster Size}{20}{subsection.10.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.3}Collapse Resistance: A Real, Cluster-Size-Specific Effect}{20}{subsection.10.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces $N=19$ cluster, per-seed evidence across independent seed samples. (a) Collapse rate (fraction of eval runs with zero blocks), pooled across all three topologies -- single-agent DQN collapses totally in every sample; GAT-CTDE's rate varies sample-to-sample (primary 31\%, replication 78\%, a 49-seed extension targeted specifically at this question 34\%), converging to a combined, seed-level-bootstrapped estimate of 35.4\% [25.5\%, 45.8\%] across all 64 independent seeds (diamond marker, error bar). (b) Block precision by topology, primary sample, non-collapsed seeds only (single-agent DQN has none to show): GAT-CTDE's non-collapsed seeds are mostly near-ceiling but with a low-precision seed at every topology, while independent DQN sits in a narrow, mediocre band, identical across topologies as expected for an arm that never consumes adjacency.}}{21}{figure.8}\protected@file@percent }
+\newlabel{fig:m6-topology}{{8}{21}{$N=19$ cluster, per-seed evidence across independent seed samples. (a) Collapse rate (fraction of eval runs with zero blocks), pooled across all three topologies -- single-agent DQN collapses totally in every sample; GAT-CTDE's rate varies sample-to-sample (primary 31\%, replication 78\%, a 49-seed extension targeted specifically at this question 34\%), converging to a combined, seed-level-bootstrapped estimate of 35.4\% [25.5\%, 45.8\%] across all 64 independent seeds (diamond marker, error bar). (b) Block precision by topology, primary sample, non-collapsed seeds only (single-agent DQN has none to show): GAT-CTDE's non-collapsed seeds are mostly near-ceiling but with a low-precision seed at every topology, while independent DQN sits in a narrow, mediocre band, identical across topologies as expected for an arm that never consumes adjacency}{figure.8}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {10.4}Independent-Seed Replication and a Third Sample: Resolving GAT-CTDE's Collapse Rate}{21}{subsection.10.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {11}Results: Live Single-gNB Anchor}{22}{section.11}\protected@file@percent }
+\newlabel{sec:results-m8}{{11}{22}{Results: Live Single-gNB Anchor}{section.11}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {11.1}Setup}{22}{subsection.11.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {11.2}Decision Logic Transfers; the Margin Metric Does Not}{23}{subsection.11.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {11.3}What This Means, Checked Against Prior Live Data}{23}{subsection.11.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {11.4}A Latency-Normalised Recalibration}{24}{subsection.11.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {12}Discussion}{24}{section.12}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {13}Conclusion and Future Work}{25}{section.13}\protected@file@percent }
+\newlabel{sec:conclusion}{{13}{25}{Conclusion and Future Work}{section.13}{}}
+\@writefile{toc}{\contentsline {subparagraph}{Acknowledgements}{27}{section*.2}\protected@file@percent }
+\bibdata{refs}
+\bibcite{dpsgd}{{1}{2016}{{Abadi et~al.}}{{Abadi, Chu, Goodfellow, McMahan, Mironov, Talwar, and Zhang}}}
+\bibcite{abdisarabshali2026elasticfl}{{2}{2026}{{Abdisarabshali et~al.}}{{Abdisarabshali, Accurso, Malandra, Su, and Hosseinalipour}}}
+\bibcite{ahmadi2024generalizable}{{3}{2024}{{Ahmadi et~al.}}{{Ahmadi, Moayyedi, Sulaiman, Salahuddin, Boutaba, and Saleh}}}
+\bibcite{amiri2024fedvnf}{{4}{2024}{{Amiri et~al.}}{{Amiri, Wang, Shojafar, and Tafazolli}}}
+\bibcite{asheralieva2024admmgnn}{{5}{2024}{{Asheralieva et~al.}}{{Asheralieva, Niyato, and Miyanaga}}}
+\bibcite{bouroudi2025gnnmarl}{{6}{2025}{{Bouroudi et~al.}}{{Bouroudi, Outtagarts, and Hadjadj-Aoul}}}
+\bibcite{zcdp}{{7}{2016}{{Bun and Steinke}}{{}}}
+\bibcite{chen2025matd3}{{8}{2025}{{Chen et~al.}}{{Chen, Mu, Liang, Zeng, and Zhang}}}
+\bibcite{tran2026gnnppo}{{9}{2026}{{Do et~al.}}{{Do, Nguyen, Luu, Nguyen, Tran, and Nguyen}}}
+\bibcite{doanis2024samarl}{{10}{2024}{{Doanis and Spyropoulos}}{{}}}
+\bibcite{fatehi2026attentionmarl}{{11}{2026}{{Fatehi et~al.}}{{Fatehi, {Rahmani Ghourtani}, Sonee, Yadav, Russo, Ahmadi, and Calinescu}}}
+\bibcite{gong2024dqnfl}{{12}{2024}{{Gong et~al.}}{{Gong, Yang, Yu, Yao, Liu, and Zhang}}}
+\bibcite{gong2026femaddpg}{{13}{2026}{{Gong et~al.}}{{Gong, Gong, Jiang, Xie, Wang, and Xu}}}
+\bibcite{gonzalez2024fedns}{{14}{2024}{{Gonz{\'a}lez et~al.}}{{Gonz{\'a}lez, Pupo, Iradier, Angueira, Murroni, and Montalban}}}
+\bibcite{hao2024html}{{15}{2024}{{Hao et~al.}}{{Hao, She, Yeoh, Liu, Vucetic, and Li}}}
+\bibcite{huang2025qosgdrl}{{16}{2025}{{Huang et~al.}}{{Huang, Wang, Min, Wang, and Wu}}}
+\bibcite{jing2025gnnoffline}{{17}{2025}{{Jing et~al.}}{{Jing, Wang, Ren, Lu, Shao, and Wen}}}
+\bibcite{koursioumpas2024safefl}{{18}{2024}{{Koursioumpas et~al.}}{{Koursioumpas, Magoula, Petropouleas, Thanopoulos, Panagea, Alonistioti, {Gutierrez-Estevez}, and Khalili}}}
+\bibcite{mecon-paper1}{{19}{2025{}}{{Kunasegran et~al.}}{{Kunasegran, Pang, and Phang}}}
+\bibcite{icraie-paper2}{{20}{2025{}}{{Kunasegran et~al.}}{{Kunasegran, Pang, and Phang}}}
+\bibcite{ref:access}{{21}{2026}{{Kunasegran et~al.}}{{Kunasegran, Pang, and Phang}}}
+\bibcite{kurapati2025hybridgnn}{{22}{2025}{{Kurapati et~al.}}{{Kurapati, Koneti, and Muppala}}}
+\bibcite{kwantwi2025pfl}{{23}{2025}{{Kwantwi et~al.}}{{Kwantwi, Sun, Kuadey, Maale, and Liu}}}
+\bibcite{fedprox}{{24}{2020}{{Li et~al.}}{{Li, Sahu, Zaheer, Sanjabi, Talwalkar, and Smith}}}
+\bibcite{li2026scalablemarl}{{25}{2026}{{Li et~al.}}{{Li, Wang, Min, Wang, and Wang}}}
+\bibcite{liu2026aoifl}{{26}{2026}{{Liu et~al.}}{{Liu, Zheng, Zheng, Liu, Taleb, and Shiratori}}}
+\bibcite{lotfi2026sharpmarl}{{27}{2026}{{Lotfi et~al.}}{{Lotfi, Rajoli, and Afghah}}}
+\bibcite{fedavg}{{28}{2017}{{McMahan et~al.}}{{McMahan, Moore, Ramage, Hampson, and y~Arcas}}}
+\bibcite{ming2024fedmobility}{{29}{2024}{{Ming et~al.}}{{Ming, Yu, and Taleb}}}
+\bibcite{mohajer2026pronto}{{30}{2026}{{Mohajer et~al.}}{{Mohajer, Mirzaei, Darabi, and Fernando}}}
+\bibcite{phyu2025icecream}{{31}{2025}{{Phyu et~al.}}{{Phyu, Naboulsi, and Stanica}}}
+\bibcite{qasim2025tgnnfl}{{32}{2025}{{Qasim et~al.}}{{Qasim, Imran, Akram, {Ahmad Bilal}, and {Jaleed Khan}}}}
+\bibcite{shao2021gatmarl}{{33}{2021}{{Shao et~al.}}{{Shao, Li, Hu, Wu, Zhao, and Zhang}}}
+\bibcite{silva2025gnnintent}{{34}{2025}{{Silva et~al.}}{{Silva, {Azene Temesgene}, Klautau, {Aben-Athar}, and Nahum}}}
+\bibcite{sulaiman2023coordinated}{{35}{2023}{{Sulaiman et~al.}}{{Sulaiman, Moayyedi, Ahmadi, Salahuddin, Boutaba, and Saleh}}}
+\bibcite{tashman2026adversarial}{{36}{2026}{{Tashman and Cherkaoui}}{{}}}
+\bibcite{gat}{{37}{2018}{{Veli{\v {c}}kovi{\'c} et~al.}}{{Veli{\v {c}}kovi{\'c}, Cucurull, Casanova, Romero, Li{\`o}, and Bengio}}}
+\bibcite{wang2024madqnvnf}{{38}{2024}{{Wang et~al.}}{{Wang, Tang, Liu, He, Liang, and Chen}}}
+\bibcite{wu2024cefl}{{39}{2024}{{Wu et~al.}}{{Wu, Qu, Liu, Dai, Dong, and Cao}}}
+\bibcite{wu2025admissionmarl}{{40}{2025{}}{{Wu et~al.}}{{Wu, Farooq, and Chen}}}
+\bibcite{wu2025slicewise}{{41}{2025{}}{{Wu et~al.}}{{Wu, Wang, Farooq, Ghazzai, and Setti}}}
+\bibcite{yasin2025dpfl}{{42}{2025}{{Yasin et~al.}}{{Yasin, Yu, and Wang}}}
+\bibcite{zangooei2024flexran}{{43}{2024}{{Zangooei et~al.}}{{Zangooei, Golkarifard, Rouili, Saha, and Boutaba}}}
+\bibcite{zhang2022federatedoran}{{44}{2022}{{Zhang et~al.}}{{Zhang, Zhou, and Erol-Kantarci}}}
+\bibcite{zhu2025hgatdt}{{45}{2025}{{Zhu et~al.}}{{Zhu, Zhang, Chi, and Zhang}}}
+\gdef \@abspage@last{32}

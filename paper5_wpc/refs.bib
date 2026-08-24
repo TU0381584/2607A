@@ -1,0 +1,466 @@
+% Bibliography for the paper #5 draft. Two parts:
+%   1. Methodology citations (below): our own prior work, and the core
+%      methods (GAT, FedAvg, FedProx, DP-SGD, zCDP) the architecture and
+%      training regimen are built from. fedprox/zcdp page ranges were
+%      originally flagged VERIFY (could not be confirmed from a local
+%      source) and have since been confirmed against the publishers' own
+%      pages (proceedings.mlsys.org for fedprox; Springer's LNCS 9985
+%      chapter page, DOI 10.1007/978-3-662-53641-4_24, for zcdp).
+%   2. Literature-review citations (further below): 31 entries from the
+%      author's skeleton bibliography plus 7 specifically-named
+%      prior-art works, ALL individually verified against CrossRef's
+%      own registered metadata (not accepted on search-engine title
+%      match alone) -- see docs/PAPER5_bib_audit.md for the full,
+%      entry-by-entry evidence trail and its addendum for the 7. Three
+%      cosmetic issues the audit flagged in the original skeleton
+%      (one author given/family-name swap, two citation keys with a
+%      stale year not matching their own already-correct `year` field)
+%      are fixed here at the source rather than reproduced.
+
+@inproceedings{mecon-paper1,
+  title     = {Optimising Resource Allocation in {5G} Networks: Balancing {URLLC} and {eMBB} Traffic under {gNB} Congestion},
+  author    = {Kunasegran, Manoj Prasad and Pang, Wai Leong and Phang, Swee King},
+  booktitle = {2025 Multimedia University Engineering Conference (MECON)},
+  pages     = {1--6},
+  year      = {2025}
+}
+
+@inproceedings{icraie-paper2,
+  title     = {{SLA}-Aware {DRL} for Joint Slice Admission Control and Load Balancing in Multi-Service {5G} {RAN}},
+  author    = {Kunasegran, Manoj Prasad and Pang, Wai Leong and Phang, Swee King},
+  booktitle = {2025 9th International Conference on Recent Advances and Innovations in Engineering (ICRAIE)},
+  pages     = {207--212},
+  year      = {2025}
+}
+
+@inproceedings{gat,
+  title     = {Graph Attention Networks},
+  author    = {Veli{\v{c}}kovi{\'c}, Petar and Cucurull, Guillem and Casanova, Arantxa and Romero, Adriana and Li{\`o}, Pietro and Bengio, Yoshua},
+  booktitle = {International Conference on Learning Representations (ICLR)},
+  year      = {2018}
+}
+
+@inproceedings{fedavg,
+  title     = {Communication-Efficient Learning of Deep Networks from Decentralized Data},
+  author    = {McMahan, Brendan and Moore, Eider and Ramage, Daniel and Hampson, Seth and y Arcas, Blaise Ag{\"u}era},
+  booktitle = {Proceedings of the 20th International Conference on Artificial Intelligence and Statistics (AISTATS)},
+  pages     = {1273--1282},
+  year      = {2017}
+}
+
+@inproceedings{fedprox,
+  title     = {Federated Optimization in Heterogeneous Networks},
+  author    = {Li, Tian and Sahu, Anit Kumar and Zaheer, Manzil and Sanjabi, Maziar and Talwalkar, Ameet and Smith, Virginia},
+  booktitle = {Proceedings of Machine Learning and Systems (MLSys)},
+  volume    = {2},
+  pages     = {429--450},
+  year      = {2020}
+}
+
+@inproceedings{dpsgd,
+  title     = {Deep Learning with Differential Privacy},
+  author    = {Abadi, Martin and Chu, Andy and Goodfellow, Ian and McMahan, H. Brendan and Mironov, Ilya and Talwar, Kunal and Zhang, Li},
+  booktitle = {Proceedings of the 2016 ACM SIGSAC Conference on Computer and Communications Security (CCS)},
+  pages     = {308--318},
+  year      = {2016}
+}
+
+@inproceedings{zcdp,
+  title     = {Concentrated Differential Privacy: Simplifications, Extensions, and Lower Bounds},
+  author    = {Bun, Mark and Steinke, Thomas},
+  booktitle = {Theory of Cryptography Conference (TCC)},
+  pages     = {635--658},
+  year      = {2016}
+}
+
+% ============================================================
+% Literature review citations. See docs/PAPER5_bib_audit.md.
+% ============================================================
+
+% --- Our own systematic review, motivating the three-pillar scope below ---
+@article{ref:access,
+  author  = {Kunasegran, Manoj Prasad and Pang, Wai Leong and Phang, Swee King},
+  title   = {Comprehensive Review of Optimisation Techniques for User-Centric Distributed Network Slicing in {5G} Networks},
+  journal = {IEEE Access},
+  volume  = {14},
+  pages   = {114630--114648},
+  year    = {2026},
+  doi     = {10.1109/ACCESS.2026.3716911}
+}
+
+% --- Seven specifically-named prior-art works (pre-2024 or 2026, outside
+%     the 2024-2026 review's own window; audit addendum has the full trail) ---
+@article{shao2021gatmarl,
+  author  = {Shao, Yan and Li, Rongpeng and Hu, Bing and Wu, Yingxiao and Zhao, Zhifeng and Zhang, Honggang},
+  title   = {Graph Attention Network-Based Multi-Agent Reinforcement Learning for Slicing Resource Management in Dense Cellular Network},
+  journal = {IEEE Trans. Veh. Technol.},
+  volume  = {70},
+  number  = {10},
+  pages   = {10792--10803},
+  year    = {2021},
+  doi     = {10.1109/TVT.2021.3103416}
+}
+
+@article{ahmadi2024generalizable,
+  author  = {Ahmadi, Mahdieh and Moayyedi, Arash and Sulaiman, Muhammad and Salahuddin, Mohammad A. and Boutaba, Raouf and Saleh, Aladdin},
+  title   = {Generalizable {5G} {RAN}/{MEC} Slicing and Admission Control for Reliable Network Operation},
+  journal = {IEEE Trans. Netw. Service Manag.},
+  year    = {2024},
+  doi     = {10.1109/TNSM.2024.3437217}
+}
+
+@article{sulaiman2023coordinated,
+  author  = {Sulaiman, Muhammad and Moayyedi, Arash and Ahmadi, Mahdieh and Salahuddin, Mohammad A. and Boutaba, Raouf and Saleh, Aladdin},
+  title   = {Coordinated Slicing and Admission Control Using Multi-Agent Deep Reinforcement Learning},
+  journal = {IEEE Trans. Netw. Service Manag.},
+  volume  = {20},
+  number  = {2},
+  pages   = {1110--1124},
+  year    = {2023},
+  doi     = {10.1109/TNSM.2022.3222589}
+}
+
+@inproceedings{zhang2022federatedoran,
+  author    = {Zhang, Han and Zhou, Hao and Erol-Kantarci, Melike},
+  title     = {Federated Deep Reinforcement Learning for Resource Allocation in {O-RAN} Slicing},
+  booktitle = {Proc. IEEE Global Commun. Conf. (GLOBECOM)},
+  pages     = {958--963},
+  year      = {2022},
+  doi       = {10.1109/GLOBECOM48099.2022.10001658}
+}
+
+@inproceedings{yasin2025dpfl,
+  author    = {Yasin, Timothius Victorio and Yu, Chia-Mu and Wang, Li-Chun},
+  title     = {Differential Privacy Federated Edge Learning-Assisted for Securing {RAN} Intelligent Controller in {O-RAN} {6G} Communications},
+  booktitle = {Proc. IEEE VTS Asia Pacific Wireless Commun. Symp. (APWCS)},
+  year      = {2025},
+  doi       = {10.1109/APWCS67981.2025.11151868}
+}
+
+@inproceedings{tashman2026adversarial,
+  author    = {Tashman, Deemah H. and Cherkaoui, Soumaya},
+  title     = {Adversarial Attacks in {AI}-Driven {RAN} Slicing: {SLA} Violations and Recovery},
+  booktitle = {Proc. Int. Wireless Commun. and Mobile Computing (IWCMC)},
+  year      = {2026},
+  doi       = {10.1109/IWCMC69287.2026.11580033}
+}
+
+@inproceedings{fatehi2026attentionmarl,
+  author    = {Fatehi, Kavan and {Rahmani Ghourtani}, Mostafa and Sonee, Amir and Yadav, Poonam and Russo, Alessandra M. and Ahmadi, Hamed and Calinescu, Radu},
+  title     = {Interpretable Attention-Based Multi-Agent {PPO} for Latency Spike Resolution in {6G} {RAN} Slicing},
+  booktitle = {Proc. IEEE Int. Conf. Commun. (ICC)},
+  year      = {2026},
+  doi       = {10.1109/ICC59461.2026.11586913}
+}
+
+% --- 31-entry skeleton, verified: docs/PAPER5_bib_audit.md ---
+@inproceedings{bouroudi2025gnnmarl,
+  author    = {Bouroudi, A. and Outtagarts, A. and Hadjadj-Aoul, Y.},
+  title     = {{GNN}-Based Multi-Agent {DRL} for Energy-Efficient Multi-Domain {6G} Resource Orchestration},
+  booktitle = {Proc. IEEE Global Commun. Conf. (GLOBECOM)},
+  pages     = {4457--4462},
+  year      = {2025},
+  doi       = {10.1109/GLOBECOM59602.2025.11432814}
+}
+
+@article{mohajer2026pronto,
+  author  = {Mohajer, A. and Mirzaei, A. and Darabi, M. and Fernando, X.},
+  title   = {Joint {SLA}-Aware Task Offloading and Adaptive Service Orchestration With Graph-Attentive Multi-Agent Reinforcement Learning},
+  journal = {IEEE Trans. Netw. Service Manag.},
+  volume  = {23},
+  pages   = {3737--3754},
+  year    = {2026},
+  doi     = {10.1109/TNSM.2026.3673188}
+}
+
+@article{qasim2025tgnnfl,
+  author  = {Qasim, M. and Imran, M. and Akram, F. and {Ahmad Bilal}, M. and {Jaleed Khan}, M.},
+  title   = {Transformer and Graph Neural Network-Based Federated Learning for Cellular Traffic Prediction With Sustainability Analysis},
+  journal = {IEEE Access},
+  volume  = {13},
+  pages   = {159649--159666},
+  year    = {2025},
+  doi     = {10.1109/ACCESS.2025.3605380}
+}
+
+@article{gong2026femaddpg,
+  author  = {Gong, Yu and Gong, P. and Jiang, He and Xie, W. and Wang, C. and Xu, P.},
+  title   = {Intelligent Resource Allocation for Multiaccess Edge Computing in {5G} Ultra-Dense Slicing Network Using Federated Multiagent {DDPG}},
+  journal = {China Commun.},
+  volume  = {23},
+  number  = {1},
+  pages   = {273--289},
+  year    = {2026},
+  doi     = {10.23919/JCC.fa.2022-0187.202601}
+}
+
+@article{gonzalez2024fedns,
+  author  = {Gonz{\'a}lez, C. C. and Pupo, E. F. and Iradier, E. and Angueira, P. and Murroni, M. and Montalban, J.},
+  title   = {Network Selection Over {5G}-Advanced Heterogeneous Networks Based on Federated Learning and Cooperative Game Theory},
+  journal = {IEEE Trans. Veh. Technol.},
+  volume  = {73},
+  number  = {8},
+  pages   = {11862--11877},
+  year    = {2024},
+  doi     = {10.1109/TVT.2024.3373638}
+}
+
+@inproceedings{tran2026gnnppo,
+  author    = {Do, K.-H. and Nguyen, T.-H. and Luu, Q.-T. and Nguyen, M.-T. and Tran, D.-M. and Nguyen, V.-D.},
+  title     = {Graph Neural {PPO} for Joint User Association and Resource Allocation in Open {RAN}},
+  booktitle = {Proc. Int. Conf. Inf. Netw. (ICOIN)},
+  pages     = {37--42},
+  year      = {2026},
+  doi       = {10.1109/ICOIN68469.2026.11480477}
+}
+
+@article{silva2025gnnintent,
+  author  = {Silva, A. and {Azene Temesgene}, D. and Klautau, A. and {Aben-Athar}, R. and Nahum, C.},
+  title   = {Leveraging {GNNs} for Intent-Driven {5G} {RAN} Optimization in Autonomous Networks},
+  journal = {IEEE Access},
+  volume  = {13},
+  pages   = {189096--189110},
+  year    = {2025},
+  doi     = {10.1109/ACCESS.2025.3624754}
+}
+
+@article{hao2024html,
+  author  = {Hao, X. and She, C. and Yeoh, P. L. and Liu, Y. and Vucetic, B. and Li, Y.},
+  title   = {Hybrid-Task Meta-Learning: A {GNN} Approach for Scalable and Transferable Bandwidth Allocation},
+  journal = {IEEE Trans. Wireless Commun.},
+  volume  = {23},
+  number  = {12},
+  pages   = {19820--19835},
+  year    = {2024},
+  doi     = {10.1109/TWC.2024.3487533}
+}
+
+@inproceedings{zhu2025hgatdt,
+  author    = {Zhu, R. and Zhang, S. and Chi, K. and Zhang, Y.},
+  title     = {Heterogeneous Graph Attention-Based Deep Reinforcement Learning for Latency-Optimal Digital Twin Placement in Edge Networks},
+  booktitle = {Proc. IEEE Int. Symp. Parallel Distrib. Process. Appl. (ISPA)},
+  pages     = {964--969},
+  year      = {2025},
+  doi       = {10.1109/ISPA67752.2025.00131}
+}
+
+@inproceedings{kurapati2025hybridgnn,
+  author    = {Kurapati, S. and Koneti, S. B. and Muppala, M.},
+  title     = {A Hybrid Graph Neural Network and Deep Reinforcement Learning Framework for Adaptive Network Optimization},
+  booktitle = {Proc. Int. Conf. Smart Electron. Commun. (ICOSEC)},
+  pages     = {1616--1622},
+  year      = {2025},
+  doi       = {10.1109/ICOSEC67334.2025.11459523}
+}
+
+@article{jing2025gnnoffline,
+  author  = {Jing, W. and Wang, J. and Ren, J. and Lu, Z. and Shao, H. and Wen, X.},
+  title   = {Radio Resource Allocation Optimization for Delay-Sensitive Services Based on Graph Neural Networks and Offline Dataset},
+  journal = {IEEE Trans. Veh. Technol.},
+  volume  = {74},
+  number  = {3},
+  pages   = {4510--4525},
+  year    = {2025},
+  doi     = {10.1109/TVT.2024.3497603}
+}
+
+@article{huang2025qosgdrl,
+  author  = {Huang, H. and Wang, Q. and Min, G. and Wang, M. and Wu, D. O.},
+  title   = {{QoS} Prediction for Component Services in {5G} via Graph-Based Deep Reinforcement Learning},
+  journal = {IEEE Trans. Mobile Comput.},
+  volume  = {24},
+  number  = {12},
+  pages   = {13520--13534},
+  year    = {2025},
+  doi     = {10.1109/TMC.2025.3591783}
+}
+
+@article{asheralieva2024admmgnn,
+  author  = {Asheralieva, A. and Niyato, D. and Miyanaga, Y.},
+  title   = {Efficient Dynamic Distributed Resource Slicing in {6G} Multi-Access Edge Computing Networks With Online {ADMM} and Message Passing Graph Neural Networks},
+  journal = {IEEE Trans. Mobile Comput.},
+  volume  = {23},
+  number  = {4},
+  pages   = {2614--2638},
+  year    = {2024},
+  doi     = {10.1109/TMC.2023.3262514}
+}
+
+@article{doanis2024samarl,
+  author  = {Doanis, P. and Spyropoulos, T.},
+  title   = {Sample-Efficient Multi-Agent {DQNs} for Scalable Multi-Domain {5G+} Inter-Slice Orchestration},
+  journal = {IEEE Trans. Mach. Learn. Commun. Netw.},
+  volume  = {2},
+  pages   = {956--977},
+  year    = {2024},
+  doi     = {10.1109/TMLCN.2024.3420268}
+}
+
+@article{zangooei2024flexran,
+  author  = {Zangooei, M. and Golkarifard, M. and Rouili, M. and Saha, N. and Boutaba, R.},
+  title   = {Flexible {RAN} Slicing in Open {RAN} With Constrained Multi-Agent Reinforcement Learning},
+  journal = {IEEE J. Sel. Areas Commun.},
+  volume  = {42},
+  number  = {2},
+  pages   = {280--294},
+  year    = {2024},
+  doi     = {10.1109/JSAC.2023.3336156}
+}
+
+@inproceedings{wu2025admissionmarl,
+  author    = {Wu, X. and Farooq, J. and Chen, J.},
+  title     = {Joint Admission Control and Resource Provisioning for {URLLC} Traffic in {O-RAN}: A Constrained Multi-Agent Reinforcement Learning Approach},
+  booktitle = {Proc. IEEE Int. Conf. Commun. (ICC)},
+  pages     = {1426--1431},
+  year      = {2025},
+  doi       = {10.1109/ICC52391.2025.11160834}
+}
+
+@article{wu2025slicewise,
+  author  = {Wu, X. and Wang, Y. and Farooq, J. and Ghazzai, H. and Setti, G.},
+  title   = {{SliceWise}: Traffic-Aware Multi-Agent {RL} with Temporal Encoding for Joint Slice Admission and Resource Orchestration in {O-RAN}},
+  journal = {IEEE Netw. Lett.},
+  volume  = {7},
+  number  = {4},
+  pages   = {323--327},
+  year    = {2025},
+  doi     = {10.1109/LNET.2025.3633686}
+}
+
+@article{lotfi2026sharpmarl,
+  author  = {Lotfi, F. and Rajoli, H. and Afghah, F.},
+  title   = {Task-Specific Sharpness-Aware {O-RAN} Resource Management Using Multi-Agent Reinforcement Learning},
+  journal = {IEEE Trans. Mach. Learn. Commun. Netw.},
+  volume  = {4},
+  pages   = {98--114},
+  year    = {2026},
+  doi     = {10.1109/TMLCN.2025.3634994}
+}
+
+@article{phyu2025icecream,
+  author  = {Phyu, H. P. and Naboulsi, D. and Stanica, R.},
+  title   = {{ICE-CREAM}: Multi-Agent Fully Cooperative Decentralized Framework for Energy Efficiency in {RAN} Slicing},
+  journal = {IEEE Trans. Netw. Service Manag.},
+  volume  = {22},
+  number  = {2},
+  pages   = {1859--1873},
+  year    = {2025},
+  doi     = {10.1109/TNSM.2024.3524503}
+}
+
+@article{chen2025matd3,
+  author  = {Chen, G. and Mu, X. and Liang, H. and Zeng, Q. and Zhang, Y.-D.},
+  title   = {Distributed {RAN} Slicing Based on {MATD3} Joint With Evolutionary Game Assisted User Association for {MEC}-Enabled {HetNets}},
+  journal = {IEEE Trans. Wireless Commun.},
+  volume  = {24},
+  number  = {1},
+  pages   = {260--276},
+  year    = {2025},
+  doi     = {10.1109/TWC.2024.3491359}
+}
+
+@article{li2026scalablemarl,
+  author  = {Li, Y. and Wang, H. and Min, G. and Wang, X. and Wang, C.},
+  title   = {A Flexible and Scalable Multi-Agent Learning Framework for Dynamic {RAN} Slicing in {6G} Native-{AI} Networks},
+  journal = {IEEE Trans. Mobile Comput.},
+  volume  = {25},
+  number  = {5},
+  pages   = {7258--7273},
+  year    = {2026},
+  doi     = {10.1109/TMC.2025.3642213}
+}
+
+@article{wang2024madqnvnf,
+  author  = {Wang, W. and Tang, L. and Liu, T. and He, X. and Liang, C. and Chen, Q.},
+  title   = {Toward Reliability-Enhanced, Delay-Guaranteed Dynamic Network Slicing: A Multiagent {DQN} Approach With an Action Space Reduction Strategy},
+  journal = {IEEE Internet Things J.},
+  volume  = {11},
+  number  = {6},
+  pages   = {9282--9297},
+  year    = {2024},
+  doi     = {10.1109/JIOT.2023.3323817}
+}
+
+@article{amiri2024fedvnf,
+  author  = {Amiri, E. and Wang, N. and Shojafar, M. and Tafazolli, R.},
+  title   = {Edge-{AI} Empowered Dynamic {VNF} Splitting in {O-RAN} Slicing: A Federated {DRL} Approach},
+  journal = {IEEE Commun. Lett.},
+  volume  = {28},
+  number  = {2},
+  pages   = {318--322},
+  year    = {2024},
+  doi     = {10.1109/LCOMM.2023.3341302}
+}
+
+@article{ming2024fedmobility,
+  author  = {Ming, Z. and Yu, H. and Taleb, T.},
+  title   = {Federated Deep Reinforcement Learning for Prediction-Based Network Slice Mobility in {6G} Mobile Networks},
+  journal = {IEEE Trans. Mobile Comput.},
+  volume  = {23},
+  number  = {12},
+  pages   = {11937--11953},
+  year    = {2024},
+  doi     = {10.1109/TMC.2024.3404125}
+}
+
+@article{kwantwi2025pfl,
+  author  = {Kwantwi, T. and Sun, G. and Kuadey, N. A. E. and Maale, G. T. and Liu, G.},
+  title   = {Personalized Federated Learning for Intelligent Slice-Based Task Offloading and Slice Resource Allocation in Sliced {B5G} {MEC}-Enabled Network},
+  journal = {IEEE Internet Things J.},
+  volume  = {12},
+  number  = {23},
+  pages   = {49992--50011},
+  year    = {2025},
+  doi     = {10.1109/JIOT.2025.3610269}
+}
+
+@article{abdisarabshali2026elasticfl,
+  author  = {Abdisarabshali, P. and Accurso, N. and Malandra, F. and Su, W. and Hosseinalipour, S.},
+  title   = {Elastic Federated Learning Over Open Radio Access Network ({O-RAN}) for Concurrent Execution of Multiple Distributed Learning Tasks},
+  journal = {IEEE Internet Things Mag.},
+  volume  = {9},
+  number  = {2},
+  pages   = {124--133},
+  year    = {2026},
+  doi     = {10.1109/MIOT.2025.3625904}
+}
+
+@inproceedings{gong2024dqnfl,
+  author    = {Gong, S. and Yang, H. and Yu, T. and Yao, Q. and Liu, W. and Zhang, J.},
+  title     = {High-Efficient Resource Allocation Based on Deep {Q}-Network Enhanced Federated Learning in Slicing Packet Network for {5G} {ToB} Service},
+  booktitle = {Proc. IEEE Int. Conf. Adv. Infocomm Technol. (ICAIT)},
+  pages     = {68--71},
+  year      = {2024},
+  doi       = {10.1109/ICAIT62580.2024.10808124}
+}
+
+@article{koursioumpas2024safefl,
+  author  = {Koursioumpas, N. and Magoula, L. and Petropouleas, N. and Thanopoulos, A.-I. and Panagea, T. and Alonistioti, N. and {Gutierrez-Estevez}, M. A. and Khalili, R.},
+  title   = {A Safe Deep Reinforcement Learning Approach for Energy Efficient Federated Learning in Wireless Communication Networks},
+  journal = {IEEE Trans. Green Commun. Netw.},
+  volume  = {8},
+  number  = {4},
+  pages   = {1862--1874},
+  year    = {2024},
+  doi     = {10.1109/TGCN.2024.3372695}
+}
+
+@article{liu2026aoifl,
+  author  = {Liu, X. and Zheng, J. and Zheng, K. and Liu, J. and Taleb, T. and Shiratori, N.},
+  title   = {{AoI} Minimization in Heterogeneous {MEC} Networks: A Federated Learning-Assisted Hybrid {DRL} and Convex Approach},
+  journal = {IEEE Trans. Mobile Comput.},
+  year    = {2026},
+  note    = {early access},
+  doi     = {10.1109/TMC.2026.3674155}
+}
+
+@article{wu2024cefl,
+  author  = {Wu, T. and Qu, Y. and Liu, C. and Dai, H. and Dong, C. and Cao, J.},
+  title   = {Cost-Efficient Federated Learning for Edge Intelligence in Multi-Cell Networks},
+  journal = {IEEE/ACM Trans. Netw.},
+  volume  = {32},
+  number  = {5},
+  pages   = {4472--4487},
+  year    = {2024},
+  doi     = {10.1109/TNET.2024.3423316}
+}

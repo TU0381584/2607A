@@ -1,4 +1,4 @@
-\documentclass[journal]{IEEEtran}
+\documentclass[pdflatex,sn-basic,Numbered]{sn-jnl}% Basic Springer Nature Reference Style, numbered citations (Wireless Personal Communications house style)
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
 \usepackage{booktabs}
@@ -10,108 +10,56 @@
 % fill in or decide -- same convention as paper_conf/main.tex.
 \newcommand{\authorTODO}[1]{\par\noindent\fbox{\parbox{0.95\linewidth}{\textbf{\color{red}TODO(MANOJ):} #1}}\par}
 
+% Plain-text ORCID marker (no Orcidlogo.eps asset shipped with this
+% manuscript) -- overrides the class's graphic-logo default so \orcid{}
+% still produces a clickable link without requiring that file.
+\renewcommand{\orcidlogo}{\textsuperscript{\textcolor{green!50!black}{iD}}}
+
 \begin{document}
 
-\title{Evaluation Integrity in Multi-Agent Slice Admission Control:\\When Compliance Metrics Mask Training Collapse}
+\title[Evaluation Integrity in Multi-Agent Slice Admission Control]{Evaluation Integrity in Multi-Agent Slice Admission Control: When Compliance Metrics Mask Training Collapse}
 
-\author{Manoj~Prasad~Kunasegran, Wai~Leong~Pang,~\IEEEmembership{Corresponding~author,} and Swee~King~Phang
-\thanks{All authors are with the School of Engineering, Taylor's University, Subang Jaya, Malaysia. M.~P.~Kunasegran: orcid.org/0009-0005-3169-1873. W.~L.~Pang (corresponding author, e-mail: TODO@taylors.edu.my): orcid.org/0000-0001-8407-5648. S.~K.~Phang: orcid.org/0000-0002-7877-8766.}}
+\author[1]{\fnm{Manoj Prasad} \sur{Kunasegran}\orcid{https://orcid.org/0009-0005-3169-1873}}\nomail
+
+\author*[1]{\fnm{Wai Leong} \sur{Pang}\orcid{https://orcid.org/0000-0001-8407-5648}}\email{TODO@taylors.edu.my}
+
+\author[1]{\fnm{Swee King} \sur{Phang}\orcid{https://orcid.org/0000-0002-7877-8766}}\nomail
+
+\affil*[1]{\orgdiv{School of Engineering}, \orgname{Taylor's University}, \orgaddress{\city{Subang Jaya}, \country{Malaysia}}}
+
+\abstract{Reinforcement-learning-based slice admission control is
+normally evaluated by whether each decision keeps its slice inside its
+Service Level Agreement (SLA) margin. We show this can fail outright:
+on a real Open RAN admission surface, an episode-level SLA-compliance
+metric scored a degenerate, always-accept policy no worse than
+genuinely differentiated decision-making, because blocking a
+low-priority slice under congestion -- the reward-optimal action --
+costs compliance without ever recovering it. We introduce a
+correctness-aware metric pair (mean reward per step and block
+precision) that exposes this gap, plus a
+reproduction-versus-replication discipline that catches a second,
+independent class of evaluation error. GAT-CTDE, a
+centralised-training, decentralised-execution multi-agent architecture
+with a shared Graph Attention encoder, serves as the evaluation
+substrate rather than the headline result. An unnormalised encoder
+collapsed to a trivial always-accept policy on all 30 seeds, invisibly
+to the compliance metric; two fixes reduced this to 9 of 30 seeds. On
+the correctness-aware metric, GAT-CTDE decisively beats an
+independent-DQN ablation but shows only a modest, non-decisive edge
+over a single-agent baseline. Federating the architecture costs
+nothing measurable, while differential privacy shows a real precision
+threshold masked by the compliance metric's non-monotonic curve. Under
+mid-episode disruption, dropout and agent churn threshold sharply with
+severity while demand spikes do not; independent-seed replication
+retracts one overclaim same-seed reproduction missed. Scaling from 3
+to 19 gNBs, GAT-CTDE's collapse rate converges to roughly 35\% across
+five independent seed samples. A live single-gNB anchor confirms
+decision-logic transfer while its SLA-margin metric diverges from
+offline results by orders of magnitude.}
+
+\keywords{Network Slicing, Slice Admission Control, Multi-Agent Reinforcement Learning, Graph Attention Networks, Federated Learning, Open RAN}
 
 \maketitle
-
-\begin{abstract}
-Reinforcement-learning-based slice admission control is normally
-evaluated by whether each decision keeps its slice inside its Service
-Level Agreement (SLA) margin. We show this assumption can fail
-outright in a realistic contention regime, on a real Open RAN (O-RAN)
-ratio-ceiling admission-control surface extended from the live,
-single-gNB deployment validated in our prior work to a coordinated
-multi-gNB cluster: an episode-level SLA-compliance metric scored a
-degenerate, always-accept policy no worse than genuinely
-differentiated decision-making, because blocking a low-priority slice
-under congestion -- the reward-optimal action -- costs compliance
-without ever recovering it once a stress episode is underway. The
-metric could not tell a training collapse from correct behaviour. This
-evaluation-integrity failure mode, a correctness-aware metric pair
-(mean reward per step and block precision, both derived from data
-every arm already logs) that exposes it, and a reproduction-versus-
-replication discipline that catches a second, independent class of
-evaluation error, are this paper's central contributions. We build the
-evidence on GAT-CTDE, a centralised-training, decentralised-execution
-multi-agent architecture (a shared Graph Attention Network encoder
-over the gNB topology feeding per-slice Q-heads) that we use as a
-\emph{substrate} for the evaluation study, evaluated against an
-independent per-gNB DQN ablation and a flattened-state single-agent
-DQN baseline over a 30-seed offline stress-regime campaign -- the
-architecture is the vehicle through which the metric failure and its
-fix are demonstrated, not the paper's headline result. Our initial GAT
-encoder, lacking any normalisation, collapsed to a trivial ``accept
-every request'' policy on all 30 seeds, invisibly to the compliance
-metric; two encoder fixes -- per-layer LayerNorm, then per-slice
-Q-heads that isolate each slice's gradient signal -- reduce the
-collapse rate from 30/30 to 9/30 seeds, a residual-reliability gap we
-report rather than paper over. On the correctness-aware metric, GAT-
-CTDE decisively beats the independent-DQN ablation that isolates the
-same GAT/centralised-training contribution (+1.461, 95\% CI [0.550,
-2.782], Wilcoxon $p<0.0001$, 27 wins / 0 ties / 3 losses), but its
-advantage over our existing single-agent baseline is small and not
-statistically decisive at this sample size (+0.195, 95\% CI
-[$-$0.017, 0.442], Wilcoxon $p=0.0577$, 20 wins / 3 ties / 7 losses out
-of 30 seeds) -- a more modest architectural finding than we originally
-reported, corrected after catching a second data-integrity bug with
-the same discipline the collapse diagnosis required
-(Section~\ref{sec:collapse}), and reported honestly as modest rather
-than inflated to fit a headline-architecture narrative. Extending to a
-federated variant with DP-SGD-style privacy, we find federating the
-architecture costs nothing measurable in reward at this sample size
-(+0.133, $p=0.8125$), while differential privacy shows a real
-threshold effect on block precision -- perfect targeting through noise
-multiplier $\sigma=1.0$, dropping sharply by $\sigma=4.0$ -- rather
-than the compliance metric's misleading, non-monotonic curve at the
-same noise levels: a second, independent instance of the same
-evaluation-integrity failure this paper's central contribution
-targets. Evaluating the same frozen policies under mid-episode gNB
-dropout, demand spikes, and agent churn, dropout and churn both
-produce a real, accelerating cost with severity across every arm,
-while demand spikes do not threshold at all on block precision, a
-genuinely different failure mode. Finally, we cross-check every result
-in this paper against an independent seed sample, not only the same
-seeds reproduced again -- the reproduction-versus-replication
-discipline this paper argues evaluation practice needs -- and report
-one finding this caught: an initial reading that independent-per-gNB
-DQN is architecturally immune to agent churn did not survive
-replication and is retracted here rather than reported. Extending the
-cluster from 3 to 19 gNBs under ring and hex-grid adjacency, single-
-agent DQN's always-accept collapse becomes total (15/15 eval runs
-across two disjoint seed samples, confirmed at the individual-decision
-level), GAT-CTDE collapses only partially, and independent DQN never
-collapses but never cleanly differentiates either -- a real,
-cluster-size-specific effect distinct from anything at $N=3$.
-GAT-CTDE's own collapse rate initially disagreed sharply between two
-seed samples (31\% vs.\ 78\%); five further independent samples drawn
-specifically to resolve the discrepancy converged on 35.4\%
-[25.5\%, 45.8\%] across 64 seeds, an estimate every one of the later
-samples lands close to while the second sample's 78\% reads as the
-outlier in hindsight -- a caution about trusting any single small
-sample, not just the ones that turn out wrong. Finally, we
-anchor this paper's single-agent baseline against a real OAI testbed:
-its offline-trained differentiated-shedding decisions transfer to live
-traffic unchanged (replicated across two independent runs), while its
-SLA-margin metric diverges from anything offline by orders of
-magnitude -- traced, not left unexplained, to a real backlog regime
-this rig's own prior live data independently corroborates, and
-narrowed from six orders of magnitude to three with a physically-
-grounded, latency-based recalibration. Together these
-results argue that admission-control evaluation in multi-agent,
-privacy-constrained, disruption-prone settings needs metrics tied to
-the actual training objective, not only to a downstream SLA proxy that
-can reward the wrong policy, and that architectural claims need more
-than one seed sample before they are trusted.
-\end{abstract}
-
-\begin{IEEEkeywords}
-5G, Network Slicing, Slice Admission Control, Multi-Agent Reinforcement Learning, Graph Attention Networks, Federated Learning, Differential Privacy, Open RAN
-\end{IEEEkeywords}
 
 \section{Introduction}
 Network slicing lets a single physical radio access network serve
@@ -378,7 +326,7 @@ against.
 \section{Methodology}
 \label{sec:methodology}
 
-\begin{figure*}[t]
+\begin{figure}[t]
 \centering
 \includegraphics[width=0.92\textwidth]{figures/fig1_gat_ctde_fl_architecture.pdf}
 \caption{GAT-CTDE architecture. (a) A shared Graph Attention encoder
@@ -389,7 +337,7 @@ execution). (b) The federated training variant: each gNB is a client
 with a private copy of the same network, synchronised via periodic
 FedAvg with an optional per-client DP-SGD clip-and-noise step.}
 \label{fig:architecture}
-\end{figure*}
+\end{figure}
 
 \subsection{GAT-CTDE: Shared Encoder, Decentralised Q-Heads}
 Fig.~\ref{fig:architecture}(a) shows the architecture. At every
@@ -713,7 +661,7 @@ nonparametric methods.
 \section{Results: Centralised GAT-CTDE Campaign}
 \label{sec:results-m2}
 
-\begin{figure*}[t]
+\begin{figure}[t]
 \centering
 \includegraphics[width=0.92\textwidth]{figures/fig3_m2_campaign.pdf}
 \caption{30-seed campaign, per-seed evidence for mean reward per step,
@@ -730,7 +678,7 @@ without claiming the split predicts reward, since several
 still-collapsed seeds score among the arm's highest (always accepting
 never pays the reject cost).}
 \label{fig:m2-campaign}
-\end{figure*}
+\end{figure}
 
 Table~\ref{tab:m2-results} and Fig.~\ref{fig:m2-campaign} report the
 final, post-fix 30-seed campaign. On \texttt{sla\_compliance\_all\_slices},
@@ -758,7 +706,6 @@ reward edge over the single-agent baseline specifically.
 \caption{M2 campaign results, 30 seeds/arm, 95\% bootstrap CIs.}
 \label{tab:m2-results}
 \centering
-\resizebox{\columnwidth}{!}{%
 \begin{tabular}{lccc}
 \toprule
 Arm & Compliance & Mean reward/step & Block precision \\
@@ -766,15 +713,14 @@ Arm & Compliance & Mean reward/step & Block precision \\
 GAT-CTDE & 0.151 [0.083, 0.225] & \textbf{14.062} [13.91, 14.23] & 0.952 \\
 Indep. DQN & 0.049 [0.013, 0.093] & 12.601 [11.30, 13.49] & 0.901 \\
 Single-agent & 0.115 [0.061, 0.176] & 13.867 [13.69, 14.05] & 0.987 \\
-\bottomrule
-\end{tabular}%
-}
+\botrule
+\end{tabular}
 \end{table}
 
 \section{Results: Federated Training and Differential Privacy}
 \label{sec:results-m3}
 
-\begin{figure*}[t]
+\begin{figure}[t]
 \centering
 \includegraphics[width=0.92\textwidth]{figures/fig4_m3_privacy.pdf}
 \caption{Federated GAT-CTDE, per-seed evidence. (a) Paired per-seed
@@ -790,7 +736,7 @@ along with the seed count that ever blocked anything at each $\sigma$
 (precision is undefined otherwise) -- precision is perfect through
 $\sigma=1.0$ and drops sharply by $\sigma=4.0$.}
 \label{fig:m3-privacy}
-\end{figure*}
+\end{figure}
 
 \subsection{Federation Cost}
 Comparing the centralised GAT-CTDE campaign against the federated
@@ -864,7 +810,7 @@ comparison throughout this section. Fig.~\ref{fig:m4-injection} shows
 exactly where each disruption kind intercepts the per-step control loop
 around the frozen policy.
 
-\begin{figure*}[t]
+\begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/fig5_m4_disruption.pdf}
 \caption{M4 disruption campaign, 10 seeds/arm. (a)-(b) Normalised
@@ -875,9 +821,9 @@ precision vs.\ demand-spike multiplier: flat and near-ceiling for
 every arm, unlike (a)-(b) -- spike does not threshold on the metric
 that matters.}
 \label{fig:m4-disruption}
-\end{figure*}
+\end{figure}
 
-\begin{figure*}[t]
+\begin{figure}[t]
 \centering
 \includegraphics[width=0.92\textwidth]{figures/fig6_m4_disruption_loop.pdf}
 \caption{Where each M4 disruption kind intercepts the frozen policy's
@@ -890,7 +836,7 @@ spike is entirely external to the policy, acting on the arrival process
 the environment synthesises for the following step. All three are
 evaluation-only perturbations -- the policy itself is never updated.}
 \label{fig:m4-injection}
-\end{figure*}
+\end{figure}
 
 \subsection{Dropout and Agent Churn: A Real, Accelerating Threshold Effect}
 Fig.~\ref{fig:m4-disruption}(a)-(b) report the normalised-reward cost at
@@ -998,7 +944,7 @@ Section~\ref{sec:results-m4}-D reports in numbers, here shown as the one
 row that visibly does not track its own sample-to-sample agreement the
 other six rows show.
 
-\begin{figure*}[t]
+\begin{figure}[t]
 \centering
 \includegraphics[width=0.92\textwidth]{figures/fig7_replication_forest.pdf}
 \caption{Every headline paired comparison in this paper, committed
@@ -1009,7 +955,7 @@ window. The bottom row of (b), independent DQN's churn cost, is the one
 comparison whose two samples visibly disagree on more than point-estimate
 noise -- the finding retracted in Section~\ref{sec:results-m4}-D.}
 \label{fig:replication-forest}
-\end{figure*}
+\end{figure}
 
 \subsection{A Formal Cross-Architecture Test}
 Every disruption cost so far compares one arm's disrupted performance
@@ -1462,10 +1408,27 @@ still never crosses the threshold needed to change a single eval-time
 decision, ruling out round length as the limiting factor rather than
 leaving it untested.
 
-\section*{Acknowledgment}
+\backmatter
+
+\bmhead{Acknowledgements}
 \authorTODO{Same acknowledgment text as paper\_conf/main.tex, or updated for this paper -- please fill in.}
 
-\bibliographystyle{IEEEtran}
+\section*{Declarations}
+
+\noindent The following statements should be understood to apply to
+this manuscript unless otherwise indicated.
+
+\begin{itemize}
+\item \textbf{Funding:} \authorTODO{State any funding source (grant number, sponsoring body) or "Not applicable" if this work received no external funding.}
+\item \textbf{Competing interests:} \authorTODO{State whether the authors have any competing interests to declare (financial or non-financial), or "The authors declare no competing interests" if true.}
+\item \textbf{Ethics approval and consent to participate:} Not applicable -- this study involves no human participants, animal subjects, or identifiable patient data; all reported results are either offline simulation campaigns or measurements from a laboratory radio testbed.
+\item \textbf{Consent for publication:} Not applicable -- this manuscript contains no personal data or identifying information about any individual.
+\item \textbf{Data availability:} \authorTODO{State whether the experiment logs, checkpoints, and campaign result files underlying this paper's findings are available, and if so, where.}
+\item \textbf{Materials availability:} Not applicable -- this study involves no physical or biological materials.
+\item \textbf{Code availability:} \authorTODO{State whether the framework and experiment scripts used to produce this paper's results are available, and if so, where.}
+\item \textbf{Author contribution:} \authorTODO{State each author's individual contribution (e.g., conceptualisation, methodology, software, investigation, writing, supervision), per CRediT taxonomy or equivalent.}
+\end{itemize}
+
 \bibliography{refs}
 
 \end{document}
