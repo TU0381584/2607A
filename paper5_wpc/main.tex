@@ -27,35 +27,34 @@
 
 \affil*[1]{\orgdiv{School of Engineering}, \orgname{Taylor's University}, \orgaddress{\city{Subang Jaya}, \country{Malaysia}}}
 
-\abstract{Reinforcement-learning-based slice admission control is
-normally evaluated by whether each decision keeps its slice inside its
-Service Level Agreement (SLA) margin. We show this can fail outright:
-on a real Open RAN admission surface, an episode-level SLA-compliance
-metric scored a degenerate, always-accept policy no worse than
-genuinely differentiated decision-making, because blocking a
-low-priority slice under congestion -- the reward-optimal action --
-costs compliance without ever recovering it. We introduce a
-correctness-aware metric pair (mean reward per step and block
-precision) that exposes this gap, plus a
-reproduction-versus-replication discipline that catches a second,
-independent class of evaluation error. GAT-CTDE, a
-centralised-training, decentralised-execution multi-agent architecture
-with a shared Graph Attention encoder, serves as the evaluation
-substrate rather than the headline result. An unnormalised encoder
-collapsed to a trivial always-accept policy on all 30 seeds, invisibly
-to the compliance metric; two fixes reduced this to 9 of 30 seeds. On
-the correctness-aware metric, GAT-CTDE decisively beats an
-independent-DQN ablation but shows only a modest, non-decisive edge
-over a single-agent baseline. Federating the architecture costs
-nothing measurable, while differential privacy shows a real precision
-threshold masked by the compliance metric's non-monotonic curve. Under
-mid-episode disruption, dropout and agent churn threshold sharply with
-severity while demand spikes do not; independent-seed replication
-retracts one overclaim same-seed reproduction missed. Scaling from 3
-to 19 gNBs, GAT-CTDE's collapse rate converges to roughly 35\% across
-five independent seed samples. A live single-gNB anchor confirms
-decision-logic transfer while its SLA-margin metric diverges from
-offline results by orders of magnitude.}
+\abstract{Coordinating slice admission decisions across multiple gNBs
+is a genuinely multi-agent problem: does a shared, graph-structured
+cluster representation help per-gNB agents make better joint decisions
+than a single agent or independent learners? We study this with
+GAT-CTDE, a centralised-training, decentralised-execution architecture
+built on a shared Graph Attention encoder feeding decentralised
+per-slice Q-heads, extended to federated training with differential
+privacy and evaluated under mid-episode disruption. Scaled from 3 to
+19 gNBs, GAT-CTDE resists a training collapse that becomes total for a
+flattened-state single-agent baseline, converging, across 64
+independently-drawn seeds, on a residual 35.4\% [25.5\%, 45.8\%]
+collapse rate. Federating the architecture costs nothing measurable in
+reward, and differential privacy degrades decision precision only past
+a real noise threshold. Under gNB dropout, demand spikes, and agent
+churn, its disruption cost accelerates with severity like every arm
+tested, with a coordination-specific penalty only at the mildest
+severity. On the metric that reflects the actual training objective,
+GAT-CTDE decisively beats an independent-learner ablation, though its
+edge over the single-agent baseline remains small and not statistically
+decisive at this sample size -- an honest limit we report rather than
+obscure. These results were made trustworthy, not just favourable, by
+two safeguards this paper also contributes: a correctness-aware metric
+pair that caught a real training collapse the standard SLA-compliance
+metric scored no worse than correct behaviour, and a
+reproduction-versus-replication discipline that caught and retracted
+one architectural overclaim under disruption before publication. A
+live single-gNB anchor confirms the architecture's decision logic
+transfers to real traffic unchanged.}
 
 \keywords{Network Slicing, Slice Admission Control, Multi-Agent Reinforcement Learning, Graph Attention Networks, Federated Learning, Open RAN}
 
@@ -78,35 +77,49 @@ cluster's state help a set of per-gNB agents make better joint
 decisions than a single agent using the flattened joint state, or
 independent per-gNB agents with no shared representation at all?
 
-This paper's contribution is evaluation integrity, not architecture.
-First, we identify an evaluation-integrity failure mode specific to
-stress-regime admission control: the standard episode-level
-SLA-compliance metric can score a degenerate, always-accept policy no
-worse than genuinely differentiated decision-making, because blocking
-a low-priority slice under congestion -- the reward-optimal action --
-costs compliance without ever recovering it once a stress episode is
-underway. Second, we introduce a correctness-aware metric pair (mean
-reward per step and block precision, both computed from data every run
-already logs) that exposes this gap, and use it to diagnose and fix a
-real training collapse: two encoder fixes reduce the collapse rate
-from 30/30 to 9/30 seeds, a residual reliability gap we report rather
-than hide. Third, we establish a reproduction-versus-replication
-discipline -- checking every headline result against an independent
-seed sample, not only reproducing the same seeds -- and show it
-catches a second, distinct class of evaluation error: a real
-architectural overclaim under mid-episode disruption that read as
-confirmed on one seed sample and was retracted once a disjoint sample
-contradicted it. Fourth, we build the empirical substrate all three of
-the above are demonstrated on: GAT-CTDE, a centralised-training,
-decentralised-execution multi-agent architecture (a Graph Attention
-Network~\cite{gat} encoder over the gNB topology feeding decentralised
-per-slice Q-heads), extended to federated training with differential
-privacy, evaluated under mid-episode gNB dropout, demand spikes, and
-agent churn, scaled to cluster sizes $N \in \{7, 19\}$ under ring and
-hex-grid adjacency, and finally anchored against a real, single-gNB
-OAI testbed. The architecture is deliberately not this paper's
-headline: it is the vehicle that makes the metric failure, its fix,
-and the reproduction-replication gap concrete and measurable.
+This paper's contribution is GAT-CTDE, a centralised-training,
+decentralised-execution multi-agent architecture built on a shared
+Graph Attention Network~\cite{gat} encoder over the gNB topology
+feeding decentralised per-slice Q-heads, and the evidence for how it
+scales, coordinates, and degrades under realistic operating
+conditions. Extended to federated training with differential privacy
+and evaluated under mid-episode gNB dropout, demand spikes, and agent
+churn, we scale the architecture to cluster sizes $N \in \{7, 19\}$
+under ring and hex-grid adjacency and find it resists a training
+collapse that becomes total for a flattened-state single-agent
+baseline, converging on a residual 35.4\% collapse rate across 64
+independently-drawn seeds rather than either of two disagreeing
+small-sample estimates. On the metric that reflects the actual
+training objective, the architecture decisively beats an
+independent-learner ablation that isolates the same coordination
+contribution, though its edge over the single-agent baseline
+specifically is small and not statistically decisive at this sample
+size -- an honest limit we report rather than smooth over to fit a
+cleaner architecture story. Federating the architecture costs nothing
+measurable in reward, and differential privacy degrades decision
+precision only past a real threshold rather than a smooth trade-off;
+under disruption, its cost accelerates with severity like every arm
+tested, with a coordination-specific penalty at only the mildest
+severity tested.
+
+Reporting these results honestly required two methodological
+safeguards we also contribute, since neither is standard practice in
+this literature. First, the standard episode-level SLA-compliance
+metric can score a degenerate, always-accept policy no worse than
+genuinely differentiated decision-making, because blocking a
+low-priority slice under congestion -- the reward-optimal action --
+costs compliance without ever recovering it; we introduce a
+correctness-aware metric pair (mean reward per step and block
+precision, both computed from data every run already logs) that
+exposes this gap, and use it to diagnose and fix a real training
+collapse our first encoder suffered on all 30 campaign seeds. Second,
+we establish a reproduction-versus-replication discipline -- checking
+every headline result against an independent seed sample, not only
+reproducing the same seeds -- which caught and retracted a real
+architectural overclaim under mid-episode disruption before it could
+be reported as a finding. We finally anchor the architecture's
+single-gNB baseline against a real OAI testbed, confirming its
+offline-trained decision logic transfers to live traffic unchanged.
 
 \section{Related Work}
 \label{sec:litreview}
@@ -879,7 +892,9 @@ trusted.
 \backmatter
 
 \bmhead{Acknowledgements}
-\authorTODO{Same acknowledgment text as paper\_conf/main.tex, or updated for this paper -- please fill in.}
+This work was supported by the Fundamental Research Grant Scheme
+(FRGS) of the Ministry of Higher Education (MOHE), Malaysia, under
+grant FRGS/1/2024/ICT06/TAYLOR/02/1.
 
 \section*{Declarations}
 
@@ -887,7 +902,7 @@ trusted.
 this manuscript unless otherwise indicated.
 
 \begin{itemize}
-\item \textbf{Funding:} \authorTODO{State any funding source (grant number, sponsoring body) or "Not applicable" if this work received no external funding.}
+\item \textbf{Funding:} This work was supported by the Fundamental Research Grant Scheme (FRGS), Ministry of Higher Education (MOHE), Malaysia, under grant number FRGS/1/2024/ICT06/TAYLOR/02/1.
 \item \textbf{Competing interests:} \authorTODO{State whether the authors have any competing interests to declare (financial or non-financial), or "The authors declare no competing interests" if true.}
 \item \textbf{Ethics approval and consent to participate:} Not applicable -- this study involves no human participants, animal subjects, or identifiable patient data; all reported results are either offline simulation campaigns or measurements from a laboratory radio testbed.
 \item \textbf{Consent for publication:} Not applicable -- this manuscript contains no personal data or identifying information about any individual.

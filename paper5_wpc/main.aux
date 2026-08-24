@@ -6,8 +6,8 @@
 \Newlabel{1}{1}
 \citation{mecon-paper1,icraie-paper2}
 \citation{gat}
-\citation{ref:access}
 \@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{2}{section.1}\protected@file@percent }
+\citation{ref:access}
 \citation{shao2021gatmarl}
 \citation{ahmadi2024generalizable}
 \citation{sulaiman2023coordinated}
@@ -24,16 +24,16 @@
 \@writefile{toc}{\contentsline {section}{\numberline {4}GAT-CTDE Method}{4}{section.4}\protected@file@percent }
 \newlabel{sec:methodology}{{4}{4}{GAT-CTDE Method}{section.4}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Shared Encoder, Decentralised Q-Heads}{4}{subsection.4.1}\protected@file@percent }
-\newlabel{sec:methodology-perslice}{{4.1}{4}{Shared Encoder, Decentralised Q-Heads}{subsection.4.1}{}}
 \citation{fedavg}
 \citation{fedprox}
 \@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces GAT-CTDE architecture. (a) A shared Graph Attention encoder over the fully-connected 3-gNB topology produces one embedding per node; per-slice Q-heads, each with its own parameters, consume that node's own embedding row at action-selection time (decentralised execution). (b) The federated training variant: each gNB is a client with a private copy of the same network, synchronised via periodic FedAvg with an optional per-client DP-SGD clip-and-noise step.}}{5}{figure.1}\protected@file@percent }
 \newlabel{fig:architecture}{{1}{5}{GAT-CTDE architecture. (a) A shared Graph Attention encoder over the fully-connected 3-gNB topology produces one embedding per node; per-slice Q-heads, each with its own parameters, consume that node's own embedding row at action-selection time (decentralised execution). (b) The federated training variant: each gNB is a client with a private copy of the same network, synchronised via periodic FedAvg with an optional per-client DP-SGD clip-and-noise step}{figure.1}{}}
+\newlabel{sec:methodology-perslice}{{4.1}{5}{Shared Encoder, Decentralised Q-Heads}{subsection.4.1}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Federated Training with Differential Privacy}{5}{subsection.4.2}\protected@file@percent }
-\citation{dpsgd}
-\citation{zcdp}
 \@writefile{loa}{\contentsline {algorithm}{\numberline {1}{\ignorespaces GAT-CTDE: centralised training, decentralised execution}}{6}{algorithm.1}\protected@file@percent }
 \newlabel{alg:gat-ctde}{{1}{6}{Shared Encoder, Decentralised Q-Heads}{algorithm.1}{}}
+\citation{dpsgd}
+\citation{zcdp}
 \citation{dpsgd}
 \citation{fedavg}
 \@writefile{loa}{\contentsline {algorithm}{\numberline {2}{\ignorespaces Federated GAT-CTDE round with DP-SGD}}{7}{algorithm.2}\protected@file@percent }
@@ -42,9 +42,9 @@
 \@writefile{toc}{\contentsline {section}{\numberline {5}Evaluation-Integrity Findings: A Training Collapse, Diagnosed and Fixed}{8}{section.5}\protected@file@percent }
 \newlabel{sec:collapse}{{5}{8}{Evaluation-Integrity Findings: A Training Collapse, Diagnosed and Fixed}{section.5}{}}
 \newlabel{sec:eval-log-bug}{{5}{8}{Evaluation-Integrity Findings: A Training Collapse, Diagnosed and Fixed}{figure.2}{}}
-\newlabel{sec:correctness-metrics}{{5}{8}{Evaluation-Integrity Findings: A Training Collapse, Diagnosed and Fixed}{figure.2}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Fraction of the 30 campaign seeds reaching genuine, correctly-targeted differentiated shedding (mMTC-only blocking under congestion), across the original unnormalised encoder and the two fixes described in Section~\ref {sec:collapse}.}}{9}{figure.2}\protected@file@percent }
 \newlabel{fig:collapse}{{2}{9}{Fraction of the 30 campaign seeds reaching genuine, correctly-targeted differentiated shedding (mMTC-only blocking under congestion), across the original unnormalised encoder and the two fixes described in Section~\ref {sec:collapse}}{figure.2}{}}
+\newlabel{sec:correctness-metrics}{{5}{9}{Evaluation-Integrity Findings: A Training Collapse, Diagnosed and Fixed}{figure.2}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces 30-seed campaign, per-seed evidence for mean reward per step, the correctness-aware metric (Section~\ref {sec:correctness-metrics}). (a) Paired per-seed comparison against single-agent DQN: each line is one seed, coloured by whether GAT-CTDE scored higher (green, 20), tied (grey, 3), or lower (red, 7) than the baseline on that seed -- the same paired unit the Wilcoxon test is computed over, and the source of this figure's borderline $p=0.0577$. (b) Full per-seed distribution for all three arms; GAT-CTDE is split into seeds that learned genuine differentiated shedding (blue, 21) versus seeds still stuck at the always-accept collapse (grey $\times $, 9) -- shown without claiming the split predicts reward, since several still-collapsed seeds score among the arm's highest (always accepting never pays the reject cost).}}{10}{figure.3}\protected@file@percent }
 \newlabel{fig:m2-campaign}{{3}{10}{30-seed campaign, per-seed evidence for mean reward per step, the correctness-aware metric (Section~\ref {sec:correctness-metrics}). (a) Paired per-seed comparison against single-agent DQN: each line is one seed, coloured by whether GAT-CTDE scored higher (green, 20), tied (grey, 3), or lower (red, 7) than the baseline on that seed -- the same paired unit the Wilcoxon test is computed over, and the source of this figure's borderline $p=0.0577$. (b) Full per-seed distribution for all three arms; GAT-CTDE is split into seeds that learned genuine differentiated shedding (blue, 21) versus seeds still stuck at the always-accept collapse (grey $\times $, 9) -- shown without claiming the split predicts reward, since several still-collapsed seeds score among the arm's highest (always accepting never pays the reject cost)}{figure.3}{}}
 \@writefile{toc}{\contentsline {section}{\numberline {6}Multi-gNB Results: Centralised, Federated, and Disruption}{10}{section.6}\protected@file@percent }
