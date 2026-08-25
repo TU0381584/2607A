@@ -17,7 +17,7 @@
 
 \begin{document}
 
-\title[Evaluation Integrity in Multi-Agent Slice Admission Control]{Evaluation Integrity in Multi-Agent Slice Admission Control: When Compliance Metrics Mask Training Collapse}
+\title[GAT-CTDE for Coordinated Multi-gNB Admission Control]{GAT-CTDE: A Graph-Attention Architecture for Coordinated Multi-gNB Slice Admission Control}
 
 \author[1]{\fnm{Manoj Prasad} \sur{Kunasegran}\orcid{https://orcid.org/0009-0005-3169-1873}}\nomail
 
@@ -335,6 +335,15 @@ block anything). Any admission-control evaluation where correct behaviour cannot
 \subsection{Centralised Campaign}
 \label{sec:results-m2}
 
+The $N=3$ fully-connected topology used throughout this campaign is
+deliberately the setting where a shared graph-attention encoder has
+the least topology to exploit, since adjacency across three gNBs is
+close to trivial at full connectivity. This makes it a clean substrate
+for the evaluation-integrity findings that follow, uncomplicated by
+any topology effect; the encoder's coordination advantage is put to a
+genuine test only once the cluster scales to $N=19$ under sparser
+adjacency in Section~\ref{sec:results-m6}.
+
 Table~\ref{tab:m2-results} and Fig.~\ref{fig:multi-gnb-results}(a)-(b) report the
 final, post-fix 30-seed campaign. On \texttt{sla\_compliance\_all\_slices},
 GAT-CTDE's mean is 0.151, below its own pre-fix number (0.353) since
@@ -346,13 +355,17 @@ the metric penalises newly-correct mMTC-blocking decisions, and the paired compa
 \centering
 \begin{tabular}{lccc}
 \toprule
-Arm & Compliance & Mean reward/step & Block precision \\
+Arm & Mean reward/step & Block precision & Compliance$^{\ast}$ \\
 \midrule
-GAT-CTDE & 0.151 [0.083, 0.225] & \textbf{14.062} [13.91, 14.23] & 0.952 \\
-Indep. DQN & 0.049 [0.013, 0.093] & 12.601 [11.30, 13.49] & 0.901 \\
-Single-agent & 0.115 [0.061, 0.176] & 13.867 [13.69, 14.05] & 0.987 \\
+GAT-CTDE & \textbf{14.062} [13.91, 14.23] & 0.952 & 0.151 [0.083, 0.225] \\
+Indep. DQN & 12.601 [11.30, 13.49] & 0.901 & 0.049 [0.013, 0.093] \\
+Single-agent & 13.867 [13.69, 14.05] & 0.987 & 0.115 [0.061, 0.176] \\
 \botrule
 \end{tabular}
+\begin{tablenotes}
+\footnotesize
+\item[$\ast$] Low compliance is the metric artifact Section~\ref{sec:collapse} explains, not a performance failure.
+\end{tablenotes}
 \end{table}
 
 \begin{table}[t]
