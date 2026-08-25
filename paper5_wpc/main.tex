@@ -169,10 +169,10 @@ gNB. Centralisation comes from this encoder, since its parameters are updated by
 
 \label{sec:methodology-perslice}
 An early version fed each embedding, concatenated with a one-hot slice
-context, into a single shared Q-head MLP. Under this design, mmTC's
+context, into a single shared Q-head MLP. Under this design, mMTC's
 true reward-optimal margin under congestion is small by the reward's
 own calibration, while URLLC's much larger priority weight produces
-proportionally larger gradients; because all three slices update the \emph{same} shared parameters, URLLC's abundant, large-magnitude gradients overwrite mmTC's much smaller true signal before it registers. This is a standard shared-parameter/class-imbalance failure mode.
+proportionally larger gradients; because all three slices update the \emph{same} shared parameters, URLLC's abundant, large-magnitude gradients overwrite mMTC's much smaller true signal before it registers. This is a standard shared-parameter/class-imbalance failure mode.
 We replace the single shared head with \emph{one small MLP per slice}, selected by the context one-hot where the head is applied (Fig.~\ref{fig:architecture}(a)). Each slice's decision boundary now has its own parameters, so one slice's gradients can no longer directly overwrite another's.
 
 Algorithm~\ref{alg:gat-ctde} states the training loop, in which the encoder is updated from every request in a sampled minibatch regardless of gNB or slice (centralised training), while action selection at rollout time consults only the acting agent's own embedding row (decentralised execution). Every pending request in a step is its own independent
@@ -269,10 +269,20 @@ Wilcoxon signed-rank test.
 
 \section{Evaluation-Integrity Findings: A Training Collapse, Diagnosed and Fixed}
 \label{sec:collapse}
+This section diagnoses a training collapse that a standard
+SLA-compliance metric could not detect on its own. We rely throughout
+on two correctness-aware metrics computed from data every run already
+logs: mean reward per step, the actual training objective, and block
+precision, the fraction of blocked requests that correctly target the
+slice the reward calibration makes reject-optimal.
+Section~\ref{sec:correctness-metrics} below states why these are
+necessary in full; here they let us tell a genuine training failure
+apart from a legitimate one.
+
 While generating a privacy-utility sweep for the federated variant
 (Section~\ref{sec:results-m3}), noise levels that should have produced
 genuinely different, stochastically-trained checkpoints instead
-produced bit-identical per-seed evaluation compliance. Tracing this back, we found that our first GAT-CTDE encoder's eval policy blocked zero requests across every evaluation episode, on all 30 campaign seeds. An always-accept policy is a functional no-op, so any two checkpoints that reach it produce identical trajectories regardless of their internal weights. We confirmed, rather than assumed, that this was a genuine failure and not a legitimate optimum. A direct Q-value probe on the collapsed checkpoint showed $Q(\text{accept}) - Q(\text{reject})$ positive and large for every slice, including mmTC, while the independent-DQN ablation (Section~\ref{sec:results-m2}), which sees identical raw features through no encoder at all, does not exhibit this collapse. This isolates the encoder, not the reward or training loop, as the fault.
+produced bit-identical per-seed evaluation compliance. Tracing this back, we found that our first GAT-CTDE encoder's eval policy blocked zero requests across every evaluation episode, on all 30 campaign seeds. An always-accept policy is a functional no-op, so any two checkpoints that reach it produce identical trajectories regardless of their internal weights. We confirmed, rather than assumed, that this was a genuine failure and not a legitimate optimum. A direct Q-value probe on the collapsed checkpoint showed $Q(\text{accept}) - Q(\text{reject})$ positive and large for every slice, including mMTC, while the independent-DQN ablation (Section~\ref{sec:results-m2}), which sees identical raw features through no encoder at all, does not exhibit this collapse. This isolates the encoder, not the reward or training loop, as the fault.
 
 We compared the encoder's own embedding for a synthetic idle state against a congested one on the collapsed checkpoint. The raw input difference has $\ell_2$ norm 2.55 and the resulting embedding difference has norm 19.6, an apparently large, congestion-sensitive response, but the cosine similarity between the two embeddings is 0.99997. This means the encoder was encoding congestion almost entirely as embedding \emph{magnitude}, with no mechanism preventing this and no rotation of direction. Since the downstream Q-head is roughly linear in its input, larger magnitude pushes $Q(\text{accept})$ up faster than $Q(\text{reject})$ as congestion increases, which runs backwards from the reward's intent.
 
@@ -305,10 +315,10 @@ clear its output path before any future run. All numbers in this paper
 reflect that corrected data.
 
 \label{sec:correctness-metrics}
-The fixes above make the architecture more correct while making its \texttt{sla\_compliance\_all\_slices} score \emph{worse} (Section~\ref{sec:results-m2}), because blocking mmTC under congestion, the reward-optimal action, does not recover mmTC's own SLA margin in this stress regime, so every newly-correct decision costs compliance the metric never credits back. We therefore report two further metrics,
+The fixes above make the architecture more correct while making its \texttt{sla\_compliance\_all\_slices} score \emph{worse} (Section~\ref{sec:results-m2}), because blocking mMTC under congestion, the reward-optimal action, does not recover mMTC's own SLA margin in this stress regime, so every newly-correct decision costs compliance the metric never credits back. We therefore report two further metrics,
 both computed from data every arm already logs: \textbf{mean reward
 per step}, the actual training objective; and \textbf{block
-precision}, the fraction of blocked requests that target mmTC
+precision}, the fraction of blocked requests that target mMTC
 specifically, the only slice the reward calibration ever makes
 reject-optimal (undefined, and reported as such, for seeds that never
 block anything). Any admission-control evaluation where correct behaviour cannot recover an already-stressed slice's compliance should report a decision-level correctness metric alongside, not instead of, an outcome-level compliance one. This is the general lesson this specific collapse makes concrete.
@@ -328,7 +338,7 @@ block anything). Any admission-control evaluation where correct behaviour cannot
 Table~\ref{tab:m2-results} and Fig.~\ref{fig:multi-gnb-results}(a)-(b) report the
 final, post-fix 30-seed campaign. On \texttt{sla\_compliance\_all\_slices},
 GAT-CTDE's mean is 0.151, below its own pre-fix number (0.353) since
-the metric penalises newly-correct mmTC-blocking decisions, and the paired comparison against single-agent DQN shows no clear direction, at +0.036 (95\% CI [$-$0.050, 0.126], Wilcoxon $p=0.4549$, 11 wins / 9 ties / 10 losses). On mean reward per step, the metric that reflects the actual objective, GAT-CTDE beats the independent-DQN ablation decisively, by +1.461 (95\% CI [0.550, 2.782], $p<0.0001$, 27/0/3), isolating a real contribution from the shared GAT encoder and centralised training, but its edge over single-agent DQN is small and not statistically decisive at this sample size, at +0.195 (95\% CI [$-$0.017, 0.442], $p=0.0577$, 20/3/7). Its block precision (0.952) is high regardless, since when GAT-CTDE blocks a request, it is almost always the reward-correct slice. 21 of the 30 seeds show genuine, correctly-targeted differentiated shedding, up from 3/30 under the LayerNorm-only fix and 0/30 originally. This is a real, substantial behavioural improvement that does not, at this sample size, translate into a decisive reward edge over the single-agent baseline specifically.
+the metric penalises newly-correct mMTC-blocking decisions, and the paired comparison against single-agent DQN shows no clear direction, at +0.036 (95\% CI [$-$0.050, 0.126], Wilcoxon $p=0.4549$, 11 wins / 9 ties / 10 losses). On mean reward per step, the metric that reflects the actual objective, GAT-CTDE beats the independent-DQN ablation decisively, by +1.461 (95\% CI [0.550, 2.782], $p<0.0001$, 27/0/3), isolating a real contribution from the shared GAT encoder and centralised training, but its edge over single-agent DQN is small and not statistically decisive at this sample size, at +0.195 (95\% CI [$-$0.017, 0.442], $p=0.0577$, 20/3/7). Its block precision (0.952) is high regardless, since when GAT-CTDE blocks a request, it is almost always the reward-correct slice. 21 of the 30 seeds show genuine, correctly-targeted differentiated shedding, up from 3/30 under the LayerNorm-only fix and 0/30 originally. This is a real, substantial behavioural improvement that does not, at this sample size, translate into a decisive reward edge over the single-agent baseline specifically.
 
 \begin{table}[t]
 \caption{M2 campaign results, 30 seeds/arm, 95\% bootstrap CIs.}
@@ -455,7 +465,7 @@ since \texttt{sla\_compliance\_all\_slices} is OR-aggregated across gNBs and tre
 independent-seed replication (1000--1002, disjoint) checks
 generalisation.
 
-At the full 12-seed sample, the paired per-gNB reward-margin comparison at $N=19$ is not significant for any topology (fully-connected $-$0.175 [95\% CI $-$0.528, +0.076], $p=0.7422$; ring $-$0.704 [$-$1.879, +0.042], $p=0.7422$; hex $-$0.695 [$-$1.873, +0.053], $p=0.9102$). This is mechanically explicable, not a red flag, since single-agent DQN's always-accept collapse (below) collects the reward's service term on every request with no rejection cost, while GAT-CTDE pays a real cost every time it correctly rejects mmTC. This
+At the full 12-seed sample, the paired per-gNB reward-margin comparison at $N=19$ is not significant for any topology (fully-connected $-$0.175 [95\% CI $-$0.528, +0.076], $p=0.7422$; ring $-$0.704 [$-$1.879, +0.042], $p=0.7422$; hex $-$0.695 [$-$1.873, +0.053], $p=0.9102$). This is mechanically explicable, not a red flag, since single-agent DQN's always-accept collapse (below) collects the reward's service term on every request with no rejection cost, while GAT-CTDE pays a real cost every time it correctly rejects mMTC. This
 paper's evidence for GAT-CTDE's advantage at $N=19$ lives in collapse
 resistance and block precision, not the reward-margin metric.
 
@@ -489,7 +499,7 @@ contact with real traffic at all. This rig has one physical gNB, so
 GAT-CTDE's multi-gNB coordination benefit and the federated/DP results
 are architecturally untestable on it; we trained a fresh single-agent-DQN checkpoint dimension-matched to the live evaluation path and ran it against a real OAI gNB, 3 UEs, and real per-slice UDP traffic, twice, once from a leftover backlog state and once from a verified-clean baseline.
 
-Both live runs blocked only mmTC (46/32 and 45/32 requests, zero urllc or eMBB blocks in either), exactly matching this checkpoint's offline block precision of 1.000. The offline-trained differentiated-shedding decision transfers to live traffic essentially unchanged, replicated across two independent runs. Both runs' SLA-margin readings, by contrast, diverged from anything offline produces. eMBB's margin fell from $+1.0$ to $-1{,}002{,}377.5$ within a 10-minute run, recurring to the decimal in the independent second run. This traces to a concrete unit mismatch, not left unexplained, since the margin computation divides a per-slice backlog reading by a fixed calibration constant tuned for the offline environment's synthetic proxy, but live, the identically-named field is wired to the real MAC scheduler's transmit-buffer byte count, a physically real quantity two to three orders of magnitude larger in scale. The policy's own decision-facing
+Both live runs blocked only mMTC (46/32 and 45/32 requests, zero urllc or eMBB blocks in either), exactly matching this checkpoint's offline block precision of 1.000. The offline-trained differentiated-shedding decision transfers to live traffic essentially unchanged, replicated across two independent runs. Both runs' SLA-margin readings, by contrast, diverged from anything offline produces. eMBB's margin fell from $+1.0$ to $-1{,}002{,}377.5$ within a 10-minute run, recurring to the decimal in the independent second run. This traces to a concrete unit mismatch, not left unexplained, since the margin computation divides a per-slice backlog reading by a fixed calibration constant tuned for the offline environment's synthetic proxy, but live, the identically-named field is wired to the real MAC scheduler's transmit-buffer byte count, a physically real quantity two to three orders of magnitude larger in scale. The policy's own decision-facing
 input escapes this (a separate path clips the state-facing backlog
 term before it reaches the network), which is why the policy's
 decisions stayed sensible live even as this diagnostic margin
@@ -550,7 +560,7 @@ this manuscript unless otherwise indicated.
 \item \textbf{Data availability:} The experiment logs, checkpoints, and campaign result files underlying this paper's findings are available from the corresponding author on reasonable request.
 \item \textbf{Materials availability:} Not applicable, since this study involves no physical or biological materials.
 \item \textbf{Code availability:} The framework and experiment scripts used to produce this paper's results are available from the corresponding author on reasonable request.
-\item \textbf{Author contribution:} \authorTODO{State each author's individual contribution (e.g., conceptualisation, methodology, software, investigation, writing, supervision), per CRediT taxonomy or equivalent.}
+\item \textbf{Author contribution:} M.\ P.\ Kunasegran: conceptualisation, methodology, software, investigation, writing (original draft). W.\ L.\ Pang: supervision, writing (review and editing). S.\ K.\ Phang: supervision, writing (review and editing).
 \end{itemize}
 
 \bibliography{refs}
