@@ -1,20 +1,26 @@
 #!/usr/bin/env python3
-"""Combined multi-gNB results figure for the WPC-scoped copy (paper5_wpc/)
-only -- merges the centralised M2 campaign (paper5_fig3_m2_campaign.py's
-two panels) and the federated/DP M3 sweep (paper5_fig4_m3_privacy.py's
-two panels) into one 2x2 figure, per M20's "one combined multi-gNB
-results figure" instruction. Content is untouched from the two source
-scripts -- same data, same statistics, same per-arm styling -- only the
-layout is merged and in-figure titles are dropped to bare (a)-(d) tags
-(the LaTeX caption carries the description, matching the rest of the
-WPC copy's figures). Does not touch paper5/'s existing fig3/fig4 PDFs
-or their generating scripts.
+"""Multi-gNB results figures for the WPC-scoped copy (paper5_wpc/) only --
+the centralised M2 campaign (paper5_fig3_m2_campaign.py's two panels)
+and the federated/DP M3 sweep (paper5_fig4_m3_privacy.py's two panels),
+each as its own single-row 2-panel figure. Originally merged into one
+2x2 figure per M20's "one combined multi-gNB results figure"
+instruction; split back into two per M23's single-column legibility
+pass, since a 2x2 grid is too cramped to read at Springer's
+single-column width. Content is untouched from the two source scripts
+-- same data, same statistics, same per-arm styling -- only the layout
+changed and in-figure titles stay bare (a)/(b) tags (the LaTeX caption
+carries the description, matching the rest of the WPC copy's figures).
+Does not touch paper5/'s existing fig3/fig4 PDFs or their generating
+scripts.
 
-(a) M2: paired per-seed comparison, single-agent DQN -> GAT-CTDE.
-(b) M2: per-seed reward distribution, all three arms, GAT-CTDE split by
+Figure 1 (M2, --out-m2):
+(a) Paired per-seed comparison, single-agent DQN -> GAT-CTDE.
+(b) Per-seed reward distribution, all three arms, GAT-CTDE split by
     collapse status.
-(c) M3: paired per-seed federation cost, centralised -> federated (no DP).
-(d) M3: privacy-utility curve, block precision vs. DP noise multiplier.
+
+Figure 2 (M3, --out-m3):
+(a) Paired per-seed federation cost, centralised -> federated (no DP).
+(b) Privacy-utility curve, block precision vs. DP noise multiplier.
 
 Usage:
     python3 experiments/plots/paper5_fig_multi_gnb_combined.py \
@@ -22,7 +28,8 @@ Usage:
         --m2-campaign-dir experiments/results/m2_campaign \
         --m3-results experiments/results/m3_campaign/campaign_results.json \
         --m3-campaign-dir experiments/results/m3_campaign \
-        --out paper5_wpc/figures/fig3_multi_gnb_results
+        --out-m2 paper5_wpc/figures/fig3_m2_results \
+        --out-m3 paper5_wpc/figures/fig4_m3_privacy
 """
 import argparse
 import json
@@ -46,7 +53,8 @@ def main() -> None:
     ap.add_argument("--m2-campaign-dir", default="experiments/results/m2_campaign")
     ap.add_argument("--m3-results", default="experiments/results/m3_campaign/campaign_results.json")
     ap.add_argument("--m3-campaign-dir", default="experiments/results/m3_campaign")
-    ap.add_argument("--out", default="paper5_wpc/figures/fig3_multi_gnb_results")
+    ap.add_argument("--out-m2", default="paper5_wpc/figures/fig3_m2_results")
+    ap.add_argument("--out-m3", default="paper5_wpc/figures/fig4_m3_privacy")
     args = ap.parse_args()
 
     # ---- load M2 ----
@@ -88,7 +96,8 @@ def main() -> None:
                 precisions.append(mmtc_b / total_b)
         precision_by_sigma[sigma] = precisions
 
-    fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(7.16, 6.1))
+    # ==================== Figure 1: M2 ====================
+    fig1, (ax1, ax2) = plt.subplots(1, 2, figsize=(7.16, 3.05))
 
     # ---- (a) M2 paired slope: single_agent_dqn -> gat_ctde ----
     single, gat = reward_by_arm["single_agent_dqn"], reward_by_arm["gat_ctde"]
@@ -145,10 +154,23 @@ def main() -> None:
     handles2, labels2 = ax2.get_legend_handles_labels()
     handles2.append(Line2D([0], [0], marker="D", color="#0b0b0b", linestyle="none", markersize=5, label="Mean $\\pm$ 95% CI"))
     labels2.append("Mean $\\pm$ 95% CI")
-    ax2.legend(handles2, labels2, loc="upper center", bbox_to_anchor=(0.5, -0.18),
-               ncol=2, frameon=False, fontsize=6, handlelength=1.3)
+    ax2.legend(handles2, labels2, loc="lower center", bbox_to_anchor=(0.5, -0.62),
+               ncol=1, frameon=False, fontsize=6, handlelength=1.3)
 
-    # ---- (c) M3 paired slope: centralised -> federated/no-DP ----
+    fig1.subplots_adjust(bottom=0.34, wspace=0.32)
+
+    out_m2 = Path(args.out_m2)
+    out_m2.parent.mkdir(parents=True, exist_ok=True)
+    fig1.savefig(out_m2.with_suffix(".pdf"), bbox_inches="tight")
+    fig1.savefig(out_m2.with_suffix(".png"), bbox_inches="tight")
+    print(f"[paper5:fig-m2] wrote {out_m2}.pdf / .png")
+    print(f"  (a) paired single_agent_dqn->gat_ctde: mean diff={diff.mean():.3f}, p={p_ab:.4f}, win={n_win} tie={n_tie} lose={n_lose}")
+    print(f"  (b) gat_ctde differentiated={n_diff}, still collapsed={n_collapsed}")
+
+    # ==================== Figure 2: M3 ====================
+    fig2, (ax3, ax4) = plt.subplots(1, 2, figsize=(7.16, 3.05))
+
+    # ---- (a) M3 paired slope: centralised -> federated/no-DP ----
     diff_cf = centralized_rewards - fl_no_dp_rewards
     n_cost, n_tie3, n_help = int((diff_cf > 0).sum()), int((diff_cf == 0).sum()), int((diff_cf < 0).sum())
     for c, f in zip(centralized_rewards, fl_no_dp_rewards):
@@ -163,7 +185,7 @@ def main() -> None:
     ax3.set_xticks([0, 1])
     ax3.set_xticklabels(["Centralised\n(GAT-CTDE)", "Federated\n(no DP)"])
     ax3.set_ylabel("Mean reward per step")
-    ax3.set_title("(c)", loc="left")
+    ax3.set_title("(a)", loc="left")
     diff_mean = diff_cf.mean()
     lo, hi = bootstrap_ci(diff_cf)
     _w, p_cf = stats.wilcoxon(centralized_rewards, fl_no_dp_rewards)
@@ -176,7 +198,7 @@ def main() -> None:
         Line2D([0], [0], color=STATUS_COLORS["good"], linestyle="-", linewidth=1.4, label=f"Federation helps reward ({n_help})"),
     ], loc="upper left", frameon=False, handlelength=1.6, fontsize=6)
 
-    # ---- (d) M3 block precision vs sigma ----
+    # ---- (b) M3 block precision vs sigma ----
     rng = np.random.RandomState(0)
     x_cat = np.arange(len(sigma_vals))
     style = M3_STYLE["curve"]
@@ -206,21 +228,19 @@ def main() -> None:
     ax4.set_xlabel("DP noise multiplier $\\sigma$")
     ax4.set_ylabel("Block precision\n(fraction targeting mMTC)")
     ax4.set_ylim(-0.05, 1.08)
-    ax4.set_title("(d)", loc="left")
+    ax4.set_title("(b)", loc="left")
 
-    fig.subplots_adjust(hspace=0.65, wspace=0.32)
+    fig2.subplots_adjust(bottom=0.28, wspace=0.32)
 
-    out_path = Path(args.out)
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(out_path.with_suffix(".pdf"), bbox_inches="tight")
-    fig.savefig(out_path.with_suffix(".png"), bbox_inches="tight")
-    print(f"[paper5:fig-multi-gnb] wrote {out_path}.pdf / .png")
-    print(f"  (a) paired single_agent_dqn->gat_ctde: mean diff={diff.mean():.3f}, p={p_ab:.4f}, win={n_win} tie={n_tie} lose={n_lose}")
-    print(f"  (b) gat_ctde differentiated={n_diff}, still collapsed={n_collapsed}")
-    print(f"  (c) paired centralized-federated: mean diff={diff_mean:.3f}, p={p_cf:.4f}, cost={n_cost} tie={n_tie3} help={n_help}")
+    out_m3 = Path(args.out_m3)
+    out_m3.parent.mkdir(parents=True, exist_ok=True)
+    fig2.savefig(out_m3.with_suffix(".pdf"), bbox_inches="tight")
+    fig2.savefig(out_m3.with_suffix(".png"), bbox_inches="tight")
+    print(f"[paper5:fig-m3] wrote {out_m3}.pdf / .png")
+    print(f"  (a) paired centralized-federated: mean diff={diff_mean:.3f}, p={p_cf:.4f}, cost={n_cost} tie={n_tie3} help={n_help}")
     for sigma, n in zip(sigma_vals, n_seeds):
         p = precision_by_sigma[sigma]
-        print(f"  (d) sigma={sigma}: block_precision mean={np.mean(p) if p else float('nan'):.3f} (n={n})")
+        print(f"  (b) sigma={sigma}: block_precision mean={np.mean(p) if p else float('nan'):.3f} (n={n})")
 
 
 if __name__ == "__main__":

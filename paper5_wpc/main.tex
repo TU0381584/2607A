@@ -10,20 +10,15 @@
 % fill in or decide -- same convention as paper_conf/main.tex.
 \newcommand{\authorTODO}[1]{\par\noindent\fbox{\parbox{0.95\linewidth}{\textbf{\color{red}TODO(MANOJ):} #1}}\par}
 
-% Plain-text ORCID marker (no Orcidlogo.eps asset shipped with this
-% manuscript) -- overrides the class's graphic-logo default so \orcid{}
-% still produces a clickable link without requiring that file.
-\renewcommand{\orcidlogo}{\textsuperscript{\textcolor{green!50!black}{iD}}}
-
 \begin{document}
 
 \title[GAT-CTDE for Coordinated Multi-gNB Admission Control]{GAT-CTDE: A Graph-Attention Architecture for Coordinated Multi-gNB Slice Admission Control}
 
-\author[1]{\fnm{Manoj Prasad} \sur{Kunasegran}\orcid{https://orcid.org/0009-0005-3169-1873}}\nomail
+\author[1]{\fnm{Manoj Prasad} \sur{Kunasegran}}\nomail
 
-\author*[1]{\fnm{Wai Leong} \sur{Pang}\orcid{https://orcid.org/0000-0001-8407-5648}}\email{TODO@taylors.edu.my}
+\author*[1]{\fnm{Wai Leong} \sur{Pang}}\email{TODO@taylors.edu.my}
 
-\author[1]{\fnm{Swee King} \sur{Phang}\orcid{https://orcid.org/0000-0002-7877-8766}}\nomail
+\author[1]{\fnm{Swee King} \sur{Phang}}\nomail
 
 \affil*[1]{\orgdiv{School of Engineering}, \orgname{Taylor's University}, \orgaddress{\city{Subang Jaya}, \country{Malaysia}}}
 
@@ -56,6 +51,13 @@ transfers to real traffic unchanged.}
 \keywords{Network Slicing, Slice Admission Control, Multi-Agent Reinforcement Learning, Graph Attention Networks, Federated Learning, Open RAN}
 
 \maketitle
+
+\noindent\footnotesize
+M.~P.~Kunasegran: orcid.org/0009-0005-3169-1873.
+W.~L.~Pang: orcid.org/0000-0001-8407-5648.
+S.~K.~Phang: orcid.org/0000-0002-7877-8766.
+\normalsize
+\vspace{6pt}
 
 \section{Introduction}
 Network slicing lets a single physical radio access network serve heterogeneous service classes, namely Ultra-Reliable Low-Latency Communication (URLLC), enhanced Mobile Broadband (eMBB), and massive Machine-Type Communication (mMTC), under distinct per-slice Service Level Agreements (SLAs). Our earlier work~\cite{mecon-paper1,icraie-paper2}
@@ -327,9 +329,19 @@ block anything). Any admission-control evaluation where correct behaviour cannot
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\textwidth]{figures/fig3_multi_gnb_results.pdf}
-\caption{Multi-gNB results, per-seed evidence for the correctness-aware metrics (Section~\ref{sec:correctness-metrics}). (a) M2, 30 seeds: paired per-seed comparison against single-agent DQN on mean reward per step. Each line is one seed, coloured by whether GAT-CTDE scored higher (green, 20), tied (grey, 3), or lower (red, 7), the source of this figure's borderline $p=0.0577$. (b) M2: full per-seed reward distribution for all three arms; GAT-CTDE is split into seeds that learned genuine differentiated shedding (blue, 21) versus seeds still stuck at the always-accept collapse (grey $\times$, 9), shown without claiming the split predicts reward, since several still-collapsed seeds score among the arm's highest. (c) M3, same 10 seeds: paired per-seed federation cost on mean reward per step. Centralised scores higher on 2 seeds, federated on 3, 5 ties, no measurable difference (Wilcoxon $p=0.8125$). (d) M3: privacy-utility curve using block precision against the DP noise multiplier $\sigma$, individual seed values (light dots) behind the mean, with the seed count that ever blocked anything at each $\sigma$ printed below (precision is undefined otherwise). Precision is perfect through $\sigma=1.0$, dropping sharply by $\sigma=4.0$.}
-\label{fig:multi-gnb-results}
+\includegraphics[width=\textwidth]{figures/fig3_m2_results.pdf}
+\caption{M2 centralised campaign, per-seed evidence for the
+correctness-aware metrics (Section~\ref{sec:correctness-metrics}). (a)
+Paired per-seed comparison against single-agent DQN on mean reward per
+step. Each line is one seed, coloured by whether GAT-CTDE scored
+higher (green, 20), tied (grey, 3), or lower (red, 7), the source of
+this figure's borderline $p=0.0577$. (b) Full per-seed reward
+distribution for all three arms; GAT-CTDE is split into seeds that
+learned genuine differentiated shedding (blue, 21) versus seeds still
+stuck at the always-accept collapse (grey $\times$, 9), shown without
+claiming the split predicts reward, since several still-collapsed
+seeds score among the arm's highest.}
+\label{fig:m2-results}
 \end{figure}
 
 \subsection{Centralised Campaign}
@@ -344,7 +356,7 @@ any topology effect; the encoder's coordination advantage is put to a
 genuine test only once the cluster scales to $N=19$ under sparser
 adjacency in Section~\ref{sec:results-m6}.
 
-Table~\ref{tab:m2-results} and Fig.~\ref{fig:multi-gnb-results}(a)-(b) report the
+Table~\ref{tab:m2-results} and Fig.~\ref{fig:m2-results} report the
 final, post-fix 30-seed campaign. On \texttt{sla\_compliance\_all\_slices},
 GAT-CTDE's mean is 0.151, below its own pre-fix number (0.353) since
 the metric penalises newly-correct mMTC-blocking decisions, and the paired comparison against single-agent DQN shows no clear direction, at +0.036 (95\% CI [$-$0.050, 0.126], Wilcoxon $p=0.4549$, 11 wins / 9 ties / 10 losses). On mean reward per step, the metric that reflects the actual objective, GAT-CTDE beats the independent-DQN ablation decisively, by +1.461 (95\% CI [0.550, 2.782], $p<0.0001$, 27/0/3), isolating a real contribution from the shared GAT encoder and centralised training, but its edge over single-agent DQN is small and not statistically decisive at this sample size, at +0.195 (95\% CI [$-$0.017, 0.442], $p=0.0577$, 20/3/7). Its block precision (0.952) is high regardless, since when GAT-CTDE blocks a request, it is almost always the reward-correct slice. 21 of the 30 seeds show genuine, correctly-targeted differentiated shedding, up from 3/30 under the LayerNorm-only fix and 0/30 originally. This is a real, substantial behavioural improvement that does not, at this sample size, translate into a decisive reward edge over the single-agent baseline specifically.
@@ -402,7 +414,22 @@ DP noise multiplier sweep $\sigma$ & $\{0, 0.5, 1, 2, 4\}$ \\
 \subsection{Federated Training and Differential Privacy}
 \label{sec:results-m3}
 
-Comparing the centralised campaign against the federated variant with no DP noise, on the same 10 seeds, mean reward per step moves from 14.073 to 13.940, a change of +0.133 (95\% CI [$-$0.138, 0.470], Wilcoxon $p=0.8125$). This is no measurable cost to federating at this sample size, and both arms' block precision is perfect (1.000) on seeds that block anything at all. Sweeping the DP noise multiplier (Fig.~\ref{fig:multi-gnb-results}(d)), block precision is perfect through $\sigma=1.0$ then drops sharply, to 0.834 at $\sigma=2.0$ and 0.584 at $\sigma=4.0$. This is a real threshold, not a smooth degradation, while mean reward per step stays in a comparatively narrow band across the whole sweep (12.45--14.19), since DP noise erodes \emph{which} slice gets blocked, not whether the policy tries to differentiate at all. The compliance-based version of this same sweep (not shown) is non-monotonic with sign flips between adjacent $\sigma$ levels. This is a second instance, independent of Section~\ref{sec:collapse}'s architectural finding, of \texttt{sla\_compliance\_all\_slices} failing to track the quantity we actually care about.
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/fig4_m3_privacy.pdf}
+\caption{M3 federated and differential-privacy sweep, per-seed
+evidence. (a) Paired per-seed federation cost on mean reward per step,
+same 10 seeds. Centralised scores higher on 2 seeds, federated on 3, 5
+ties, no measurable difference (Wilcoxon $p=0.8125$). (b)
+Privacy-utility curve using block precision against the DP noise
+multiplier $\sigma$, individual seed values (light dots) behind the
+mean, with the seed count that ever blocked anything at each $\sigma$
+printed below (precision is undefined otherwise). Precision is perfect
+through $\sigma=1.0$, dropping sharply by $\sigma=4.0$.}
+\label{fig:m3-privacy}
+\end{figure}
+
+Comparing the centralised campaign against the federated variant with no DP noise, on the same 10 seeds, mean reward per step moves from 14.073 to 13.940, a change of +0.133 (95\% CI [$-$0.138, 0.470], Wilcoxon $p=0.8125$). This is no measurable cost to federating at this sample size, and both arms' block precision is perfect (1.000) on seeds that block anything at all. Sweeping the DP noise multiplier (Fig.~\ref{fig:m3-privacy}(b)), block precision is perfect through $\sigma=1.0$ then drops sharply, to 0.834 at $\sigma=2.0$ and 0.584 at $\sigma=4.0$. This is a real threshold, not a smooth degradation, while mean reward per step stays in a comparatively narrow band across the whole sweep (12.45--14.19), since DP noise erodes \emph{which} slice gets blocked, not whether the policy tries to differentiate at all. The compliance-based version of this same sweep (not shown) is non-monotonic with sign flips between adjacent $\sigma$ levels. This is a second instance, independent of Section~\ref{sec:collapse}'s architectural finding, of \texttt{sla\_compliance\_all\_slices} failing to track the quantity we actually care about.
 
 \subsection{Disruption Resilience}
 \label{sec:results-m4}
@@ -421,7 +448,7 @@ quality.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\textwidth]{figures/fig4_m4_disruption.pdf}
+\includegraphics[width=\textwidth]{figures/fig5_m4_disruption.pdf}
 \caption{M4 disruption campaign, 10 seeds/arm. (a)-(b) Normalised reward cost (baseline $-$ disrupted) vs.\ severity for dropout and agent churn. Every arm, every severity, shows a real cost that accelerates with severity rather than growing linearly. (c) Block precision vs.\ demand-spike multiplier: flat and near-ceiling for every arm, unlike (a)-(b), since spike does not threshold on the metric that matters.}
 \label{fig:m4-disruption}
 \end{figure}
@@ -484,8 +511,8 @@ resistance and block precision, not the reward-margin metric.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{figures/fig5_m6_topology.pdf}
-\caption{$N=19$ cluster, per-seed evidence across independent seed samples. (a) Collapse rate (fraction of eval runs with zero blocks), pooled across all three topologies. Single-agent DQN collapses totally in every sample; GAT-CTDE's rate varies sample-to-sample (primary 31\%, replication 78\%, a 49-seed extension targeted specifically at this question 34\%), converging to a combined, seed-level-bootstrapped estimate of 35.4\% [25.5\%, 45.8\%] across all 64 independent seeds (diamond marker, error bar). (b) Block precision by topology, primary sample, non-collapsed seeds only (single-agent DQN has none to show). GAT-CTDE's non-collapsed seeds are mostly near-ceiling but with a low-precision seed at every topology, while independent DQN sits in a narrow, mediocre band, identical across topologies as expected for an arm that never consumes adjacency.}
+\includegraphics[width=\columnwidth]{figures/fig6_m6_topology.pdf}
+\caption{$N=19$ cluster, per-seed evidence across independent seed samples. (a) Collapse rate (fraction of eval runs with zero blocks), pooled across all three topologies. Single-agent DQN collapses totally in every sample; GAT-CTDE's rate varies sample-to-sample (per-sample breakdown in the body text), converging to a combined, seed-level-bootstrapped estimate of 35.4\% [25.5\%, 45.8\%] across all 64 independent seeds (diamond marker, error bar). (b) Block precision by topology, primary sample, non-collapsed seeds only (single-agent DQN has none to show). GAT-CTDE's non-collapsed seeds are mostly near-ceiling but with a low-precision seed at every topology, while independent DQN sits in a narrow, mediocre band, identical across topologies as expected for an arm that never consumes adjacency.}
 \label{fig:m6-topology}
 \end{figure}
 
