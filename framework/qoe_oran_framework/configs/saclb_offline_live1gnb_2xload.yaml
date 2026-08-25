@@ -1,0 +1,107 @@
+# Single-gNB offline training config, 2x arrival load. Identical to
+# saclb_offline_live1gnb.yaml (same topology, same slice roster/sd-mapping,
+# same Lmax=10, same reward weights, same state_dim=13) EXCEPT for the
+# `arrivals` block below.
+#
+# WHY THIS FILE EXISTS: M8's single_agent_dqn seed-900 checkpoint (trained
+# against saclb_offline_live1gnb.yaml, arrivals/step=2) was run live at 3 UEs
+# and again at 6 UEs against the real rig (paper5_wpc/main.tex Sec. 8.1,
+# 20 real episodes each, high-confidence bootstrap CIs). Block precision was
+# 1.000 (mmTC-only) in all 20 episodes at 3 UEs, but the SAME checkpoint
+# blocked nothing in any of the 20 episodes at 6 UEs -- precision undefined,
+# a total collapse to always-accept under doubled real load. That checkpoint
+# was never trained against anything resembling doubled demand: its only
+# offline training condition used arrivals/step=2 throughout.
+#
+# This file doubles the one knob this offline simulator exposes for demand
+# volume -- arrivals.synthetic_arrivals_per_step (2 -> 4) and
+# arrivals.max_pending_per_step (8 -> 16, same 4x ratio to arrivals/step as
+# the base config, so the pending-request buffer doesn't artificially cap
+# the doubled stream) -- as the closest offline analogue of "the same one
+# physical gNB now serving roughly twice the real admission-request volume."
+# prb_capacity and every slice's max_ratio_cap are left untouched: the goal
+# is more requests hitting the same finite capacity, matching what actually
+# changed live (more UEs, same one gNB), not a different capacity ceiling.
+# The 2x step matches this project's own already-established demand-severity
+# convention (docs/PAPER5_M4_disruption.md's demand-spike axis: 2x/4x/8x),
+# not an arbitrarily chosen multiplier.
+#
+# Purpose: retrain single_agent_dqn against this heavier-demand condition and
+# check, offline first, whether exposure to doubled arrival volume during
+# training prevents (or still shows) the always-accept collapse this
+# project's own central finding predicts can happen under undertrained/
+# out-of-distribution load. Reported as measured, either way.
+name: saclb_offline_live1gnb_2xload
+random_seed: 256
+paper_variant: paper2
+B: 100
+Lmax: 10
+
+gnbs:
+  - gnb_id: gnb-0
+    prb_capacity: 100
+
+slices:
+  - slice_id: urllc
+    sst: 1
+    sd: 1
+    nominal_ratio: 3
+    min_ratio_floor: 1
+    max_ratio_cap: 3
+    latency_budget_ms: 15
+    loss_budget_pct: 0.8
+    priority_weight: 12.0
+    accept_reward: 1.0
+    violation_penalty: 10.0
+  - slice_id: embb
+    sst: 1
+    sd: 0
+    nominal_ratio: 3
+    min_ratio_floor: 1
+    max_ratio_cap: 3
+    latency_budget_ms: 45
+    loss_budget_pct: 2.0
+    priority_weight: 3.5
+    accept_reward: 1.0
+    violation_penalty: 5.0
+  - slice_id: mmtc
+    sst: 1
+    sd: 2
+    nominal_ratio: 2
+    min_ratio_floor: 1
+    max_ratio_cap: 2
+    latency_budget_ms: 65
+    loss_budget_pct: 3.5
+    priority_weight: 0.3
+    accept_reward: 1.0
+    violation_penalty: 2.5
+
+reward:
+  congestion_coeff: 1.5
+  lb_coeff: 1.0
+
+arrivals:
+  synthetic_arrivals_per_step: 4  # 2x saclb_offline_live1gnb.yaml
+  max_pending_per_step: 16        # 2x, same ratio to arrivals/step
+  ceiling_step_ratio: 1
+
+episode:
+  step_seconds: 5.0
+  steps_per_episode: 60
+
+qoe:
+  reward:
+    alpha: 1.0
+    beta: 0.2
+    gamma: 0.5
+  lstm_hidden: 32
+  window: 8
+  max_staleness: 20
+  mapper_checkpoint:
+    urllc: qoe_oran_framework/results/qoe_mapper/qoe_mapper_urllc.pt
+    embb: qoe_oran_framework/results/qoe_mapper/qoe_mapper_embb.pt
+    mmtc: qoe_oran_framework/results/qoe_mapper/qoe_mapper_mmtc.pt
+  iqx_coeffs:
+    urllc: {alpha: 5.167748, beta: 9.999999, gamma: 44.904893, delta: 199.999999, epsilon: 0.000000}
+    embb:  {alpha: 3.522951, beta: 0.425081, gamma: 0.000000, delta: 0.000000, epsilon: 199.999999}
+    mmtc:  {alpha: 5.999999, beta: 9.999999, gamma: 0.000000, delta: 7.944624, epsilon: 0.000000}
