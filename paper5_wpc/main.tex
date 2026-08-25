@@ -547,18 +547,18 @@ exploded. Checking 28 seeds of an already-committed prior live campaign on this 
 
 \subsection{Heavier Live Load}
 \label{sec:results-m8-load}
-The anchor above uses 3 UEs. To ask whether its finding holds under heavier live load, we ran the same seed-900 single-agent-DQN checkpoint again with 6 UEs attached (two per slice), real per-slice UDP traffic throughout, same episode length. Fig.~\ref{fig:live-3v6} reports both loads directly from their raw logs.
+The anchor above uses 3 UEs and 2 episodes, matching the reproduction budget of the original live sanity check. To ask whether its finding holds under heavier load with real statistical weight rather than a two-episode snapshot, we ran the same seed-900 single-agent-DQN checkpoint for 20 live episodes at 3 UEs and, separately, 20 live episodes at 6 UEs (two per slice), real per-slice UDP traffic throughout, same episode length, 95\% bootstrap CIs (10{,}000 resamples) over the real per-episode values. Fig.~\ref{fig:live-3v6} reports both campaigns directly from their raw logs.
 
-Block precision stays perfect at both loads (1.000, mmTC-only), so the decision logic's correctness does not depend on load in this range. SLA margins do: eMBB is essentially unchanged ($-3\%$), but URLLC and mmTC both worsen substantially at 6 UEs ($+67\%$ and $+65\%$ more negative respectively), while mean reward per step dips only slightly ($-7.2$ to $-7.4$). Doubling live load leaves the policy's targeting intact but costs real margin on the two slices it does not actively protect.
+The two loads produced qualitatively different live behaviour from the same frozen checkpoint, not just a quantitative shift. At 3 UEs, block precision was perfect in every one of the 20 episodes (1.000, mmTC-only). At 6 UEs, the same checkpoint blocked nothing at all in any of the 20 episodes; precision is undefined for the entire campaign, not merely low. This is a complete, sustained collapse to always-accept, not an occasional lapse, and it holds throughout a full 100-minute live session rather than clearing after one or two episodes. Mean reward per step is significantly worse at 6 UEs (mean $-8.363$, 95\% CI [$-8.757$, $-7.975$], against 3 UEs' $-7.091$, 95\% CI [$-7.484$, $-6.703$]; the intervals do not overlap). SLA margins worsen substantially and consistently across all three slices (URLLC $+100\%$, eMBB $+100\%$, mmTC $+92\%$ more negative at 6 UEs, each with a bootstrap CI that excludes zero). Doubling live load did not just cost margin on the slices the 3-UE checkpoint left unprotected; it removed the differentiated-shedding behaviour itself for the full duration of this campaign.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.92\textwidth]{figures/fig7_live_3v6.pdf}
-\caption{Live single-gNB comparison, same seed-900 checkpoint, 3 UEs vs.\ 6 UEs, real per-slice UDP traffic, same episode length. (a) SLA margin change per slice from 3 to 6 UEs (red: worse; green: better) -- URLLC and mmTC both worsen substantially, eMBB is essentially flat. (b) Mean reward per step at each load.}
+\caption{Live single-gNB comparison, same seed-900 checkpoint, 3 UEs vs.\ 6 UEs, 20 episodes each, real per-slice UDP traffic throughout. (a) SLA margin percent change per slice from 3 to 6 UEs with 95\% bootstrap CI (red: worse) -- all three slices worsen substantially. (b) Mean reward per step, mean $\pm$ 95\% CI with individual episodes shown behind it -- the 6-UE campaign is significantly worse and the intervals do not overlap. Block precision (not plotted, since one side is a single number and the other is undefined) was 1.000 in all 20 episodes at 3 UEs and undefined (zero blocks) in all 20 episodes at 6 UEs.}
 \label{fig:live-3v6}
 \end{figure}
 
-This comparison remains single-gNB throughout, matching every other live result in this paper: it shows how the policy's own live behaviour changes under heavier load on the hardware this rig actually supports, not a multi-gNB coordination claim.
+This comparison remains single-gNB throughout, matching every other live result in this paper: it demonstrates that this checkpoint's differentiated-shedding behaviour, reliable and precise at 3 UEs across 20 independent episodes, does not merely degrade but disappears entirely under sustained heavier load on the hardware this rig actually supports. This is not a multi-gNB coordination claim, and we do not extrapolate it to loads or architectures beyond what was directly measured here.
 
 \section{Conclusion}
 \label{sec:conclusion}
