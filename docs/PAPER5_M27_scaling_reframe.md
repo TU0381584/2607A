@@ -1,10 +1,15 @@
 # Paper #5 M27: offline scaling reframe
 
-Status: **complete for N=19 (the headline case). GAT-CTDE and
+Status: **complete for both N=19 and N=7. At N=19, GAT-CTDE and
 single-agent DQN's collapse rates are robust to the M34 recalibration;
-independent DQN shows a small, previously-unobserved collapse rate the
-original simulator's narrower conditions never surfaced. N=7 not yet
-run (optional extension, not required to answer M27's question).**
+independent DQN shows a small, previously-unobserved collapse rate. At
+N=7, the picture is more interesting: GAT-CTDE's collapse rate is now
+statistically indistinguishable from its own N=19 rate, and
+single-agent DQN -- which M6's original n=3 pilot reported as fully
+reliable at N=7 -- collapses half the time in this properly-powered
+12-seed resample. Reported honestly below, including what can and
+cannot be attributed to the recalibration versus the original pilot
+simply being too small to see this.**
 
 ## What M27 asks
 
@@ -40,10 +45,11 @@ per-cell calibration M6 itself already applies per-gNB via
 
 Primary sample: 12 seeds (900-911, matching M6's own primary sample
 exactly for direct comparability), 3 topologies (fully-connected, ring,
-hex), 3 arms, N=19, full 100-train/20-eval episode budget. Total
-wall-clock: 13,945s (~3.87h) for all 108 (arm, topology, seed) cells.
+hex), 3 arms, full 100-train/20-eval episode budget, run at both N=19
+(13,945s, ~3.87h) and N=7 (7,621s, ~2.12h) -- 216 (arm, topology, seed)
+cells total.
 
-## Result: two of three arms robust, one shows a real, small difference
+## Result at N=19: two of three arms robust, one shows a real, small difference
 
 | Arm | Original M6 (ClosedLoopKpmSource) | M27 recalibrated (RealisticServedKpmSource) |
 |---|---|---|
@@ -86,23 +92,69 @@ narrower congestion range happened not to surface the rare cases where
 it fails, the same way it hid the live collapse M32-M34 diagnosed for
 single-agent DQN specifically.
 
+## Result at N=7: the original "clean" story does not survive a properly-powered resample
+
+M6's own N=7 number was never a large sample: a 3-seed pilot
+(`docs/PAPER5_M6_topology.md`), explicitly never resampled at scale
+because that document's own judgement was that N=19's collapse-rate
+question was the higher-value target ("everything else in M6's original
+scope... already has a fairly clear, if modest, answer from what has
+run so far"). In that pilot, GAT-CTDE and single-agent DQN both held
+1.000 precision (0/3 collapsed each) and independent DQN sat at 0.787
+precision (also 0/3 collapsed) -- point estimates only, no CI ever
+reported for N=7 specifically.
+
+| Arm | Original M6 ($n{=}3$ pilot, point estimate) | M27 recalibrated (12 seeds x 3 topologies) |
+|---|---|---|
+| single-agent DQN | 0/3 collapsed (0%) | 18/36 collapsed, 50.0% [25.0%, 75.0%] |
+| GAT-CTDE | 0/3 collapsed (0%) | 12/36 collapsed, 33.3% [8.3%, 58.3%] |
+| independent DQN | 0/3 collapsed (0%) | 0/36 collapsed, 0.0% [0.0%, 0.0%] |
+
+Independent DQN replicates cleanly (still never collapses, now with 12x
+the sample). GAT-CTDE's N=7 collapse rate (33.3%) is now statistically
+indistinguishable from its own N=19 rate (33.3%) -- collapse-proneness
+at this scale looks like a property of the architecture under real
+congestion, not something that only emerges once the cluster gets large.
+
+**Single-agent DQN is the genuinely new finding here.** The original
+pilot's "holds 1.000 at N=7" does not survive a properly-powered
+resample: half of the 36 cells here show complete collapse. This cannot
+be cleanly attributed to the recalibration alone versus the original
+pilot simply being too small ($n{=}3$) to ever see a real ~50% rate --
+both are true simultaneously and cannot be disentangled without an
+equally-sized 12-seed `ClosedLoopKpmSource` resample at N=7, which this
+session did not run (it would not have answered M27's actual question,
+which is about the recalibration, not about re-deriving M6's original
+numbers at higher power). What this result does establish, without that
+missing comparison: single-agent DQN's collapse tendency is not an
+N=19-specific phenomenon under the recalibrated, live-congestion-matched
+environment -- it is already substantial at N=7.
+
 ## What this means for the paper
 
-This is a validating result, not a retraction: M6's own topology-scaling
-section does not need to be walked back. The recalibration was worth
-doing precisely because it could have gone either way -- and for the
-paper's two headline comparison points (GAT-CTDE vs. single-agent DQN),
-it did not change the story. The one genuine update worth making is
-softening independent DQN's "never fully collapses" claim to "rarely,
-not never" -- a small, honest correction, not a different finding.
+Mixed, and reported as such rather than smoothed into one verdict. At
+N=19 -- the scale carrying this paper's actual comparative claims --
+GAT-CTDE's and single-agent DQN's collapse rates are statistically
+unchanged by the recalibration, so the paper's headline comparison does
+not need to be walked back. At N=7, the recalibration (or the larger
+sample it came with -- both are true) reveals real complexity the
+original 3-seed pilot could not: single-agent DQN is not reliably safe
+at small scale either, and GAT-CTDE's collapse-proneness is present
+from N=7 onward, not something that appears only at large N. Two
+concrete updates worth making to the paper: independent DQN's "never
+fully collapses" claim softens to "rarely, not never" (both N=7 and
+N=19 now show this consistently: 0/36 and 3/36), and any implication
+that N=7 is a "safe," collapse-free scale for single-agent DQN should be
+removed -- it was never well-supported, only under-sampled.
 
 ## What was not done
 
-- N=7 (M6's replication/secondary scale) was not rerun under the
-  recalibrated environment -- N=19 is the headline case this project's
-  own reporting emphasizes, and answering M27's core question (does the
-  recalibration change M6's story) did not require it. A natural
-  extension if more confidence at a second scale is wanted later.
+- An equally-sized (12-seed) `ClosedLoopKpmSource` resample at N=7 was
+  not run, so the N=7 finding above cannot cleanly separate "the
+  recalibration changed the dynamics" from "the original 3-seed pilot
+  was always too small to see this" -- both contribute, in unknown
+  proportion. Flagged explicitly above rather than picking one
+  explanation without the data to support it.
 - This is entirely an offline result. No live multi-gNB claim is made
   or implied here (that is M28's separate, still-pending question) --
   this rig has one physical gNB in its default configuration, and the
