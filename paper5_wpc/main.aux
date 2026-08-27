@@ -70,11 +70,15 @@
 \newlabel{sec:results-m8}{{8}{16}{Live Single-gNB Anchor}{section.8}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {8.1}Heavier Live Load}{17}{subsection.8.1}\protected@file@percent }
 \newlabel{sec:results-m8-load}{{8.1}{17}{Heavier Live Load}{subsection.8.1}{}}
-\@writefile{toc}{\contentsline {section}{\numberline {9}Conclusion}{17}{section.9}\protected@file@percent }
-\newlabel{sec:conclusion}{{9}{17}{Conclusion}{section.9}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {8.2}Recalibrating the Simulator to Match Live Congestion}{17}{subsection.8.2}\protected@file@percent }
+\newlabel{sec:results-m8-fix}{{8.2}{17}{Recalibrating the Simulator to Match Live Congestion}{subsection.8.2}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Live single-gNB comparison, same seed-900 checkpoint, 3 UEs vs.\ 6 UEs, 20 episodes each, real per-slice UDP traffic throughout. (a) SLA margin percent change per slice from 3 to 6 UEs with 95\% bootstrap CI (red: worse) -- all three slices worsen substantially. (b) Mean reward per step, mean $\pm $ 95\% CI with individual episodes shown behind it -- the 6-UE campaign is significantly worse and the intervals do not overlap. Block precision (not plotted, since one side is a single number and the other is undefined) was 1.000 in all 20 episodes at 3 UEs and undefined (zero blocks) in all 20 episodes at 6 UEs.}}{18}{figure.7}\protected@file@percent }
 \newlabel{fig:live-3v6}{{7}{18}{Live single-gNB comparison, same seed-900 checkpoint, 3 UEs vs.\ 6 UEs, 20 episodes each, real per-slice UDP traffic throughout. (a) SLA margin percent change per slice from 3 to 6 UEs with 95\% bootstrap CI (red: worse) -- all three slices worsen substantially. (b) Mean reward per step, mean $\pm $ 95\% CI with individual episodes shown behind it -- the 6-UE campaign is significantly worse and the intervals do not overlap. Block precision (not plotted, since one side is a single number and the other is undefined) was 1.000 in all 20 episodes at 3 UEs and undefined (zero blocks) in all 20 episodes at 6 UEs}{figure.7}{}}
-\@writefile{toc}{\contentsline {subparagraph}{Acknowledgements}{19}{section*.2}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Three live campaigns, 20 episodes each, real per-slice UDP traffic throughout: the original checkpoint at 3 UEs, the same checkpoint at 6 UEs, and a checkpoint retrained against the recalibrated simulator at 6 UEs. (a) Blocks per episode, mean and range across all 20 episodes -- the original checkpoint's complete silence at 6 UEs sits between two conditions of comparable, healthy block volume. (b) Mean reward per step, mean $\pm $ 95\% CI with individual episodes behind it. Block precision (not plotted; one condition is undefined) was 1.000 for both the original-3UE and recalibrated-6UE conditions and undefined (zero blocks) for the original-6UE condition.}}{20}{figure.8}\protected@file@percent }
+\newlabel{fig:live-fix}{{8}{20}{Three live campaigns, 20 episodes each, real per-slice UDP traffic throughout: the original checkpoint at 3 UEs, the same checkpoint at 6 UEs, and a checkpoint retrained against the recalibrated simulator at 6 UEs. (a) Blocks per episode, mean and range across all 20 episodes -- the original checkpoint's complete silence at 6 UEs sits between two conditions of comparable, healthy block volume. (b) Mean reward per step, mean $\pm $ 95\% CI with individual episodes behind it. Block precision (not plotted; one condition is undefined) was 1.000 for both the original-3UE and recalibrated-6UE conditions and undefined (zero blocks) for the original-6UE condition}{figure.8}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {9}Conclusion}{20}{section.9}\protected@file@percent }
+\newlabel{sec:conclusion}{{9}{20}{Conclusion}{section.9}{}}
+\@writefile{toc}{\contentsline {subparagraph}{Acknowledgements}{21}{section*.2}\protected@file@percent }
 \bibdata{refs}
 \bibcite{dpsgd}{{1}{2016}{{Abadi et~al.}}{{Abadi, Chu, Goodfellow, McMahan, Mironov, Talwar, and Zhang}}}
 \bibcite{ahmadi2024generalizable}{{2}{2024}{{Ahmadi et~al.}}{{Ahmadi, Moayyedi, Sulaiman, Salahuddin, Boutaba, and Saleh}}}
@@ -95,4 +99,4 @@
 \bibcite{gat}{{17}{2018}{{Veli{\v {c}}kovi{\'c} et~al.}}{{Veli{\v {c}}kovi{\'c}, Cucurull, Casanova, Romero, Li{\`o}, and Bengio}}}
 \bibcite{yasin2025dpfl}{{18}{2025}{{Yasin et~al.}}{{Yasin, Yu, and Wang}}}
 \bibcite{zhang2022federatedoran}{{19}{2022}{{Zhang et~al.}}{{Zhang, Zhou, and Erol-Kantarci}}}
-\gdef \@abspage@last{21}
+\gdef \@abspage@last{23}
