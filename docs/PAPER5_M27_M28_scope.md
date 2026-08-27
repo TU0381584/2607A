@@ -1,15 +1,17 @@
 # Paper #5 M27/M28: scope note
 
-Status: **M27 complete and written into the manuscript for N=19 (see
-docs/PAPER5_M27_scaling_reframe.md); N=7 extension launched, running.
-M28 preparatory work complete (configs, orchestration script, a
-validated candidate checkpoint); live execution deliberately held for
-the user's return.** The original scoping message for M27 ("offline
-scaling reframe") and M28 ("live multi-gNB demo") was a one-line
-description each in an earlier pasted instruction block; the fuller
-text did not survive context compaction. This doc records the
-interpretation this session is proceeding on, so it can be corrected on
-review rather than silently assumed correct.
+Status: **M27 fully complete (both N=19 and N=7) and written into the
+manuscript -- see docs/PAPER5_M27_scaling_reframe.md for the full
+write-up, including a genuinely new finding at N=7 (single-agent DQN
+collapses far more than M6's original 3-seed pilot suggested). M28
+preparatory work complete (configs, orchestration script, a validated
+candidate checkpoint); live execution deliberately held for the user's
+return.** The original scoping message for M27 ("offline scaling
+reframe") and M28 ("live multi-gNB demo") was a one-line description
+each in an earlier pasted instruction block; the fuller text did not
+survive context compaction. This doc records the interpretation this
+session is proceeding on, so it can be corrected on review rather than
+silently assumed correct.
 
 ## M27: offline scaling reframe -- interpretation
 
@@ -80,5 +82,6 @@ training, script correctness -- proceeds without waiting.
 - M28 checkpoint training complete (5 seeds x 2 arms, N=2, `saclb_offline_live2gnb.yaml`, RealisticServedKpmSource from the start). GAT-CTDE: seeds 900/901/902 all show perfect precision (1.0000, 2308/2339/2345 blocks); seeds 903/904 collapse completely (0 blocks) -- a 3/5 non-collapse rate, roughly in line with M6's own ~35% GAT-CTDE collapse finding at a much larger N, though N=2 isn't a direct comparison point. independent_dqn: 4/5 seeds strong (0.93-1.00), one (901) mediocre (0.498), zero full collapses -- also matches M6's established "independent DQN never fully collapses, never cleanly differentiates either" pattern. **M28's checkpoint prerequisite is done**: `experiments/results/m28_live_checkpoint/gat_ctde/seed900/train/checkpoint.pt` (or 901/902) is a validated, non-collapsed, perfect-precision candidate ready for the eventual live demo. Searched for the actual gNB2 E2 port values used in M26's build (checked ORANSlice's own git history, file timestamps, binary strings) -- not recoverable, the source patch was reverted and never committed. The live 2-gNB run still needs: (a) a fresh, deliberate port decision/patch for gNB2, and (b) the user present per this doc's own stated caution. Everything else for M28 is ready.
 
 - N=19 campaign completed (~3.87h, all 108 cells): single-agent DQN and GAT-CTDE's collapse rates statistically unchanged from M6's original findings (91.7% [75.0%,100%] vs 100%; 33.3% [11.1%,58.3%] vs pooled 35.4% [25.5%,45.8%]); independent DQN shows a small, new difference (8.3% [0.0%,25.0%] vs original 0/36). Written into paper5_wpc/main.tex as a new subsection extending §8.3 (new Fig. 9), committed (commit 941ff07) along with docs/PAPER5_M27_scaling_reframe.md. Raw omega logs (4.4GB) deliberately left uncommitted -- matches this project's own precedent that M6's original N=19 campaign was never bulk-committed either; a compact derived_correctness_metrics.json preserves every per-seed number instead.
-- N=7 extension launched (same script, same 12 seeds, 3 topologies, 3 arms; ~2h estimated). Original M6 baseline at N=7 is a much smaller n=3 pilot sample (GAT-CTDE 1.000, single-agent DQN 1.000, independent_dqn 0.787, all topologies) -- M6's own writeup explicitly deprioritized a larger N=7 resample in favor of resolving N=19's collapse-rate question, so this is a genuinely new, more powered measurement at N=7, not a like-for-like large-sample comparison the way N=19 was. Report this honestly when writing it up -- do not imply the original N=7 number carries the same statistical weight N=19's pooled estimate does.
+- N=7 campaign completed (~2.12h). Genuinely new finding, not just a replication: independent DQN replicates cleanly (0/36); GAT-CTDE's N=7 collapse rate (33.3%) now matches its own N=19 rate almost exactly; single-agent DQN collapses in 18/36 cells (50.0%), directly contradicting M6's original n=3 pilot ("holds 1.000 at N=7"). Cannot cleanly attribute this to the recalibration vs. the original pilot simply being too small to see a ~50% rate -- reported as an open, honest attribution question, not resolved one way. Written into the manuscript (commit 89bd60b) as an extension of §8.4, with a forward-reference added at §7's own "never fully collapses (0/36)" claim to avoid an unflagged internal contradiction. Fig. 9 is now 2 panels (N=7, N=19). **M27 is fully complete.**
 - M28: prep complete, checkpoint candidate validated (commit f312a9d). Remaining work is only the live execution step, held for the user's return.
+- All work through this point committed: f312a9d (M28 prep), 941ff07 (M27 N=19), d6be488 (scope doc update), 89bd60b (M27 N=7). Manuscript compiles clean throughout (25 pages, 0 errors, 0 undefined refs as of 89bd60b).
