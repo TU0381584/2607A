@@ -583,6 +583,21 @@ Taking the recalibrated seed-900 checkpoint live at 6 UEs, 20 episodes, real tra
 
 This does not establish that recalibrating against a handful of measured anchors generalises beyond the two load levels measured here, or that it would transfer to a different checkpoint architecture; it establishes that this specific collapse was an artifact of a training environment whose congestion never resembled reality, not an inherent ceiling on what this checkpoint could learn, and that correcting the mismatch directly -- rather than retraining under more of the same kind of wrong demand -- produces a policy that stays correctness-aware under the load that previously broke it.
 
+\subsection{Extending the Recalibration to the Topology-Scaling Axis}
+\label{sec:results-m27}
+The recalibration above targets a single-gNB live collapse; \S\ref{sec:results-m6}'s own topology-scaling campaign was run entirely offline, entirely against the original, uncorrected simulator. Since that simulator's congestion range was shown above to be structurally capped well below reality, we reran the identical $N{=}19$ campaign (12 seeds, three topologies, three arms, same training/eval budget) against the recalibrated simulator, to check whether \S\ref{sec:results-m6}'s own findings were an artifact of the same miscalibration or hold up once each simulated gNB's congestion actually resembles this rig's measured live range.
+
+They hold up for both of the paper's headline comparison points. Single-agent DQN's collapse rate is statistically unchanged (91.7\% [75.0\%, 100\%] against the original 100\%, $15/15$), and GAT-CTDE's is likewise unchanged (33.3\% [11.1\%, 58.3\%] against the original pooled estimate of 35.4\% [25.5\%, 45.8\%]), with the same qualitative pattern in the non-collapsed seeds -- mostly near-ceiling precision, with a low- or zero-precision seed appearing at every topology. Fig.~\ref{fig:m27-reframe} reports both conditions directly. Independent DQN is the one place this recalibration surfaces something new: the original claim of never fully collapsing ($0/36$) does not survive unchanged, with $3/36$ recalibrated cells showing a genuine total collapse (8.3\% [0.0\%, 25.0\%]) -- a small, real difference we report rather than smooth over, though the recalibrated CI does not exclude the original 0\%.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/fig9_m27_scaling_reframe.pdf}
+\caption{Collapse rate at $N{=}19$, original topology-scaling campaign (grey, ClosedLoopKpmSource, \S\ref{sec:results-m6}'s own published values) against this recalibrated resample (teal, RealisticServedKpmSource, 12 seeds $\times$ 3 topologies, bootstrapped over seeds since collapse status correlates within a seed across its topologies). Single-agent DQN and GAT-CTDE are statistically unchanged; independent DQN shows a small rise from 0\%.}
+\label{fig:m27-reframe}
+\end{figure}
+
+This is a validating result rather than a retraction: \S\ref{sec:results-m6}'s own topology-scaling story does not need to be walked back on the axis that matters most for this paper's comparison (GAT-CTDE against single-agent DQN). The recalibration was worth running precisely because it could have gone the other way, and for this campaign's two headline arms, it did not change the outcome -- only independent DQN's "never fully collapses" claim needs the small, honest correction to "rarely, not never."
+
 \section{Conclusion}
 \label{sec:conclusion}
 We set out to test whether a standard evaluation metric can be

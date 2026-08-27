@@ -1,0 +1,782 @@
+{
+  "gat_ctde": {
+    "fully_connected": {
+      "900": {
+        "mean_reward_per_gnb": 0.1594701784421944,
+        "mmtc_blocks": 8781,
+        "total_blocks": 17618,
+        "block_precision": 0.4984107163128618,
+        "collapsed": false
+      },
+      "901": {
+        "mean_reward_per_gnb": 3.2359951298202545,
+        "mmtc_blocks": 0,
+        "total_blocks": 8857,
+        "block_precision": 0.0,
+        "collapsed": false
+      },
+      "902": {
+        "mean_reward_per_gnb": 3.461903409607315,
+        "mmtc_blocks": 8776,
+        "total_blocks": 17484,
+        "block_precision": 0.5019446350949439,
+        "collapsed": false
+      },
+      "903": {
+        "mean_reward_per_gnb": 4.380122290562651,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "904": {
+        "mean_reward_per_gnb": 4.349511383517752,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "905": {
+        "mean_reward_per_gnb": 4.409385413045832,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "906": {
+        "mean_reward_per_gnb": 4.5473628869442155,
+        "mmtc_blocks": 8766,
+        "total_blocks": 8766,
+        "block_precision": 1.0,
+        "collapsed": false
+      },
+      "907": {
+        "mean_reward_per_gnb": 4.541147486720316,
+        "mmtc_blocks": 8832,
+        "total_blocks": 8832,
+        "block_precision": 1.0,
+        "collapsed": false
+      },
+      "908": {
+        "mean_reward_per_gnb": 4.524619967906611,
+        "mmtc_blocks": 8710,
+        "total_blocks": 8710,
+        "block_precision": 1.0,
+        "collapsed": false
+      },
+      "909": {
+        "mean_reward_per_gnb": 4.558411669503288,
+        "mmtc_blocks": 8714,
+        "total_blocks": 8714,
+        "block_precision": 1.0,
+        "collapsed": false
+      },
+      "910": {
+        "mean_reward_per_gnb": 3.4748772794697027,
+        "mmtc_blocks": 8751,
+        "total_blocks": 17457,
+        "block_precision": 0.5012888812510741,
+        "collapsed": false
+      },
+      "911": {
+        "mean_reward_per_gnb": 4.3997435367267315,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      }
+    },
+    "ring": {
+      "900": {
+        "mean_reward_per_gnb": 4.554787074961093,
+        "mmtc_blocks": 8781,
+        "total_blocks": 8781,
+        "block_precision": 1.0,
+        "collapsed": false
+      },
+      "901": {
+        "mean_reward_per_gnb": 3.2359951298202545,
+        "mmtc_blocks": 0,
+        "total_blocks": 8857,
+        "block_precision": 0.0,
+        "collapsed": false
+      },
+      "902": {
+        "mean_reward_per_gnb": 3.461903409607315,
+        "mmtc_blocks": 8776,
+        "total_blocks": 17484,
+        "block_precision": 0.5019446350949439,
+        "collapsed": false
+      },
+      "903": {
+        "mean_reward_per_gnb": 4.519178964188269,
+        "mmtc_blocks": 8846,
+        "total_blocks": 8846,
+        "block_precision": 1.0,
+        "collapsed": false
+      },
+      "904": {
+        "mean_reward_per_gnb": 4.349511383517752,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "905": {
+        "mean_reward_per_gnb": 4.547405771490804,
+        "mmtc_blocks": 8686,
+        "total_blocks": 8686,
+        "block_precision": 1.0,
+        "collapsed": false
+      },
+      "906": {
+        "mean_reward_per_gnb": 4.5473628869442155,
+        "mmtc_blocks": 8766,
+        "total_blocks": 8766,
+        "block_precision": 1.0,
+        "collapsed": false
+      },
+      "907": {
+        "mean_reward_per_gnb": 4.400829572541598,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "908": {
+        "mean_reward_per_gnb": 4.524619967906611,
+        "mmtc_blocks": 8710,
+        "total_blocks": 8710,
+        "block_precision": 1.0,
+        "collapsed": false
+      },
+      "909": {
+        "mean_reward_per_gnb": 4.558411669503288,
+        "mmtc_blocks": 8714,
+        "total_blocks": 8714,
+        "block_precision": 1.0,
+        "collapsed": false
+      },
+      "910": {
+        "mean_reward_per_gnb": 3.4748772794697027,
+        "mmtc_blocks": 8751,
+        "total_blocks": 17457,
+        "block_precision": 0.5012888812510741,
+        "collapsed": false
+      },
+      "911": {
+        "mean_reward_per_gnb": 4.3997435367267315,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      }
+    },
+    "hex": {
+      "900": {
+        "mean_reward_per_gnb": 0.1594701784421944,
+        "mmtc_blocks": 8781,
+        "total_blocks": 17618,
+        "block_precision": 0.4984107163128618,
+        "collapsed": false
+      },
+      "901": {
+        "mean_reward_per_gnb": 3.2359951298202545,
+        "mmtc_blocks": 0,
+        "total_blocks": 8857,
+        "block_precision": 0.0,
+        "collapsed": false
+      },
+      "902": {
+        "mean_reward_per_gnb": 3.461903409607315,
+        "mmtc_blocks": 8776,
+        "total_blocks": 17484,
+        "block_precision": 0.5019446350949439,
+        "collapsed": false
+      },
+      "903": {
+        "mean_reward_per_gnb": 4.380122290562651,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "904": {
+        "mean_reward_per_gnb": 4.349511383517752,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "905": {
+        "mean_reward_per_gnb": 4.409385413045832,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "906": {
+        "mean_reward_per_gnb": 4.5473628869442155,
+        "mmtc_blocks": 8766,
+        "total_blocks": 8766,
+        "block_precision": 1.0,
+        "collapsed": false
+      },
+      "907": {
+        "mean_reward_per_gnb": 4.400829572541598,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "908": {
+        "mean_reward_per_gnb": 4.524619967906611,
+        "mmtc_blocks": 8710,
+        "total_blocks": 8710,
+        "block_precision": 1.0,
+        "collapsed": false
+      },
+      "909": {
+        "mean_reward_per_gnb": 4.558411669503288,
+        "mmtc_blocks": 8714,
+        "total_blocks": 8714,
+        "block_precision": 1.0,
+        "collapsed": false
+      },
+      "910": {
+        "mean_reward_per_gnb": 3.4748772794697027,
+        "mmtc_blocks": 8751,
+        "total_blocks": 17457,
+        "block_precision": 0.5012888812510741,
+        "collapsed": false
+      },
+      "911": {
+        "mean_reward_per_gnb": 4.3997435367267315,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      }
+    }
+  },
+  "independent_dqn": {
+    "fully_connected": {
+      "900": {
+        "mean_reward_per_gnb": 3.9786059078700085,
+        "mmtc_blocks": 3643,
+        "total_blocks": 6229,
+        "block_precision": 0.5848450794670091,
+        "collapsed": false
+      },
+      "901": {
+        "mean_reward_per_gnb": 3.7467247997903015,
+        "mmtc_blocks": 1439,
+        "total_blocks": 3690,
+        "block_precision": 0.3899728997289973,
+        "collapsed": false
+      },
+      "902": {
+        "mean_reward_per_gnb": 4.4079413730505514,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "903": {
+        "mean_reward_per_gnb": 4.007061250860067,
+        "mmtc_blocks": 2840,
+        "total_blocks": 4778,
+        "block_precision": 0.594390958560067,
+        "collapsed": false
+      },
+      "904": {
+        "mean_reward_per_gnb": 4.356470974922483,
+        "mmtc_blocks": 437,
+        "total_blocks": 437,
+        "block_precision": 1.0,
+        "collapsed": false
+      },
+      "905": {
+        "mean_reward_per_gnb": 4.073981030696722,
+        "mmtc_blocks": 1804,
+        "total_blocks": 3314,
+        "block_precision": 0.544357272178636,
+        "collapsed": false
+      },
+      "906": {
+        "mean_reward_per_gnb": 4.306721064970977,
+        "mmtc_blocks": 751,
+        "total_blocks": 1673,
+        "block_precision": 0.44889420203227737,
+        "collapsed": false
+      },
+      "907": {
+        "mean_reward_per_gnb": 3.799651713719868,
+        "mmtc_blocks": 2688,
+        "total_blocks": 5033,
+        "block_precision": 0.5340751043115438,
+        "collapsed": false
+      },
+      "908": {
+        "mean_reward_per_gnb": 3.5652780328393634,
+        "mmtc_blocks": 1423,
+        "total_blocks": 4206,
+        "block_precision": 0.33832620066571567,
+        "collapsed": false
+      },
+      "909": {
+        "mean_reward_per_gnb": 4.367403690764386,
+        "mmtc_blocks": 464,
+        "total_blocks": 944,
+        "block_precision": 0.4915254237288136,
+        "collapsed": false
+      },
+      "910": {
+        "mean_reward_per_gnb": 3.8645348983655987,
+        "mmtc_blocks": 2473,
+        "total_blocks": 5056,
+        "block_precision": 0.489121835443038,
+        "collapsed": false
+      },
+      "911": {
+        "mean_reward_per_gnb": 4.043667379183362,
+        "mmtc_blocks": 1882,
+        "total_blocks": 3661,
+        "block_precision": 0.5140671947555313,
+        "collapsed": false
+      }
+    },
+    "ring": {
+      "900": {
+        "mean_reward_per_gnb": 3.9786059078700085,
+        "mmtc_blocks": 3643,
+        "total_blocks": 6229,
+        "block_precision": 0.5848450794670091,
+        "collapsed": false
+      },
+      "901": {
+        "mean_reward_per_gnb": 3.7467247997903015,
+        "mmtc_blocks": 1439,
+        "total_blocks": 3690,
+        "block_precision": 0.3899728997289973,
+        "collapsed": false
+      },
+      "902": {
+        "mean_reward_per_gnb": 4.4079413730505514,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "903": {
+        "mean_reward_per_gnb": 4.007061250860067,
+        "mmtc_blocks": 2840,
+        "total_blocks": 4778,
+        "block_precision": 0.594390958560067,
+        "collapsed": false
+      },
+      "904": {
+        "mean_reward_per_gnb": 4.356470974922483,
+        "mmtc_blocks": 437,
+        "total_blocks": 437,
+        "block_precision": 1.0,
+        "collapsed": false
+      },
+      "905": {
+        "mean_reward_per_gnb": 4.073981030696722,
+        "mmtc_blocks": 1804,
+        "total_blocks": 3314,
+        "block_precision": 0.544357272178636,
+        "collapsed": false
+      },
+      "906": {
+        "mean_reward_per_gnb": 4.306721064970977,
+        "mmtc_blocks": 751,
+        "total_blocks": 1673,
+        "block_precision": 0.44889420203227737,
+        "collapsed": false
+      },
+      "907": {
+        "mean_reward_per_gnb": 3.799651713719868,
+        "mmtc_blocks": 2688,
+        "total_blocks": 5033,
+        "block_precision": 0.5340751043115438,
+        "collapsed": false
+      },
+      "908": {
+        "mean_reward_per_gnb": 3.5652780328393634,
+        "mmtc_blocks": 1423,
+        "total_blocks": 4206,
+        "block_precision": 0.33832620066571567,
+        "collapsed": false
+      },
+      "909": {
+        "mean_reward_per_gnb": 4.367403690764386,
+        "mmtc_blocks": 464,
+        "total_blocks": 944,
+        "block_precision": 0.4915254237288136,
+        "collapsed": false
+      },
+      "910": {
+        "mean_reward_per_gnb": 3.8645348983655987,
+        "mmtc_blocks": 2473,
+        "total_blocks": 5056,
+        "block_precision": 0.489121835443038,
+        "collapsed": false
+      },
+      "911": {
+        "mean_reward_per_gnb": 4.043667379183362,
+        "mmtc_blocks": 1882,
+        "total_blocks": 3661,
+        "block_precision": 0.5140671947555313,
+        "collapsed": false
+      }
+    },
+    "hex": {
+      "900": {
+        "mean_reward_per_gnb": 3.9786059078700085,
+        "mmtc_blocks": 3643,
+        "total_blocks": 6229,
+        "block_precision": 0.5848450794670091,
+        "collapsed": false
+      },
+      "901": {
+        "mean_reward_per_gnb": 3.7467247997903015,
+        "mmtc_blocks": 1439,
+        "total_blocks": 3690,
+        "block_precision": 0.3899728997289973,
+        "collapsed": false
+      },
+      "902": {
+        "mean_reward_per_gnb": 4.4079413730505514,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "903": {
+        "mean_reward_per_gnb": 4.007061250860067,
+        "mmtc_blocks": 2840,
+        "total_blocks": 4778,
+        "block_precision": 0.594390958560067,
+        "collapsed": false
+      },
+      "904": {
+        "mean_reward_per_gnb": 4.356470974922483,
+        "mmtc_blocks": 437,
+        "total_blocks": 437,
+        "block_precision": 1.0,
+        "collapsed": false
+      },
+      "905": {
+        "mean_reward_per_gnb": 4.073981030696722,
+        "mmtc_blocks": 1804,
+        "total_blocks": 3314,
+        "block_precision": 0.544357272178636,
+        "collapsed": false
+      },
+      "906": {
+        "mean_reward_per_gnb": 4.306721064970977,
+        "mmtc_blocks": 751,
+        "total_blocks": 1673,
+        "block_precision": 0.44889420203227737,
+        "collapsed": false
+      },
+      "907": {
+        "mean_reward_per_gnb": 3.799651713719868,
+        "mmtc_blocks": 2688,
+        "total_blocks": 5033,
+        "block_precision": 0.5340751043115438,
+        "collapsed": false
+      },
+      "908": {
+        "mean_reward_per_gnb": 3.5652780328393634,
+        "mmtc_blocks": 1423,
+        "total_blocks": 4206,
+        "block_precision": 0.33832620066571567,
+        "collapsed": false
+      },
+      "909": {
+        "mean_reward_per_gnb": 4.367403690764386,
+        "mmtc_blocks": 464,
+        "total_blocks": 944,
+        "block_precision": 0.4915254237288136,
+        "collapsed": false
+      },
+      "910": {
+        "mean_reward_per_gnb": 3.8645348983655987,
+        "mmtc_blocks": 2473,
+        "total_blocks": 5056,
+        "block_precision": 0.489121835443038,
+        "collapsed": false
+      },
+      "911": {
+        "mean_reward_per_gnb": 4.043667379183362,
+        "mmtc_blocks": 1882,
+        "total_blocks": 3661,
+        "block_precision": 0.5140671947555313,
+        "collapsed": false
+      }
+    }
+  },
+  "single_agent_dqn": {
+    "fully_connected": {
+      "900": {
+        "mean_reward_per_gnb": 4.416185099186138,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "901": {
+        "mean_reward_per_gnb": 4.338052389993417,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "902": {
+        "mean_reward_per_gnb": 4.4079413730505514,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "903": {
+        "mean_reward_per_gnb": 4.380122290562651,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "904": {
+        "mean_reward_per_gnb": 4.349511383517752,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "905": {
+        "mean_reward_per_gnb": -0.9210666539993355,
+        "mmtc_blocks": 8686,
+        "total_blocks": 26249,
+        "block_precision": 0.330907844108347,
+        "collapsed": false
+      },
+      "906": {
+        "mean_reward_per_gnb": 4.409956629599294,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "907": {
+        "mean_reward_per_gnb": 4.400829572541598,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "908": {
+        "mean_reward_per_gnb": 4.386356706710163,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "909": {
+        "mean_reward_per_gnb": 4.419676693210076,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "910": {
+        "mean_reward_per_gnb": 4.419456424704512,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "911": {
+        "mean_reward_per_gnb": 4.3997435367267315,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      }
+    },
+    "ring": {
+      "900": {
+        "mean_reward_per_gnb": 4.416185099186138,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "901": {
+        "mean_reward_per_gnb": 4.338052389993417,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "902": {
+        "mean_reward_per_gnb": 4.4079413730505514,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "903": {
+        "mean_reward_per_gnb": 4.380122290562651,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "904": {
+        "mean_reward_per_gnb": 4.349511383517752,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "905": {
+        "mean_reward_per_gnb": -0.9210666539993355,
+        "mmtc_blocks": 8686,
+        "total_blocks": 26249,
+        "block_precision": 0.330907844108347,
+        "collapsed": false
+      },
+      "906": {
+        "mean_reward_per_gnb": 4.409956629599294,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "907": {
+        "mean_reward_per_gnb": 4.400829572541598,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "908": {
+        "mean_reward_per_gnb": 4.386356706710163,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "909": {
+        "mean_reward_per_gnb": 4.419676693210076,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "910": {
+        "mean_reward_per_gnb": 4.419456424704512,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "911": {
+        "mean_reward_per_gnb": 4.3997435367267315,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      }
+    },
+    "hex": {
+      "900": {
+        "mean_reward_per_gnb": 4.416185099186138,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "901": {
+        "mean_reward_per_gnb": 4.338052389993417,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "902": {
+        "mean_reward_per_gnb": 4.4079413730505514,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "903": {
+        "mean_reward_per_gnb": 4.380122290562651,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "904": {
+        "mean_reward_per_gnb": 4.349511383517752,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "905": {
+        "mean_reward_per_gnb": -0.9210666539993355,
+        "mmtc_blocks": 8686,
+        "total_blocks": 26249,
+        "block_precision": 0.330907844108347,
+        "collapsed": false
+      },
+      "906": {
+        "mean_reward_per_gnb": 4.409956629599294,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "907": {
+        "mean_reward_per_gnb": 4.400829572541598,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "908": {
+        "mean_reward_per_gnb": 4.386356706710163,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "909": {
+        "mean_reward_per_gnb": 4.419676693210076,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "910": {
+        "mean_reward_per_gnb": 4.419456424704512,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      },
+      "911": {
+        "mean_reward_per_gnb": 4.3997435367267315,
+        "mmtc_blocks": 0,
+        "total_blocks": 0,
+        "block_precision": null,
+        "collapsed": true
+      }
+    }
+  }
+}
