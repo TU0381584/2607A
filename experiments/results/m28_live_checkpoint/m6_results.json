@@ -1,0 +1,46 @@
+{
+  "gat_ctde": {
+    "900": {
+      "sla_compliance_all_slices": 0.0023333333333333335,
+      "n_episodes": 50
+    },
+    "901": {
+      "sla_compliance_all_slices": 0.002,
+      "n_episodes": 50
+    },
+    "902": {
+      "sla_compliance_all_slices": 0.0006666666666666666,
+      "n_episodes": 50
+    },
+    "903": {
+      "sla_compliance_all_slices": 0.002,
+      "n_episodes": 50
+    },
+    "904": {
+      "sla_compliance_all_slices": 0.005,
+      "n_episodes": 50
+    }
+  },
+  "independent_dqn": {
+    "900": {
+      "sla_compliance_all_slices": 0.0023333333333333335,
+      "n_episodes": 50
+    },
+    "901": {
+      "sla_compliance_all_slices": 0.002,
+      "n_episodes": 50
+    },
+    "902": {
+      "sla_compliance_all_slices": 0.0006666666666666666,
+      "n_episodes": 50
+    },
+    "903": {
+      "sla_compliance_all_slices": 0.002,
+      "n_episodes": 50
+    },
+    "904": {
+      "sla_compliance_all_slices": 0.005,
+      "n_episodes": 50
+    }
+  }
+}
