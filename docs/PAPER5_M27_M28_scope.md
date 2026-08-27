@@ -41,7 +41,10 @@ application of the same fix M34 already validated single-gNB, extended
 to the multi-gNB axis this paper's own architecture (GAT-CTDE) is
 actually about.
 
-## M28: live multi-gNB demo -- interpretation and a real constraint found
+## M28: live multi-gNB demo -- interpretation, a real constraint found, and resolved
+
+**Update:** the gNB2 E2-port blocker described below is now resolved (compile-only, no live hardware touched) -- see the Log section's final entry.
+
 
 M26 (already in this session's history, before compaction) verified
 this rig can run 2 concurrent gNBs with real E2 control and 0% packet
@@ -85,3 +88,4 @@ training, script correctness -- proceeds without waiting.
 - N=7 campaign completed (~2.12h). Genuinely new finding, not just a replication: independent DQN replicates cleanly (0/36); GAT-CTDE's N=7 collapse rate (33.3%) now matches its own N=19 rate almost exactly; single-agent DQN collapses in 18/36 cells (50.0%), directly contradicting M6's original n=3 pilot ("holds 1.000 at N=7"). Cannot cleanly attribute this to the recalibration vs. the original pilot simply being too small to see a ~50% rate -- reported as an open, honest attribution question, not resolved one way. Written into the manuscript (commit 89bd60b) as an extension of §8.4, with a forward-reference added at §7's own "never fully collapses (0/36)" claim to avoid an unflagged internal contradiction. Fig. 9 is now 2 panels (N=7, N=19). **M27 is fully complete.**
 - M28: prep complete, checkpoint candidate validated (commit f312a9d). Remaining work is only the live execution step, held for the user's return.
 - All work through this point committed: f312a9d (M28 prep), 941ff07 (M27 N=19), d6be488 (scope doc update), 89bd60b (M27 N=7). Manuscript compiles clean throughout (25 pages, 0 errors, 0 undefined refs as of 89bd60b).
+- **gNB2 E2-port blocker resolved.** Patched e2_agent_app.h (E2AGENT_IN_PORT 6655->6656, E2AGENT_OUT_PORT 6600->6601), rebuilt nr-softmodem, saved the result as the new nr-softmodem-gnb2 (removing the old, ambiguous-port one from M26), reverted the header (confirmed byte-identical to original via git diff), rebuilt nr-softmodem again for gNB1 and confirmed it byte-identical to the preserved nr-softmodem-gnb1-orig reference copy. Compile-only throughout -- no live gNB was started. saclb_live2gnb.yaml's header updated to reflect these as confirmed, not placeholder, values. **M28's only remaining blocker is now genuinely just "the user needs to be present for the first live 2-gNB run" -- nothing else is outstanding.**

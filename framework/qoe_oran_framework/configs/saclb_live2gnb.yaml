@@ -5,18 +5,21 @@
 # (that frozen script hard-requires len(cfg.gnbs)==1) -- see the new
 # m28_live_gat_ctde_2gnb.py orchestration script.
 #
-# gNB2's E2 agent ports are NOT confirmed as of this config's creation:
-# M26 (earlier this session) built nr-softmodem-gnb2 with
-# E2AGENT_IN_PORT patched 6655->6656, but whether E2AGENT_OUT_PORT was
-# also changed (needed so gNB2's INDICATION_RESPONSE doesn't collide
-# with gNB1's own response port 6600) is not recorded anywhere this
-# session can recover, and the compiled binary embeds the port as a
-# numeric constant `strings` cannot recover either. MUST be confirmed
-# (rebuild with explicit, deliberate ports for both gNBs, or inspect via
-# a live capture) before this config's ports below are trusted -- gnb-1
-# below uses PLACEHOLDER ports (6656 in / 6601 out) that are a
-# reasonable guess following the established gnb-0 pattern, not a
-# verified value.
+# gNB2's E2 agent ports: RESOLVED. M26's original nr-softmodem-gnb2
+# build only had E2AGENT_IN_PORT confirmed patched (6655->6656);
+# whether E2AGENT_OUT_PORT was also changed (needed so gNB2's
+# INDICATION_RESPONSE doesn't collide with gNB1's own response port
+# 6600) was not recoverable from this session's git history or the
+# compiled binary. Rebuilt nr-softmodem-gnb2 fresh, this session, with
+# BOTH ports deliberately set (E2AGENT_IN_PORT=6656,
+# E2AGENT_OUT_PORT=6601), verified different from gNB1's own binary
+# (cmp: differ at byte 889, the embedded port constant) and gNB1's own
+# binary verified byte-identical to its known-good reference copy
+# afterward (source reverted, confirmed via git diff before rebuilding
+# gNB1 again) -- no live hardware touched, compile-only. The old,
+# ambiguous-port nr-softmodem-gnb2 binary was removed, superseded by
+# this one. gnb-1 below uses these now-confirmed ports (6656 in / 6601
+# out), not a guess.
 #
 # 2026-07-14 fresh-rig retune (this checkout's ORANSlice main + docker_open5gs
 # open5gs_slicing core ship TWO real S-NSSAIs, not three -- verified by
