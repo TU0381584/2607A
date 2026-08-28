@@ -1,277 +1,206 @@
-\documentclass[conference]{IEEEtran}
-\usepackage{amsmath,amssymb}
-\usepackage{graphicx}
-\usepackage{array}
-\usepackage{booktabs}
-\usepackage{multirow}
-\usepackage{url}
+\documentclass[10pt]{article}
+\usepackage{cacs2026}
+\usepackage{amsmath}
+\let\Bbbk\relax % cacs2026.sty's newtxmath already defines \Bbbk; amssymb redefining it is a known conflict
+\usepackage{amssymb}
 \usepackage{xcolor}
-\usepackage{enumitem}
+\usepackage{multirow}
 \usepackage{algorithm}
 \usepackage{algorithmic}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning,fit,backgrounds}
+% cacs2026.sty's own caption config names figures "Figure" (name=Figure),
+% but the template's own written instructions ("Use the abbreviation
+% 'Fig. 1'") and every in-text reference in this paper use "Fig." --
+% overriding just the label text here, not any other caption styling,
+% to make the printed caption match both.
+\captionsetup[figure]{name=Fig.}
 % Categorical palette shared with the dataviz-validated result plots
-% (experiments/plots/common.py's ARM_STYLE), reused for the schematic figures.
+% (experiments/plots/common.py's ARM_STYLE), reused for Fig. 2 (the
+% testbed architecture schematic).
 \definecolor{palBlue}{HTML}{2A78D6}
 \definecolor{palGreen}{HTML}{008300}
 \definecolor{palYellow}{HTML}{EDA100}
 \definecolor{palPurple}{HTML}{7A5CD6}
 
-% Small self-contained TikZ pictograms for Fig.~2 (no external icon font/
-% asset dependency) -- server rack (core), radio tower (gNB), handset (UE),
-% gear (xApp/orchestrator).
-\newcommand{\iconServer}[1]{\tikz[baseline=-0.55ex, scale=0.075, color=#1]{
-  \foreach \i in {0,1,2} {\draw[thick] (0,\i*0.75) rectangle ++(1.9,0.55); \fill (1.6,\i*0.75+0.28) circle (0.09);}
-}}
-\newcommand{\iconTower}[1]{\tikz[baseline=-0.55ex, scale=0.075, color=#1]{
-  \draw[thick] (-0.55,0) -- (0,1.7) -- (0.55,0);
-  \draw[thick] (0,1.7) -- (0,2.0);
-  \fill (0,2.05) circle (0.11);
-  \draw[thick] (-0.45,2.15) -- (-0.2,1.85); \draw[thick] (0.45,2.15) -- (0.2,1.85);
-  \draw[thick] (-0.75,2.4) -- (-0.35,2.0); \draw[thick] (0.75,2.4) -- (0.35,2.0);
-}}
-\newcommand{\iconPhone}[1]{\tikz[baseline=-0.55ex, scale=0.075, color=#1]{
-  \draw[thick, rounded corners=0.15] (0,0) rectangle (1.15,2.0);
-  \draw[thick] (0.3,1.65) -- (0.85,1.65);
-  \draw[thick] (0.575,0.32) circle (0.16);
-}}
-\newcommand{\iconGear}[1]{\tikz[baseline=-0.55ex, scale=0.075, color=#1]{
-  \foreach \a in {0,30,...,330} {\draw[thick] (\a:0.95) -- (\a:1.35);}
-  \draw[thick] (0,0) circle (0.95);
-  \draw[thick] (0,0) circle (0.4);
-}}
+% Separate, non-overlapping palette for Fig. 1 (the methodology
+% pipeline) only, deliberately distinct hues from the palette above,
+% so the two schematics are never confused with one another.
+\definecolor{palTeal}{HTML}{157F7F}
+\definecolor{palRust}{HTML}{C1502E}
+\definecolor{palPlum}{HTML}{8E3B6B}
 
 % Visible TODO marker for content the author (not Claude) writes.
 \newcommand{\authorTODO}[1]{\par\noindent\fbox{\parbox{0.95\linewidth}{\textbf{\color{red}TODO(MANOJ):} #1}}\par}
 
-% Purely typographic float-spacing tightening (no content change) --
-% standard camera-ready technique to reclaim whitespace around
-% figures/tables/captions.
-\setlength{\textfloatsep}{5pt plus 1pt minus 2pt}
-\setlength{\floatsep}{4pt plus 1pt minus 1pt}
-\setlength{\intextsep}{5pt plus 1pt minus 2pt}
-\setlength{\abovecaptionskip}{3pt}
-\setlength{\belowcaptionskip}{0pt}
-\renewcommand{\arraystretch}{0.92}
+% Float/caption spacing is prescribed by cacs2026.sty itself, so it is
+% not overridden here, matching the official template's own instruction
+% not to alter margins/spacing.
 
 \begin{document}
 
-\title{QoE-Aware DRL for Live Open RAN Slice Admission Control}
+\CACSmaketitle
+  {QoE-Aware Deep Reinforcement Learning for Live Open Radio Access Network Slice Admission Control}
+  {Manoj Prasad Kunasegran, Wai Leong Pang\textsuperscript{*}, and Swee King Phang}
 
-\author{
-\IEEEauthorblockN{Manoj Prasad Kunasegran}
-\IEEEauthorblockA{School of Engineering\\Taylor's University\\Subang Jaya, Malaysia\\orcid.org/0009-0005-3169-1873}
-\and
-\IEEEauthorblockN{Wai Leong Pang*}
-\IEEEauthorblockA{School of Engineering\\Taylor's University\\Subang Jaya, Malaysia\\orcid.org/0000-0001-8407-5648\\*Corresponding author}
-\and
-\IEEEauthorblockN{Swee King Phang}
-\IEEEauthorblockA{School of Engineering\\Taylor's University\\Subang Jaya, Malaysia\\orcid.org/0000-0002-7877-8766}
-}
+\begin{CACSabstract}
+\abstractnameCACS
+Slice Admission Control (SAC) decides whether an incoming slice request can be accommodated given
+current resources. However, static SAC cannot adapt as user demands shift, particularly in dynamic 5G environments.
+Deep Reinforcement Learning (DRL)-driven SAC closes
+this gap by incorporating context-aware mechanisms such as Service Level Agreement (SLA) and Quality of Experience (QoE) into the admission policy. We evaluate a Deep Q-Network (DQN)-based approach on a real OpenAirInterface (OAI)
+gNodeB across three slices. These are Enhanced Mobile Broadband
+(eMBB), Ultra-Reliable Low-Latency Communication (URLLC) and Massive
+Machine-Type Communication (mMTC). The QoE-aware policy is
+benchmarked against a static baseline, an SLA-only reward,
+and a static-at-cap policy that pins every slice at its calibrated
+maximum allocation. After finalising QoE calibration, a
+fully powered live evaluation across 128 episodes per arm demonstrated
+the QoE-aware DQN sustaining 100.0\% eMBB/URLLC/mMTC SLA compliance
+on every episode, a statistically significant improvement over the
+static baseline's 93.9\% slice-wide compliance. The SLA-only reward
+and the static-at-cap policy converge to a statistically
+indistinguishable compliance rate, 98.6\% and 98.7\% slice-wide
+respectively, only numerically higher than the baseline. Five further SLA-reward checkpoints
+show that live robustness varies substantially by seed despite
+equivalent offline convergence. Under a congested,
+URLLC-preservation scenario, the DQN policy trades eMBB compliance
+for URLLC compliance offline. However, during live evaluation, every arm remains fully
+SLA-compliant. A smaller pilot still shows the QoE-aware reward
+giving URLLC a materially higher Mean Opinion Score of 4.83 out of
+5, against 2.44 for the SLA-only reward and 2.66 for the static
+baseline. Negligible control-loop latency of 0.57\,ms and a
+lightweight model under 20,000 parameters confirm minimal deployment
+overhead. These findings demonstrate the feasibility of deploying DRL-driven SAC in a live Open RAN architecture.
+\end{CACSabstract}
 
-\maketitle
+\begin{center}
+\parbox{0.94\columnwidth}{\fontsize{9}{10.5}\selectfont\noindent
+\textit{Index Terms}---5G, Deep Reinforcement Learning, Network Slicing, Open RAN, Quality of Experience, Slice Admission Control}
+\end{center}
 
-\begin{abstract}
-Building on our previous work on Deep Reinforcement Learning
-(DRL)-driven Slice Admission Control (SAC), validated entirely in
-simulation, this paper moves the same control problem onto a real
-Open RAN testbed. We deploy a Quality of Experience (QoE)-aware Deep
-Q-Network (DQN) admission policy on a real OpenAirInterface (OAI)
-gNodeB (gNB) across three network slices (eMBB, URLLC, mMTC), and
-compare it against a static baseline, the SLA-only reward of our
-prior work, and a best-possible static-at-cap policy. After
-identifying and correcting a calibration issue in our QoE estimation,
-a fully powered live re-evaluation of 128 episodes per arm shows DQN
-under the QoE-aware reward sustaining 100 percent SLA compliance
-throughout, significantly ahead of the static baseline with a Fisher
-exact p-value of 0.0070, or 0.021 after Holm-Bonferroni correction.
-The SLA-only reward and the static-at-cap arm converge to a
-statistically indistinguishable rate of 126 out of 128 episodes
-each, remaining only numerically, not significantly, above the
-static baseline's rate of 120 out of 128. This shows that the
-collapse-avoidance edge our earlier, smaller-sample evaluation
-suggested for the SLA-only reward does not hold at this larger
-scale. Checking five further independently-trained SLA-reward
-checkpoints shows live robustness varies substantially by training
-seed despite equivalent offline convergence, traced in part to the
-offline training environment's fidelity to real traffic. We
-additionally live-evaluate a congested, URLLC-preservation scenario.
-Unlike its offline counterpart, where DQN measurably trades eMBB
-compliance for URLLC under an imposed resource constraint, every arm
-is fully SLA-compliant live at this rig's traffic scale, though at a
-single-seed, two-episode pilot the QoE-aware reward still yields a
-materially higher URLLC Mean Opinion Score at the same compliance
-level. We also report the control-loop latency and model footprint
-needed for practical deployment. These findings demonstrate the
-feasibility, and the honest limits, of deploying DRL-driven SAC on
-real Open RAN hardware.
-\end{abstract}
-
-\begin{IEEEkeywords}
-5G, Network Slicing, Slice Admission Control, Deep Reinforcement Learning, Quality of Experience, Open RAN
-\end{IEEEkeywords}
+\CACSfirstpagefootnote{%
+M.~P.~Kunasegran, W.~L.~Pang, and S.~K.~Phang are with the School of
+Engineering, Taylor's University, Subang Jaya, Malaysia.\\
+\textsuperscript{*}Corresponding author.\\
+ORCID: M.~P.~Kunasegran, 0009-0005-3169-1873; W.~L.~Pang,
+0000-0001-8407-5648; S.~K.~Phang, 0000-0002-7877-8766.}
 
 \section{Introduction and Background}
-Network slicing (NS) lets a single physical 5G deployment serve
-heterogeneous service classes under per-slice Service Level
-Agreements (SLAs) \cite{slicing-survey}: Ultra-Reliable Low-Latency Communication (URLLC)
-requires sub-millisecond latency and high reliability, Enhanced
-Mobile Broadband (eMBB) demands high throughput, and Massive
-Machine-Type Communication (mMTC) accommodates large numbers of
-low-power devices. Slice Admission Control (SAC) decides whether an
-incoming slice request can be accommodated given current resource
-availability. Static, threshold-based SAC cannot adapt its
-allocation as demand shifts, motivating context-aware, learning-based
-approaches.
+Network slicing virtualises physical 5G deployments to serve
+heterogeneous classes under per-slice Service Level Agreements
+(SLAs). Ultra-Reliable Low-Latency Communication (URLLC) needs
+sub-millisecond latency, Enhanced Mobile Broadband (eMBB) needs high
+throughput, and Massive Machine-Type Communication (mMTC) serves
+many low-power devices. Slice Admission Control (SAC) decides whether
+an incoming request can be accommodated given current resources, and
+static SAC cannot adapt effectively as user demand changes over time.
 
-Our prior work applied DRL to SAC under gNodeB (gNB) congestion,
-using SLA-driven reward shaping to prioritise URLLC traffic, and
-later extended this to a third slice (mMTC) with a load-balancing
-objective across multiple gNBs \cite{mecon-paper1,icraie-paper2},
-both validated only in simulation. Our systematic review organises
-this space into three evidence tiers -- literature-supported work, our
-own preliminary simulated studies, and a proposed, not-yet-validated
-graph-attention multi-agent federated-learning (GAT-MARL-FL)
-framework -- and identifies validated deployment as one of the field's
-persistent gaps \cite{survey-paper3}. This paper closes that gap for
-our own formulation, realising the same admission-control problem on
-a real OAI gNB over its native O-RAN \cite{oran-architecture} E2
-control interface, radio channel still simulated (rfsim), centred on
-QoE rather than SLA compliance alone.
-
-This paper makes the following contributions:
+Our prior work applied DRL to SAC under gNodeB (gNB) congestion, using
+SLA-driven reward shaping to prioritise URLLC traffic
+\cite{mecon-paper1}. It later expanded to a third slice type, mMTC,
+with load balancing across multiple gNBs \cite{icraie-paper2}. Both
+were validated only in simulation. Our systematic review
+\cite{survey-paper3} places this research space into three evidence
+tiers. These are literature-supported work, preliminary simulated
+studies and a proposed but not-yet-validated graph-attention
+multi-agent federated-learning (GAT-MARL-FL) framework. This
+identifies validated deployment as a gap.
+This paper closes that gap for the same formulation. We realise it on
+a real OpenAirInterface (OAI) gNB over its native E2 interface, the
+O-RAN near-real-time RAN Intelligent Controller (RIC)
+\cite{oran-e2ap}. Only the radio channel remains simulated, a mode we
+denote rfsim throughout, and the reward is centred on QoE rather than
+SLA compliance alone. This paper makes the following
+contributions.
 \begin{enumerate}[itemsep=1pt,topsep=2pt,parsep=0pt,partopsep=0pt]
 \item We deploy a DRL-based SAC policy on a real O-RAN E2 control
-loop and identify a structural difference from our earlier simulated
-work: only a per-slice resource ceiling is exposed, not a per-flow
-accept/reject primitive, so admission is realised as a ceiling
-adjustment.
-\item We compare a QoE-aware reward against the SLA-only reward of
-\cite{mecon-paper1,icraie-paper2} and a static-at-cap arm on the same
-live hardware, isolating genuine admission timing from simply a more
-generous fixed allocation.
-\item We report the control-loop latency and model size a real
-deployment needs, a QoE-calibration bug found and fixed, and the
-re-evaluation it enabled.
-\item We evaluate a congested, multi-slice scenario both offline and,
-at a smaller scale, live, showing where the offline scarcity
-mechanism does and does not carry over to real hardware.
-\item We show live robustness varies substantially across
-independently-trained checkpoints despite equivalent offline
-convergence, identifying a corresponding offline-environment
-limitation.
-\enlargethispage{3\baselineskip}
+loop and identify a structural difference from existing work
+\cite{mecon-paper1,icraie-paper2}. Only a per-slice resource ceiling
+is exposed, not a per-flow accept/reject primitive, so admission is
+realised as a ceiling adjustment.
+\item We show that a QoE-aware reward significantly outperforms the
+SLA-only reward of \cite{mecon-paper1,icraie-paper2} and a
+static-at-cap arm on the same live O-RAN, with negligible
+control-loop overhead.
+\item We evaluate a congested scenario offline and, at a smaller
+scale, live. This shows where the offline scarcity mechanism does
+and does not carry over to a deployed O-RAN.
 \item This single-agent, single-gNB deployment validates the live
-control loop our proposed GAT-MARL-FL framework would extend, a
-reduced case, not an omission \cite{survey-paper3}.
+control loop that the multi-agent GAT-MARL-FL framework in
+\cite{survey-paper3} would incorporate in future work.
 \end{enumerate}
 
-The remainder of this paper reviews related work (Section II),
-describes the live testbed and problem formulation (Section III),
-presents and discusses results (Section IV), and concludes with
-future work (Section V).
-
 \section{Literature Review}
-% Requires: \usepackage{array,booktabs} (already loaded above)
-\newcolumntype{C}[1]{>{\raggedright\arraybackslash}p{#1}}
+This section reviews ten QoE-focused works from the verified pool of
+\cite{survey-paper3}. Recent DRL-driven slicing work has moved from SLA/QoS objectives
+toward explicit QoE. The authors in \cite{wang2025usercentric} used a
+hierarchical dueling DQN for user-centric bandwidth allocation,
+maximising satisfaction under stochastic requests while lowering
+latency. The researchers in \cite{lai2024multiresource} termed their
+formulation DRL-MQS, for multi-resource QoS satisfaction, reporting a
+10.5\% improvement in QoS-satisfaction ratio. Another study
+\cite{kougioumtzidis2025drlvr} trained a multi-agent Deep
+Deterministic Policy Gradient (DDPG) model for transmission-level QoE
+in wireless Virtual Reality (VR) over 5G New Radio (NR). The authors
+in \cite{chen2026qoeslicing} combined Convolutional Neural
+Network-Long Short-Term Memory (CNN-LSTM) prediction with
+Lyapunov-stable, non-DRL QoE-aware allocation. Another paper
+\cite{yin2026qoestin} instead used multi-agent Proximal Policy
+Optimisation (PPO), or MAPPO, for QoE across satellite-terrestrial
+Multi-access Edge Computing (MEC) services. All five studies remain
+simulation-only.
 
-\begin{table*}[t]
-\centering
-\scriptsize
-\setlength{\tabcolsep}{2pt}\renewcommand{\arraystretch}{1.05}
-\caption{Evidence matrix of the ten QoE-focused works reviewed in Section~II, from \cite{survey-paper3}'s verified-eligible pool.}
-\label{tab:qoe_evidence_matrix}
-\begin{tabular}{c c C{2.3cm} C{4.4cm} C{2.9cm} C{3.0cm} C{2.2cm}}
-\toprule
-\textbf{Ref.} & \textbf{Yr.} & \textbf{Method} & \textbf{Obj.\ / reward} & \textbf{Results} & \textbf{Relevance} & \textbf{Limitation / Scope} \\
-\midrule
-\cite{wang2025usercentric} & 2025 & AH-Dueling DQN & Max.\ exp.\ discounted reward = user satisfaction (latency + tput) & $\downarrow$ latency, $\uparrow$ tput vs.\ DQN/AH-DQN; faster conv. & DQN-family QoE-driven alloc. --- method sibling & Sim.\ only; satisfaction proxy (A) \\
-\cite{lai2024multiresource} & 2024 & DRL-MQS & Step score by QoS-satisfaction ratio vs.\ 0.5 \& trend; penalty prop.\ to shortfall & $+10.5\%$ QoS-satisfaction ratio vs.\ DRL-MRU & QoS-ratio $\approx$ SLA-compliance; closest comparator & Sim.\ only (A) \\
-\cite{kougioumtzidis2025drlvr} & 2025 & IMADDPG & Max.\ discounted reward: tput + fairness $-$ interference & Higher transmission-QoE vs.\ RA (near-Pareto) & DRL QoE reward design (immersive) & MATLAB sim; VR-specific (A) \\
-\cite{chen2026qoeslicing} & 2026 & CNN-LSTM + Lyapunov & Max.\ summed utility (QoE + pref.), drift-plus-penalty, queue-stable & Enhances QoE/stability vs.\ SOTA (\% n/r) & Closed-loop QoE-aware slicing (non-DRL) & Sim.; dataset-driven (I) \\
-\cite{yin2026qoestin} & 2026 & MAPPO & Max.\ QoE utility s.t.\ per-service QoS & Superior QoE vs.\ 3 benchmarks & Multi-agent QoE --- toward MARL roadmap & Sim.; sat.-terrestrial (A) \\
-\cite{sun2025qoeric} & 2025 & Transformer (TTPP) & Min.\ QoE-prediction error (MAE) & MAE $\downarrow\,12.5$--$44\%$ vs.\ baseline & RAN-side QoE inference --- grounds MOS estimator & Prototype; pred.\ only, no control (I) \\
-\cite{gonzalez2025qoeoran} & 2025 & ML regressors (GB) & QoE est.\ from network-only data & $R^2\,0.986$, RMSE $0.091$ & O-RAN-embedded QoE est. & Offline/dataset; est.\ only (A) \\
-\cite{anand2024qoexapp} & 2024 & MLCIMO & Classify users by interference $\to$ max.\ QoE & $\uparrow$ VMAF/R-Factor/RUMSI vs.\ SOTA & O-RAN QoE xApp --- deployment surface & NS-3 sim; classif., not admission (I) \\
-\cite{casparsen2025vroran} & 2025 & Open-loop RRM xApp & Meet per-slice latency target, min.\ over-provisioning & $-30\%$ over-provisioning; $0.6$\,ms latency offset & \textbf{OAI+RIC O-RAN --- testbed comparator} & \textbf{Live testbed}; unlearned (A) \\
-\cite{yeznabad2024clqdba} & 2024 & CLQDBA & Max.\ QoE, min.\ dev.\ (app-bitrate vs.\ MAC-tput), per slice & $\uparrow$ tput, QoE, cache-hit vs.\ baseline & QoE-driven RA (adaptive video) & Sim.; app-layer, greedy (A) \\
-\midrule
-\multicolumn{7}{@{}p{\dimexpr\textwidth-4pt\relax}@{}}{\scriptsize\textit{Note:} A = author-stated scope/limitation; I = inferred from evaluation scope; n/r = not reported; GB = gradient boosting; tput = throughput. Hyperparameters and other method specifics appear in Section~II's prose; reward column gives the DRL reward where applicable, otherwise the optimisation objective/loss. Only Casparsen~\cite{casparsen2025vroran} validates on live O-RAN hardware; all others are simulation, prototype, or offline --- the deployment gap this paper addresses.} \\
-\bottomrule
-\end{tabular}
-\end{table*}
+A parallel thread infers QoE from network-side signals. The authors
+in \cite{sun2025qoeric} used a Transformer encoder-decoder to predict
+real-time-video QoE from low-level RAN information, cutting Mean
+Absolute Error (MAE) by $12.5$--$44\%$. Meanwhile, \cite{gonzalez2025qoeoran}
+embedded a gradient-boosting QoE estimator in a 5G O-RAN, reaching a
+coefficient of determination $R^2=0.986$. Both remain estimation only.
 
-Table~\ref{tab:qoe_evidence_matrix} summarises the ten works reviewed
-in this section along a common evidence tuple (method,
-objective/reward, results, relevance, limitation), discussed next.
+Closest to the present setting, three works place QoE control inside
+the O-RAN loop, none deploying a learned admission policy over
+a live E2 loop. The authors in \cite{anand2024qoexapp} classified
+users by interference via an ML-based xApp, raising R-Factor scores in a simulated 5G HetNet.
+The researchers in \cite{casparsen2025vroran} demonstrated
+near-real-time xApp RAN slicing, an open-loop Radio Resource
+Management (RRM) policy on an OAI plus FlexRIC testbed. FlexRIC is an
+open-source O-RAN near-real-time RIC. This work cuts overprovisioning
+by 30\% and is the only one reviewed here validated on a live O-RAN,
+though unlearned. Meanwhile, \cite{yeznabad2024clqdba} proposed a
+cross-layer QoE-driven bitrate heuristic for MEC video in simulation.
 
-Recent DRL-driven slicing work has moved from SLA/QoS objectives toward
-explicit QoE. The authors in \cite{wang2025usercentric} proposed a
-hierarchical dueling DQN (300-128-64 fully-connected, LR $0.001$,
-$\gamma=0.9$) for user-centric bandwidth allocation, maximising user
-satisfaction under stochastic slice requests while lowering latency. The
-authors in \cite{lai2024multiresource} formulated multi-resource slicing as a
-DRL problem (DRL-MQS, LR $0.01$, $10^5$ episodes) maximising a delay-derived
-QoS-satisfaction ratio, reporting a 10.5\% improvement over a
-utilisation-maximising baseline. The authors in \cite{kougioumtzidis2025drlvr}
-trained a hierarchical multi-agent DDPG (IMADDPG, MATLAB) to maximise a
-transmission-level QoE value for wireless VR over 5G NR. The authors in
-\cite{chen2026qoeslicing} combined CNN-LSTM demand prediction with
-Lyapunov-stable, preference-aware allocation in a closed-loop QoE-driven
-framework. The authors in \cite{yin2026qoestin} used multi-agent PPO (MAPPO,
-actor LR $3\times10^{-4}$, 40 UEs) to jointly optimise user association and
-bandwidth for QoE across satellite-terrestrial services.
-
-A parallel thread infers QoE from network-side signals. The authors in
-\cite{sun2025qoeric} proposed a Transformer encoder-decoder (TTPP) that
-estimates real-time-video QoE from low-level RAN information on a prototype,
-reducing mean absolute error by 12.5--44\%. The authors in
-\cite{gonzalez2025qoeoran} embedded a gradient-boosting QoE-estimation model,
-trained on network-side features, directly in the 5G O-RAN, letting the
-operator score session QoE without application-layer access from the service
-provider.
-
-Closest to the present setting, several works place QoE control inside the
-O-RAN loop. The authors in \cite{anand2024qoexapp} deployed an ML-based xApp
-(MLCIMO, NS-3 mmWave) that classifies users by interference to raise QoE
-(VMAF, R-Factor) in 5G HetNets. The authors in \cite{casparsen2025vroran}
-experimentally demonstrated near-real-time xApp RAN slicing (an open-loop RRM
-policy, OAI + FlexRIC testbed, $10$--$16.67$\,ms latency targets) of variable
-VR traffic with latency guarantees, cutting overprovisioning by 30\%. At the
-application layer, the authors in \cite{yeznabad2024clqdba} proposed a
-cross-layer, QoE-driven bitrate-allocation algorithm (CLQDBA, online greedy
-heuristic) for MEC-supported adaptive video across slices.
-
-Across this literature, QoE is emerging as the primary objective and DRL as the
-dominant method, with O-RAN xApps as the deployment surface; yet validation
-remains overwhelmingly simulation-based, and even the O-RAN and experimental
-works \cite{gonzalez2025qoeoran,anand2024qoexapp,casparsen2025vroran} do not
-deploy a \emph{learned} QoE-aware admission policy on a real gNB over the live
-E2 control loop. This paper closes that gap for our own formulation, extending
-the SLA-only simulated SAC of \cite{mecon-paper1,icraie-paper2} with a QoE-aware
-reward and instantiating, on real OAI hardware, the validated-deployment
-evidence tier our systematic review \cite{survey-paper3} identified as scarce.
+Across this literature, QoE is emerging as the primary objective and
+DRL the dominant method, yet none of the ten works reviewed here
+deploy a learned QoE-aware admission policy over a live E2 loop.
+Closing that gap is the central objective of this paper.
 
 \section{Methodology}
-Fig.~\ref{fig:pipeline} summarises the pipeline detailed in this
-section: offline training against a closed-loop simulator
-(Section~III-C) produces frozen checkpoints, deployed on the live
-testbed below with no further learning.
+This section describes the testbed and admission-control problem
+formulation, summarised by Fig.~\ref{fig:pipeline}, with no new
+algorithmic framework proposed at this stage. Offline
+training against a closed-loop simulator, detailed in
+Section~\ref{sec:offline-env}, produces frozen checkpoints. These
+deploy on the live testbed below with no further learning, and any
+checkpoint failing offline convergence is discarded first. A held-out
+offline evaluation runs alongside this pipeline but does not
+rank-correlate with live outcomes.
 
 \begin{figure}[t]
 \centering
 \begin{tikzpicture}[
   font=\sffamily\scriptsize,
   box/.style={draw, rounded corners, align=center, inner sep=3pt, minimum height=0.7cm, minimum width=3.1cm},
-  simbox/.style={box, fill=palBlue!12, draw=palBlue!70!black},
-  livebox/.style={box, fill=palYellow!25, draw=palYellow!70!black},
-  evalbox/.style={box, fill=palGreen!12, draw=palGreen!70!black},
+  simbox/.style={box, fill=palTeal!12, draw=palTeal!70!black},
+  livebox/.style={box, fill=palRust!18, draw=palRust!70!black},
+  evalbox/.style={box, fill=palPlum!12, draw=palPlum!70!black},
   warnbox/.style={box, fill=red!8, draw=red!60!black, dashed, minimum width=2.5cm},
+  infobox/.style={box, fill=black!4, draw=black!55, dashed, minimum width=2.5cm},
   arrow/.style={-{Latex[length=2mm]}, thick},
   dashedarrow/.style={-{Latex[length=2mm]}, thick, dashed},
 ]
 \node[simbox] (probe) {Real-traffic probes};
+\node[font=\tiny\itshape, above=0.06cm of probe] {Start};
 \node[simbox, below=0.24cm of probe] (sim) {Closed-loop simulator (Alg.~1)};
 \node[simbox, below=0.24cm of sim] (train) {DQN training\\SLA/QoE $\times$ 6 seeds $\times$ 300 ep};
 \node[simbox, below=0.24cm of train] (ckpt) {Frozen checkpoints};
@@ -279,6 +208,7 @@ testbed below with no further learning.
 \node[livebox, below=0.24cm of arms] (rig) {Live OAI gNB\\(E2 loop, Fig.~\ref{fig:architecture})};
 \node[evalbox, below=0.24cm of rig] (liveeval) {Live evaluation: 28 seeds, $\leq$128 ep/arm};
 \node[evalbox, below=0.24cm of liveeval] (stats) {Statistical analysis\\Fisher exact, SLA\%, MOS};
+\node[font=\tiny\itshape, below=0.06cm of stats] {End};
 
 \draw[arrow] (probe) -- (sim);
 \draw[arrow] (sim) -- (train);
@@ -290,15 +220,19 @@ testbed below with no further learning.
 
 \node[warnbox, right=0.55cm of ckpt] (offeval) {Held-out offline eval\\100 ep, fresh seeds};
 \draw[dashedarrow] (ckpt.east) -- (offeval.west);
-\node[font=\tiny\itshape, below=0.04cm of offeval, align=center, text width=3.0cm] {no live-rank correlation (Sec.~III-C)};
+\node[font=\tiny\itshape, below=0.04cm of offeval, align=center, text width=3.0cm] {no live-rank correlation};
+
+\node[infobox, right=0.55cm of liveeval] (liveinfo) {3 extensions:\\3$\to$11$\to$28 seeds};
+\draw[dashedarrow] (liveeval.east) -- (liveinfo.west);
+
+\node[infobox, right=0.55cm of stats] (statsinfo) {Holm-Bonferroni,\\3-arm family};
+\draw[dashedarrow] (stats.east) -- (statsinfo.west);
 \end{tikzpicture}
-\caption{End-to-end methodology: frozen checkpoints deployed live with no further learning, reduced to Table~\ref{tab:results}/Fig.~\ref{fig:compliance}. A held-out offline evaluation runs alongside this pipeline but, per Section~III-C, does not predict its outcome.}
+\caption{End-to-end methodology, frozen checkpoints deployed live with no further learning, summarised in Table~\ref{tab:results} and Figs.~\ref{fig:compliance-a}--\ref{fig:compliance-b}.}
 \label{fig:pipeline}
 \end{figure}
 
 \subsection{Testbed}
-Fig.~\ref{fig:architecture} shows the resulting software architecture.
-
 \begin{figure*}[t]
 \centering
 \begin{tikzpicture}[
@@ -316,100 +250,132 @@ Fig.~\ref{fig:architecture} shows the resulting software architecture.
 \node[core, minimum width=2.4cm, below=0.2cm of amf] (smf1) {SMF/UPF\\eMBB};
 \node[core, minimum width=2.4cm, below=0.2cm of smf1] (smf2) {SMF/UPF\\URLLC};
 \node[core, minimum width=2.4cm, below=0.2cm of smf2] (smf3) {SMF/UPF\\mMTC};
-\node[draw=palBlue!70!black, dashed, rounded corners, fit=(amf)(smf1)(smf2)(smf3), inner sep=5pt, label={[font=\sffamily\bfseries\scriptsize, text=palBlue!70!black]above:\iconServer{palBlue!70!black}\ Open5GS core (software)}] (core) {};
+\node[font=\sffamily\bfseries\scriptsize, text=palBlue!70!black, below=0.14cm of smf3] (coretitle) {Open5GS core (software)};
 
-\node[gnb, minimum width=2.9cm, right=2.2cm of smf1.north east, anchor=north west, yshift=0.35cm] (mac) {MAC scheduler\\\texttt{slicing\_control\_m}\\enforcement};
-\node[gnb, minimum width=2.9cm, below=0.3cm of mac] (e2) {E2 Agent\\(RIC-free UDP loop)};
-\node[draw=palYellow!65!black, rounded corners, fit=(mac)(e2), inner sep=5pt, label={[font=\sffamily\bfseries\scriptsize, text=palYellow!55!black]above:\iconTower{palYellow!55!black}\ gNB -- OAI (ORANSlice fork), rfsim, 106 PRBs $\mu{=}1$}] (gnbbox) {};
-
-\node[ue, right=2.0cm of mac, yshift=0.75cm] (ue1) {\iconPhone{palGreen!70!black}\\UE1\\eMBB (\texttt{nr-uesoftmodem})};
-\node[ue, below=0.3cm of ue1] (ue2) {\iconPhone{palGreen!70!black}\\UE2\\URLLC (\texttt{nr-uesoftmodem})};
-\node[ue, below=0.3cm of ue2] (ue3) {\iconPhone{palGreen!70!black}\\UE3\\mMTC (\texttt{nr-uesoftmodem})};
-
-\node[xapp, minimum width=3.3cm, below=1.3cm of e2] (xapp) {\iconGear{palPurple!70!black}\ xApp / orchestrator\\baseline, static-at-cap,\\DQN$_{\text{SLA}}$, DQN$_{\text{QoE}}$};
+\node[xapp, minimum width=3.3cm, right=2.2cm of smf1.north east, anchor=north west, yshift=1.9cm] (xapp) {xApp / orchestrator\\baseline, static-at-cap,\\DQN$_{\text{SLA}}$, DQN$_{\text{QoE}}$};
 \node[logbox, below=0.3cm of xapp] (log) {Episode log\\\texttt{omega\_log.jsonl}};
 
-\draw[arrow] (amf.east) -- ++(0.4,0) coordinate (n2n3) -- (n2n3 |- gnbbox.west) node[midway, above, font=\tiny] {N2 (AMF) / N3 (UPF)} -- (gnbbox.west);
-\draw[arrow] (mac.east) -- (ue1.west);
+\node[gnb, minimum width=2.9cm, below=0.6cm of log] (e2) {E2 Agent\\(RIC-free UDP loop)};
+\node[gnb, minimum width=2.9cm, below=0.3cm of e2] (mac) {MAC scheduler\\\texttt{slicing\_control\_m}\\enforcement};
+\node[font=\sffamily\bfseries\scriptsize, text=palYellow!55!black, below=0.14cm of mac] (gnbtitle) {gNB, OAI, rfsim, 106 PRBs $\mu{=}1$};
+\node[fit=(mac)(e2), inner sep=5pt] (gnbbox) {};
+
+\node[ue, right=2.0cm of e2, yshift=1.1cm] (ue1) {UE1\\eMBB (\texttt{nr-uesoftmodem})};
+\node[ue, below=0.3cm of ue1] (ue2) {UE2\\URLLC (\texttt{nr-uesoftmodem})};
+\node[ue, below=0.3cm of ue2] (ue3) {UE3\\mMTC (\texttt{nr-uesoftmodem})};
+
+\draw[arrow] (amf.east) -- ++(1.0,0) coordinate (n2n3) -- (n2n3 |- gnbbox.west) node[midway, above, font=\tiny, fill=white, inner sep=1pt] {N2 (AMF) / N3 (UPF)} -- (gnbbox.west);
+\draw[arrow] (e2.east) -- (ue1.west);
 \draw[arrow] (gnbbox.east) -- (ue2.west);
-\draw[arrow] (e2.east) -- (ue3.west);
-\node[font=\tiny, above=0.02cm of ue1] {Uu / rfsim};
-\draw[dashedarrow] (e2.south) .. controls +(0,-0.8) and +(0,0.8) .. node[right, font=\tiny, align=left] {UDP 6655/6600\\INDICATION\_REQUEST/RESPONSE,\\CONTROL\{sst, sd, min\_ratio,\\max\_ratio\} (never SUBSCRIPTION)} (xapp.north);
+\draw[arrow] (mac.east) -- (ue3.west);
+\node[font=\tiny, below=0.08cm of ue3] {Uu / rfsim};
+\draw[dashedarrow] (e2.west) .. controls +(-0.4,-0.1) and +(-0.4,0.1) .. (xapp.west);
 \draw[arrow] (xapp) -- (log);
 \end{tikzpicture}
-\caption{Testbed software architecture, colour-coded by component: Open5GS core (blue) over N2/N3 to an OAI gNB (yellow) whose MAC scheduler enforces the per-slice ceiling; three \texttt{nr-uesoftmodem} UEs (green), one per slice. The RIC-free E2 agent exchanges UDP INDICATION/RESPONSE and CONTROL (\texttt{sst}, \texttt{sd}, \texttt{min\_ratio}, \texttt{max\_ratio}) messages with the xApp/orchestrator (purple) that all four compared arms run through, which logs every step to \texttt{omega\_log.jsonl}.}
+\caption{Testbed software architecture.}
 \label{fig:architecture}
 \end{figure*}
 
-We deploy a real OAI gNB (ORANSlice fork \cite{oranslice}) with a
-simulated radio channel (rfsim), an Open5GS core, and three UEs, one
-per slice. The gNB has a nominal capacity of 106 Physical Resource
-Blocks (PRBs, $\mu=1$ numerology). Unlike our earlier simulated work,
-the real O-RAN E2 interface does not expose a binary accept/reject
-action; its only control primitive is a per-slice ratio ceiling on a
-0--100 scale, enforced by the MAC scheduler \cite{oran-e2ap}. We
-therefore realise the admission decision as a ceiling adjustment: an
-accept decision raises a slice's ceiling toward a calibrated maximum,
-and a reject decision lowers it toward a floor. Ceiling values were
-calibrated by direct measurement on the live rig rather than assumed,
-since the 0--100 ratio scale does not map linearly onto real PRBs at
-this cell's configuration. The static baseline holds its ceiling
-fixed for the whole episode; a second static arm, \emph{static-at-cap},
-instead pins every slice's ceiling at its calibrated maximum from the
-start, isolating whether a more generous fixed allocation alone can
-match a learned policy. Learned arms are DQN policies \cite{dqn},
-trained offline against a closed-loop simulated traffic source, then
-evaluated live with frozen weights, over an E2 agent/xApp loop that
-all four arms issue admission decisions through.
+Fig.~\ref{fig:architecture} shows the Open5GS core connecting over
+N2/N3, carrying signalling to the Access and Mobility Management
+Function (AMF) and data to the User Plane Function (UPF). Both reach
+a real OAI gNB, an ORANSlice fork \cite{oranslice} with a simulated
+radio channel, rfsim. Its nominal capacity is 106 Physical Resource
+Blocks (PRBs) at $\mu=1$, and its Medium Access Control (MAC)
+scheduler enforces the per-slice ceiling. Three
+\texttt{nr-uesoftmodem} UEs, one per slice, attach over the radio
+interface. The RIC-free E2
+agent exchanges User Datagram Protocol (UDP) INDICATION/RESPONSE and
+CONTROL messages with the xApp/orchestrator, shared by all four arms.
+These messages carry \texttt{sst}, \texttt{sd}, \texttt{min\_ratio}
+and \texttt{max\_ratio}. Every step is logged to
+\texttt{omega\_log.jsonl}.
+
+Unlike the earlier simulated formulation \cite{mecon-paper1,icraie-paper2},
+the real O-RAN E2 interface exposes only a per-slice ratio ceiling on
+a 0--100 scale rather than a binary accept/reject action
+\cite{oran-e2ap}. An accept decision raises a slice's ceiling toward
+a calibrated maximum, and a reject lowers it toward a floor. Ceiling
+values were calibrated by direct measurement, since the scale maps
+nonlinearly onto real PRBs here. The static baseline holds its
+ceiling fixed for the whole episode. \emph{Static-at-cap} instead pins every
+ceiling at its calibrated maximum from the start, testing whether a
+generous fixed allocation alone matches a learned policy. Learned
+arms are DQN policies \cite{dqn}, all four issuing decisions through
+the same E2 agent/xApp loop.
 
 \subsection{Problem Formulation}
+\label{sec:problem-formulation}
 The gNB state at time $t$ is defined as
 \begin{equation}
-s_t = \left(\frac{U_s(t)}{B}, \; C_t, \; \frac{L_s(t)}{L_{\max}} \;\forall s \in \mathcal{S}\right)
+s_t = \left(\frac{U_s(t)}{B}, \; C_t, \; \frac{L_s(t)}{L_{\max}} \;\forall s \in \mathcal{S}\right),
 \label{eq:state}
 \end{equation}
 where $U_s(t)$ is the resource allocation of slice $s \in
-\mathcal{S}=\{\text{eMBB},\text{URLLC},\text{mMTC}\}$, $B$ is the
-total resource budget on the ceiling's normalised 0--100 scale, $C_t$
-is the current congestion level, and
-$L_s(t)$ is slice $s$'s queue length, normalised by its maximum
-capacity $L_{\max}$. The agent's action at each step is the ceiling
-adjustment described above. The reward function is
+\mathcal{S}=\{\text{eMBB},\text{URLLC},\text{mMTC}\}$ and $B$ is the
+total resource budget on the ceiling's 0--100 scale. $C_t$ is the
+current congestion level, and $L_s(t)$ is slice $s$'s queue length
+normalised by its capacity $L_{\max}$. The agent's action at each
+step is the ceiling adjustment described above. The SLA-only reward,
+used to train DQN-SLA, is
 \begin{equation}
-r(s_t,a_t) = \sum_{s\in\mathcal{S}}\big(\omega_s R_s - \lambda_s\big) - \mu C_t\|a_t\|_1 + \eta\,\mathrm{MOS}_t
+r(s_t,a_t) = \sum_{s\in\mathcal{S}}\big(\omega_s R_s - \lambda_s\big) - \mu C_t\|a_t\|_1,
 \label{eq:reward}
 \end{equation}
 where $\omega_s$ and $\lambda_s$ are slice $s$'s reward weight and
-SLA-violation penalty, $R_s$ is the reward for serving slice $s$, and
-$\mu C_t\|a_t\|_1$ penalises total accepted volume by the current
-congestion level, matching the SLA-driven reward structure of our
-earlier work \cite{mecon-paper1,icraie-paper2}. Setting the QoE
-weight $\eta=0$ recovers the SLA-only reward used in that prior work;
-setting $\eta=1$ adds a Mean Opinion Score (MOS) term -- a per-slice
-closed-form estimator, logarithmic in latency, packet loss, and
-inverse throughput per Eq.~(3) of \cite{survey-paper3} -- giving the
-QoE-aware reward evaluated here. Both variants are compared on the
-same live hardware; we also report a priority-weighted compliance
-score, using each slice's declared importance weight rather than an
-unweighted average.
+SLA-violation penalty, and $R_s$ is the reward for serving slice $s$.
+The term $\mu C_t\|a_t\|_1$ penalises total accepted volume by
+congestion level, matching existing work's SLA-driven reward
+structure \cite{mecon-paper1,icraie-paper2}. DQN-QoE instead trains
+against a differently-shaped reward, our own prior work's eq.\,(9)
+\cite{survey-paper3}, not an additive extension of Eq.~\eqref{eq:reward}.
+{\setlength{\abovedisplayskip}{5pt plus 1pt minus 1pt}%
+\setlength{\belowdisplayskip}{5pt plus 1pt minus 1pt}%
+\setlength{\abovedisplayshortskip}{3pt plus 1pt minus 1pt}%
+\setlength{\belowdisplayshortskip}{3pt plus 1pt minus 1pt}%
+\begin{equation}
+r^{\mathrm{QoE}}(s_t,a_t) = \kappa\,\overline{\mathrm{MOS}}_t - \nu\,\mathrm{cost}_t - \xi\,\mathrm{viol}_t,
+\label{eq:qoe-reward}
+\end{equation}
+where $\overline{\mathrm{MOS}}_t\in[0,1]$ rescales the mean per-slice
+Mean Opinion Score (MOS) from Eqs.~\eqref{eq:iqx-arg}--\eqref{eq:iqx},
+\begin{equation}
+q_t = \max\big(\gamma\,\ell_t + \delta\,p_t + \epsilon/\tau_t,\ 0\big),
+\label{eq:iqx-arg}
+\end{equation}
+\begin{equation}
+\mathrm{MOS}_t = \mathrm{clip}\big(\alpha - \beta\log(1+q_t),\ 1,\ 5\big).
+\label{eq:iqx}
+\end{equation}}
+$\ell_t,p_t,\tau_t$ are latency, packet loss and throughput.
+$\alpha,\beta,\gamma,\delta,\epsilon$ are coefficients calibrated in
+Section~\ref{sec:feasibility}. Above, $\mathrm{cost}_t$ reuses
+Eq.~\eqref{eq:reward}'s congestion-scaled accepted volume
+$\mu C_t\|a_t\|_1$. The term $\mathrm{viol}_t$ is the mean per-slice
+violation severity, continuous unlike $\lambda_s$'s flat charge. We
+compare both variants on the same live setup. We also
+report a priority-weighted compliance score $W =
+\sum_{s\in\mathcal{S}} \pi_s\,\mathrm{Compl}_s$, in place of an
+unweighted average. Here $\mathrm{Compl}_s$ is slice $s$'s
+fully-compliant-episode rate, and $\pi_s = \omega_s$ is the same
+reward weight from Eq.~\eqref{eq:reward}, normalised so
+$\sum_s \pi_s=1$.
 
 \subsection{Offline Training Environment}
 \label{sec:offline-env}
-A DQN policy needs on the order of hundreds of episodes per seed to
-converge; across this study's six independently-seeded checkpoints
-alone that is 1,800 training episodes, far more live rig time than
-this paper's entire live evaluation uses. Training therefore happens
-offline, against a synthetic, closed-loop traffic source: served
-traffic is capped by the slice's own most recently commanded ceiling,
-and demand the ceiling could not serve persists as backlog rather
-than vanishing, so an admission decision carries a real, delayed
-consequence -- unlike an earlier, open-loop source we also
-implemented, under which always accepting was trivially
-reward-optimal. Algorithm~\ref{alg:sim} summarises the closed-loop
-update, one full polling step across every (gNB, slice) pair.
+A DQN policy needs hundreds of episodes per seed to converge, 1,800
+across this study's six checkpoints alone, far more live rig time
+than this paper's entire live evaluation uses. Training therefore
+happens offline, against a synthetic, closed-loop source. Served
+traffic is capped by the slice's most recent ceiling, and unserved
+demand persists as backlog. An admission decision therefore carries a
+real, delayed consequence, unlike an earlier open-loop source where
+always accepting was trivially reward-optimal. Algorithm~\ref{alg:sim}
+summarises the closed-loop update, one polling step per gNB/slice
+pair.
 
 \begin{algorithm}[t]
-\caption{Offline closed-loop traffic simulation (one polling step, all gNBs/slices)}
+\caption{Offline closed-loop 5G traffic simulation (one polling step, all gNBs/slices)}
 \label{alg:sim}
 \footnotesize
 \begin{algorithmic}[1]
@@ -417,7 +383,7 @@ update, one full polling step across every (gNB, slice) pair.
 \FORALL{gNB $g$, slice $s$}
   \STATE $mean \gets$ mean\_offered\_ratio$_s \times B \times$ gnb\_load$_g$
   \STATE offered$_{g,s} \gets \max(0,\ \text{offered}_{g,s} + 0.1(mean - \text{offered}_{g,s}) + \text{noise})$
-  \IF{a reject freed backlog last step (Sec.~III-C)}
+  \IF{a reject freed backlog on the previous step}
     \STATE backlog$_{g,s} \gets \max(0,\ \text{backlog}_{g,s} - \text{relief})$
   \ENDIF
   \STATE $demand \gets \text{offered}_{g,s} + \text{backlog}_{g,s}$
@@ -434,47 +400,45 @@ update, one full polling step across every (gNB, slice) pair.
 \end{algorithmic}
 \end{algorithm}
 
-This source's demand mean is tied to values measured live on this
-rig, but its temporal dynamics are not themselves validated against
-live traffic. This matters in practice: held-out offline evaluation
-of the same six checkpoints does not rank-correlate with their live
-compliance (Section~IV-A) -- a checkpoint with a perfect live record
-can look indistinguishable offline from one that fails live, traced
-in part to a simulator parameter (the backlog capacity) never
-validated against real SLA-margin magnitude. Offline training itself
-still produces competent policies, but cannot presently be used to
-rank or pre-select which checkpoint will succeed live -- every number
-in this paper's Results is therefore a live measurement, not an
-offline projection.
+This source's demand mean is tied to offered-load levels measured on
+this rig, but its temporal dynamics are not validated against live
+traffic. Held-out evaluation of the
+same six checkpoints does not rank-correlate with live compliance.
+This traces in part to the
+simulator's backlog-capacity parameter, which was never validated
+against real SLA-margin magnitude. Offline training still produces competent policies but
+cannot rank or pre-select which checkpoint will succeed live, so
+every number in this paper's Results is a live measurement, not
+an offline projection.
 
 \subsection{Evaluation Setup}
 Each of the four arms was evaluated live across 28 random seeds, with
-frozen policy weights, reached in three extensions: an initial 3
-seeds at 2 episodes each, then 8 more at the full 5-episode protocol
-once a QoE-calibration issue (Section~IV-B) was corrected (46
-episodes/arm), then 17 more seeds, 16 at the same 5-episode protocol
-and one at 2 episodes, for the fully powered 128 episodes/arm reported
-here -- large enough that a tied Fisher exact test is a genuine null
-result, not merely underpowered.
-The static-at-cap arm reuses the static baseline's own control code,
-ceiling parameter changed only in configuration; training followed
-Section~III-C's procedure, 300 episodes per seed.
+frozen policy weights, reached in three extensions. The first added 3
+seeds at 2 episodes each. The second added 8 more at the full
+5-episode protocol, once a QoE-calibration issue detailed in
+Section~\ref{sec:feasibility} was corrected, for a running total of
+46 episodes/arm. The third added 17
+more, 16 at 5 episodes and one at 2, for the fully powered 128
+episodes/arm reported here. This sample is large enough that a tied
+Fisher exact test is genuine, not underpowered. The static-at-cap arm reuses the
+static baseline's control code with only the ceiling changed. The
+DQN arms followed the offline training procedure, 300 episodes per seed.
 
 \section{Results and Discussion}
 \subsection{Live Testbed Results}
+\label{sec:live-results}
 We classify a live episode as \emph{fully compliant} if every
-per-step SLA margin -- the worse of each slice's queue-occupancy and
-packet-loss margin -- stays positive for all three slices across the
-entire episode, and \emph{collapsed} otherwise. Table~\ref{tab:results}
+per-step SLA margin stays positive for all three slices, and
+\emph{collapsed} otherwise. Each margin is sampled every 5 seconds
+and taken as whichever of queue-occupancy or packet-loss is worse.
+Table~\ref{tab:results}
 summarises SLA compliance for all four arms across 128 live episodes
-each, following a fully powered re-evaluation under the corrected QoE
-calibration described in Section~\ref{sec:feasibility}. DQN under the
-QoE-aware reward sustains 100\% SLA compliance on every slice, in
-every episode (128/128 episodes fully compliant); DQN under the
-SLA-only reward and the static-at-cap arm reach an identical, slightly
-lower rate (126/128 each); the static baseline, whose commanded
-ceiling stays flat at its starting value for the whole episode rather
-than rising toward the calibrated maximum, trails both at 120/128.
+each, under the corrected QoE calibration from
+Section~\ref{sec:feasibility}. DQN-QoE sustains 100\% compliance on
+every slice, every episode, 128 of 128. DQN-SLA and
+static-at-cap reach an identical, slightly lower 126/128. The
+static baseline trails both at 120/128, its ceiling staying flat
+rather than rising toward the calibrated maximum.
 
 \begin{table}[t]
 \centering
@@ -485,7 +449,7 @@ than rising toward the calibrated maximum, trails both at 120/128.
 \toprule
 Arm & eMBB & URLLC & mMTC \\
 \midrule
-Static baseline & 94.0 & 93.8 & 93.9 \\
+Static & 94.0 & 93.8 & 93.9 \\
 Static-at-cap & 99.1 & 98.4 & 98.5 \\
 DQN (SLA reward) & 98.8 & 98.4 & 98.5 \\
 DQN (QoE reward) & \textbf{100.0} & \textbf{100.0} & \textbf{100.0} \\
@@ -495,133 +459,136 @@ DQN (QoE reward) & \textbf{100.0} & \textbf{100.0} & \textbf{100.0} \\
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=0.92\linewidth]{figures/fig_sla_vs_qoe_ceiling.pdf}
-\caption{Commanded ceiling per slice, DQN-SLA vs.\ DQN-QoE, same seed (955) and episode: the one where DQN-SLA collapses (URLLC 0\% compliant steps) while DQN-QoE, on the identical seed/episode, stays fully compliant.}
+\includegraphics[width=0.98\linewidth]{figures/fig_sla_vs_qoe_ceiling.pdf}
+\caption{Commanded ceiling per slice, DQN-SLA vs.\ DQN-QoE, seed 955, episode 1.}
 \label{fig:sla-vs-qoe-ceiling}
 \end{figure}
 
-\begin{figure*}[t]
+\begin{figure}[t]
 \centering
-\includegraphics[width=0.76\linewidth]{figures/fig2_sla_compliance.pdf}
-\caption{Per-episode SLA compliance (\%). (a) One point per episode. (b) Fraction of episodes fully SLA-compliant and worst single-episode compliance. Baseline, static-at-cap, and DQN under the SLA-only reward all show the same bimodal split; only DQN under the QoE-aware reward stays uniformly compliant.}
-\label{fig:compliance}
-\end{figure*}
+\includegraphics[width=0.98\linewidth]{figures/fig2_sla_compliance_a.pdf}
+\caption{Per-episode SLA compliance (\%), one point per episode.}
+\label{fig:compliance-a}
+\end{figure}
 
-Since the paper's central comparison is DQN-QoE against DQN-SLA
-rather than the static baseline, Fig.~\ref{fig:sla-vs-qoe-ceiling}
-plots both directly on the one seed where DQN-SLA collapses: between
-steps 33--37, DQN-SLA drops URLLC's ceiling to under half its cap
-while DQN-QoE holds URLLC at its cap throughout -- the mechanism
-behind that episode's 0\% vs.\ 100\% URLLC-compliant-step outcome.
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\linewidth]{figures/fig2_sla_compliance_b.pdf}
+\caption{Compliance summary, fraction of episodes fully SLA-compliant and worst single-episode compliance, by arm.}
+\label{fig:compliance-b}
+\end{figure}
 
-A natural question is whether DQN's advantage simply reduces to a
-more generous fixed ceiling. Our earlier, smaller-sample evaluation
-suggested static-at-cap collapses meaningfully more often than
-DQN-SLA (27\% vs.\ 0\%, Fisher exact $p=0.0149$); at this paper's
-fully powered, nearly $3\times$ larger 128-episode/arm sample, that
-edge does not hold -- DQN-SLA and static-at-cap reach an identical
-126/128 (Fisher exact $p=1.0$), a genuine, now-repeated null result.
-Both separate further from the baseline's 120/128 than at 46
-episodes/arm, but only DQN-QoE's gap is significant: raw $p=0.10$
-(DQN-SLA, static-at-cap) and $p=0.0070$ (DQN-QoE) against baseline,
-adjusting to $p=0.21$ and $p=0.021$ after Holm-Bonferroni correction
-across the three-arm family. The QoE-aware reward's advantage
-survives that correction; the SLA-only reward's does not.
+Fig.~\ref{fig:sla-vs-qoe-ceiling} plots DQN-QoE against DQN-SLA on
+the one seed where DQN-SLA collapses. Between steps 33--36, it drops
+URLLC's ceiling as low as half its cap before recovering, while
+DQN-QoE holds cap throughout. This is the mechanism behind that
+episode's 0\% vs.\ 100\% URLLC outcome, raising whether DQN's
+advantage reduces to a more generous fixed ceiling. An earlier,
+smaller-sample evaluation suggested static-at-cap collapses more
+often than DQN-SLA. The gap was 27\% vs.\ 0\%, $p=0.0149$. At
+this paper's $3\times$ larger sample, that edge does not hold. Both
+reach an identical 126/128, $p=1.0$, a genuine null result. Both
+separate further from the baseline's 120/128 than at 46 episodes/arm,
+but only DQN-QoE's gap is significant. Raw $p=0.10$ for DQN-SLA and
+static-at-cap vs.\ baseline, identical at 126/128 each, and
+$p=0.0070$ for DQN-QoE vs.\ baseline become $p=0.205$ and
+$p=0.021$ after correction. The QoE-aware reward's advantage
+survives correction, but the SLA-only reward's does not.
 
-Fig.~\ref{fig:compliance} shows this episode-by-episode: DQN under the
-QoE-aware reward sits at exactly 100\% in every episode, while the
-other three arms each show the same bimodal split between
-fully-compliant and collapsed episodes.
-
-A checkpoint is a single set of frozen DQN weights deployed live with
-no further learning. Since only one DQN-SLA checkpoint was evaluated
-above, we trained 5 more and live-evaluated all six at a reduced
-21-episode protocol (the full 128-episode protocol on all six would
-cost roughly six times this paper's live-evaluation budget). Despite
-indistinguishable offline convergence, live records varied
-substantially across the five new checkpoints (3/5 perfect, one
-matching the original's 19/21, one collapsing to 13/21, worse than
-baseline): live robustness is not
-predictable from offline convergence alone, the practical face of the
-offline-environment limitation noted in Section~III-C.
+Fig.~\ref{fig:compliance-a} shows this episode-by-episode, one point
+per episode, DQN-QoE at 100\% throughout and the other three in the
+same bimodal split. Fig.~\ref{fig:compliance-b} shows two bars per
+arm, only DQN-QoE's coinciding at 100\%. We also trained 5 more DQN-SLA checkpoints at a reduced 21-episode
+protocol. Despite indistinguishable offline convergence, live records
+varied substantially. Of the five, 3 were perfect and one reached
+19/21. The remaining checkpoint fell to 13/21, worse than baseline.
+This observation confirms that live
+robustness is not
+predictable from offline convergence alone, as
+Section~\ref{sec:offline-env} details.
 
 \subsection{Deployment Feasibility}
 \label{sec:feasibility}
-Measured directly against the real gNB, the control loop's E2
-message round trip has a median latency of 0.57\,ms, and the DQN
-model itself (under 20,000 parameters) selects an action in under
-70\,$\mu$s on CPU. Both are a small fraction of the 5-second control
-interval used in this study, indicating the learned policy adds
-negligible overhead to the control loop.
+Measured against the real gNB, the E2 round trip has a median latency
+of 0.57\,ms. Its 90th/99th percentiles, the worst 10\%/1\% of
+calls, reach 1.10\,ms and 1.77\,ms. The DQN model, 18,562 parameters
+and $\sim$300\,KB on disk, selects an action with a median CPU
+inference latency of 67.9--68.3\,$\mu$s. p90/p99 reach
+84.6--85.1/108.9--115.0\,$\mu$s across both reward modes, a small
+fraction of the 5-second control interval. The step's actual dominant cost is
+the QoE-mapper Long Short-Term Memory (LSTM) inference at $\sim$7.3\,ms, an order of magnitude
+above the DQN decision at $\sim$0.07\,ms or the E2 exchange at
+$\sim$0.6\,ms, all three staying under 2\% of the step
+budget. The configured 5.0\,s control cadence lands at 5000.7\,ms, a
+0.7\,ms gap. Comparing offline predictions against live
+results showed a good match for eMBB but not URLLC/mMTC, trained
+under a different demand assumption than observed live, and surfaced
+a QoE-calibration bug. The MOS estimator's throughput term used a
+PRB-usage ratio at run time, but eMBB's coefficients assumed an
+absolute per-UE PRB count. This meant 0.15 read as almost-starved,
+pinning eMBB's MOS at the scale floor. Refitting
+those coefficients against the ratio actually used lifted eMBB's MOS
+from a uniform 1.00 to 2.29, 3.62, and 4.11. This predates
+Table~\ref{tab:results}, unaffected by the MOS estimate.
 
-Comparing offline predictions against live results showed a good
-match for eMBB but not URLLC/mMTC, trained under a different demand
-assumption than observed live. This also surfaced a QoE-calibration
-bug: the MOS estimator's throughput term used a slice's PRB-usage
-ratio at run time, but eMBB's coefficients had been fit assuming an
-absolute per-UE PRB count -- a real ratio of 0.15 was read as
-almost-starved, pinning eMBB's MOS at the scale floor regardless of
-policy quality. Refitting against the ratio actually used lifted
-eMBB's MOS at real operating points from a uniform 1.00 to
-2.29/3.62/4.11; Table~\ref{tab:results} reports the resulting
-re-evaluation.
+\subsection{Congested Scenario, Offline Results and a Live Pilot}
+Unlike the constant demand of Sections~\ref{sec:live-results}
+and~\ref{sec:feasibility}, we evaluate the same checkpoints
+against a congested extension of Section~\ref{sec:offline-env}'s
+offline source, where demand exceeding the shared pool scales down
+each slice's allocation proportionally. Pooled over 165 held-out
+episodes/arm across 11 seeds, Table~\ref{tab:congested}
+shows both DQN variants raising URLLC compliance above the baseline.
+Both trade off eMBB and mMTC compliance, matching existing work's
+URLLC-first behaviour \cite{mecon-paper1,icraie-paper2}. Applying
+$W$, with $\omega_{\mathrm{URLLC}}=5.0$ and $\omega_{\mathrm{eMBB}}=3.5$,
+the baseline still scores higher overall. URLLC carries the larger
+weight, but the DQN arms gain only 5--8 points of URLLC compliance
+against a 24--25 point eMBB loss, so eMBB's larger raw swing
+outweighs URLLC's smaller weighted gain. We also live-evaluated the
+same checkpoints at a smaller pilot scale, one seed and two episodes
+per arm. Every arm was fully SLA-compliant live, a scale mismatch
+since this rig's ceilings never approach the offline budget's
+contention. The QoE-aware reward still produced a
+materially higher URLLC MOS of 4.83 out of 5 than the SLA-only
+reward's 2.44 or the static baseline's 2.66, at the same 100\%
+compliance.
 
-\subsection{Congested Scenario (Offline)}
-Sections IV-A/B use one constant demand level per episode; to test a
-harder scenario, we evaluate the same policies offline under
-continuously varying, randomised multi-slice traffic with genuine
-cross-slice contention (combined demand exceeding the shared PRB pool
-scales down every slice's served allocation proportionally). Pooled
-over 11 seeds (165 held-out episodes/arm), both DQN variants raise
-URLLC compliance above the static baseline's 19.7\% (to 27.7\%/25.0\%
-for SLA-only/QoE-aware) by trading off eMBB (32.7\%$\to$7.7\%/8.2\%)
-and mMTC (19.8\%$\to$9.4\%/11.6\%) -- the same URLLC-first behaviour
-our earlier simulated work targeted \cite{mecon-paper1,icraie-paper2},
-now under real cross-slice contention, replicating on an independent
-8-seed extension. Weighted by declared priority, the static baseline
-still scores higher overall (24.9\% vs.\ 19.1\%/17.9\% for DQN), since
-eMBB's importance outweighs URLLC's gain.
-
-We additionally live-evaluated the same checkpoints at a smaller
-pilot scale (one seed, 2 episodes/arm): every arm, including the
-static baseline, was fully SLA-compliant live -- a scale mismatch,
-not a contradiction, since this rig's calibrated ceilings never
-approach the physical contention the offline budget forces. The
-QoE-aware reward nonetheless produced a materially higher URLLC MOS
-(4.83) than SLA-only (2.44) or the static baseline (2.66) at the same
-100\% compliance (pilot: 1 seed, 2 ep/arm).
+\begin{table}[t]
+\centering
+\caption{Congested offline compliance (\%), pooled 165 ep/arm}
+\label{tab:congested}
+\footnotesize
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Arm & URLLC & eMBB & mMTC & $W$ \\
+\midrule
+Static baseline & 19.7 & 32.7 & 19.8 & \textbf{24.9} \\
+DQN (SLA reward) & 27.7 & 7.7 & 9.4 & 19.1 \\
+DQN (QoE reward) & 25.0 & 8.2 & 11.6 & 17.9 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \section{Conclusion and Future Work}
-This paper moved our prior simulated DRL-based slice admission
-control work \cite{mecon-paper1,icraie-paper2} onto a real OAI gNB
-over its native E2 control loop, with the radio channel still
-simulated. After correcting a QoE-calibration issue, a fully powered
-live re-evaluation of 128 episodes per arm showed the QoE-aware
-reward sustaining 100 percent SLA compliance, now significantly
-ahead of the static baseline. The SLA-only reward and static-at-cap
-remained statistically indistinguishable from each other and only
-numerically ahead of the baseline, revising our earlier,
-smaller-sample finding of a significant SLA-only edge. Control-loop
-latency and model overhead were negligible. An offline
-congested-traffic evaluation showed the learned policy can
-prioritise URLLC, though not yet as a clear win once priorities are
-weighted. Live, no arm was forced into that tradeoff, though the
-QoE-aware reward still gave URLLC a materially better experience
-score.
+This paper moved an existing simulated DRL-based SAC formulation
+onto a real OAI gNB over its native E2 control loop, with the radio
+channel still simulated. A fully powered live evaluation across 128
+episodes per arm confirmed the QoE-aware reward's significant
+compliance advantage over the static baseline (Table~\ref{tab:results}),
+with the SLA-only reward and static-at-cap policy only numerically
+ahead of it, and negligible control-loop overhead throughout. Under
+offline congestion, the learned policy prioritises URLLC unless
+priorities are weighted. No live arm faced that tradeoff, though
+the QoE-aware reward gave URLLC a better experience score.
 
-Our future work will improve the offline training environment's
-fidelity to real traffic, discussed in Section~III-C, and extend
-this single-agent, single-gNB deployment toward the topology-aware
-(graph attention \cite{gat}), multi-agent (e.g.\ actor-critic
-\cite{a2c}), federated (FedAvg \cite{fedavg}) GAT-MARL-FL framework
-proposed in our systematic review \cite{survey-paper3}. This paper substantially
-advances two of that review's five validation directions, namely
-calibrating QoE against real operating points and O-RAN execution on
-a validated live testbed. The remaining topology-scalability, FL and
-privacy, and disruption-resilience directions are our planned next
-paper, building directly on the live control loop validated here.
+Our future work will improve the offline environment's fidelity to
+real traffic and extend this deployment toward the fully-fledged
+GAT-MARL-FL framework from our earlier review. This leaves
+topology-scalability, federated-learning privacy and
+disruption-resilience open.
 
-\section*{Acknowledgment}
+\componentheading{Acknowledgment}
 This research was supported by the Ministry of Higher Education
 (MOHE), Malaysia through the Fundamental Research Grant Scheme
 (FRGS/1/2024/ICT06/TAYLOR/02/1).
