@@ -115,7 +115,7 @@ real Open RAN hardware.
 \section{Introduction and Background}
 Network slicing (NS) lets a single physical 5G deployment serve
 heterogeneous service classes under per-slice Service Level
-Agreements (SLAs): Ultra-Reliable Low-Latency Communication (URLLC)
+Agreements (SLAs) \cite{slicing-survey}: Ultra-Reliable Low-Latency Communication (URLLC)
 requires sub-millisecond latency and high reliability, Enhanced
 Mobile Broadband (eMBB) demands high throughput, and Massive
 Machine-Type Communication (mMTC) accommodates large numbers of
@@ -136,9 +136,9 @@ graph-attention multi-agent federated-learning (GAT-MARL-FL)
 framework -- and identifies validated deployment as one of the field's
 persistent gaps \cite{survey-paper3}. This paper closes that gap for
 our own formulation, realising the same admission-control problem on
-a real OAI gNB over its native E2 control interface, radio channel
-still simulated (rfsim), centred on QoE rather than SLA compliance
-alone.
+a real OAI gNB over its native O-RAN \cite{oran-architecture} E2
+control interface, radio channel still simulated (rfsim), centred on
+QoE rather than SLA compliance alone.
 
 This paper makes the following contributions:
 \begin{enumerate}[itemsep=1pt,topsep=2pt,parsep=0pt,partopsep=0pt]
@@ -611,9 +611,10 @@ score.
 
 Our future work will improve the offline training environment's
 fidelity to real traffic, discussed in Section~III-C, and extend
-this single-agent, single-gNB deployment toward the topology-aware,
-multi-agent, federated GAT-MARL-FL framework proposed in our
-systematic review \cite{survey-paper3}. This paper substantially
+this single-agent, single-gNB deployment toward the topology-aware
+(graph attention \cite{gat}), multi-agent (e.g.\ actor-critic
+\cite{a2c}), federated (FedAvg \cite{fedavg}) GAT-MARL-FL framework
+proposed in our systematic review \cite{survey-paper3}. This paper substantially
 advances two of that review's five validation directions, namely
 calibrating QoE against real operating points and O-RAN execution on
 a validated live testbed. The remaining topology-scalability, FL and
