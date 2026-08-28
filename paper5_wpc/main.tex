@@ -141,8 +141,8 @@ found this offline environment's demand process does not reproduce the
 live testbed's SLA-margin distribution closely enough to support a
 live-rank prediction claim, even after recalibrating the demand
 model's temporal structure; we therefore use it explicitly as a \emph{stress environment} for a contention regime our live rig does not reach, not as a claim that any offline ranking would reproduce live. Section~\ref{sec:results-m8} tests this directly rather than only arguing for it. Multi-gNB claims in this paper remain
-offline-only throughout; no rig with more than one physical gNB exists
-to test them against.
+offline-only throughout; this rig cannot yet sustain a live multi-gNB
+test to check them against.
 
 \section{GAT-CTDE Method}
 \label{sec:methodology}
@@ -535,9 +535,9 @@ environment cannot predict live \emph{ranking} (Spearman
 $\rho=0.097$, $p=0.855$, across six single-gNB checkpoints); we do not
 repeat that attempt, and instead ask a narrower, bounded question this
 rig can answer: does the offline-trained \emph{decision logic} survive
-contact with real traffic at all. This rig has one physical gNB, so
-GAT-CTDE's multi-gNB coordination benefit and the federated/DP results
-are architecturally untestable on it; we trained a fresh single-agent-DQN checkpoint dimension-matched to the live evaluation path and ran it against a real OAI gNB, 3 UEs, and real per-slice UDP traffic, twice, once from a leftover backlog state and once from a verified-clean baseline.
+contact with real traffic at all. This rig cannot yet sustain a live
+multi-gNB test, so GAT-CTDE's multi-gNB coordination benefit and the
+federated/DP results are architecturally untestable on it; we trained a fresh single-agent-DQN checkpoint dimension-matched to the live evaluation path and ran it against a real OAI gNB, 3 UEs, and real per-slice UDP traffic, twice, once from a leftover backlog state and once from a verified-clean baseline.
 
 Both live runs blocked only mMTC (46/32 and 45/32 requests, zero urllc or eMBB blocks in either), exactly matching this checkpoint's offline block precision of 1.000. The offline-trained differentiated-shedding decision transfers to live traffic essentially unchanged, replicated across two independent runs. Both runs' SLA-margin readings, by contrast, diverged from anything offline produces. eMBB's margin fell from $+1.0$ to $-1{,}002{,}377.5$ within a 10-minute run, recurring to the decimal in the independent second run. This traces to a concrete unit mismatch, not left unexplained, since the margin computation divides a per-slice backlog reading by a fixed calibration constant tuned for the offline environment's synthetic proxy, but live, the identically-named field is wired to the real MAC scheduler's transmit-buffer byte count, a physically real quantity two to three orders of magnitude larger in scale. The policy's own decision-facing
 input escapes this (a separate path clips the state-facing backlog
@@ -627,7 +627,7 @@ testbed essentially unchanged, while its SLA-margin metric diverged by
 orders of magnitude for reasons traced to a concrete unit mismatch
 rather than left unexplained.
 
-Two limits bound every claim in this paper. First, every multi-gNB, federated, and disruption result is offline-only, since this rig has one physical gNB, so whether these rankings would survive contact with a live, multi-gNB testbed remains untested, not just under-tested.
+Two limits bound every claim in this paper. First, every multi-gNB, federated, and disruption result is offline-only, since this rig cannot yet sustain a live multi-gNB test, so whether these rankings would survive contact with a live, multi-gNB testbed remains untested, not just under-tested.
 Second, this paper's federated scenario is a synthetic privacy setting (one operator's cluster, not genuine cross-organisation data separation), so we lead with the operational benefit of periodic, not per-step, synchronisation for disaggregated RAN Intelligent Controllers rather than a privacy motivation this scale cannot substantiate. Together, these results argue that admission-control
 evaluation in multi-agent, privacy-constrained, disruption-prone
 settings needs metrics tied to the actual training objective, not only
