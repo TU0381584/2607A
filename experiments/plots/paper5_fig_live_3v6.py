@@ -19,7 +19,7 @@ Usage:
     python3 experiments/plots/paper5_fig_live_3v6.py \
         --run3-jsonl experiments/results/live/m31_highconf/3ue_20ep_omega_log.jsonl \
         --run6-jsonl experiments/results/live/m31_highconf/6ue_20ep_omega_log.jsonl \
-        --out Paper5/WPC/figures/fig_live_3v6
+        --out Papers_4-5/Paper_5/WPC/figures/fig_live_3v6
 """
 import argparse
 import json
@@ -56,7 +56,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--run3-jsonl", default="experiments/results/live/m31_highconf/3ue_20ep_omega_log.jsonl")
     ap.add_argument("--run6-jsonl", default="experiments/results/live/m31_highconf/6ue_20ep_omega_log.jsonl")
-    ap.add_argument("--out", default="Paper5/WPC/figures/fig_live_3v6")
+    ap.add_argument("--out", default="Papers_4-5/Paper_5/WPC/figures/fig_live_3v6")
     args = ap.parse_args()
 
     runs = {

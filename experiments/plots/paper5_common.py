@@ -1,6 +1,6 @@
 """Shared plotting infrastructure for paper #5's M2/M3 figures --
 separate from common.py (paper #4's already-finalized figure set) so
-nothing here can perturb CACS26's existing, submitted plots.
+nothing here can perturb Papers_4-5/Paper_4's existing, submitted plots.
 Reuses common.py's IEEE column-width/font rcParams unchanged (same
 journal-figure sizing convention) and follows the dataviz skill's
 validated default categorical palette: gat_ctde/independent_dqn/

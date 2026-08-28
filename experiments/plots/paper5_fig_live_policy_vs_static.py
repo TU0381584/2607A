@@ -23,7 +23,7 @@ Usage:
                     experiments/results/live/m31_campaign/6ue_dqn_run2_omega_log.jsonl \
         --static-jsonl experiments/results/live/m31_campaign/6ue_static_run1_omega_log.jsonl \
                        experiments/results/live/m31_campaign/6ue_static_run2_omega_log.jsonl \
-        --out Paper5/WPC/figures/fig_live_policy_vs_static
+        --out Papers_4-5/Paper_5/WPC/figures/fig_live_policy_vs_static
 """
 import argparse
 import json
@@ -68,7 +68,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--dqn-jsonl", nargs="+", required=True)
     ap.add_argument("--static-jsonl", nargs="+", required=True)
-    ap.add_argument("--out", default="Paper5/WPC/figures/fig_live_policy_vs_static")
+    ap.add_argument("--out", default="Papers_4-5/Paper_5/WPC/figures/fig_live_policy_vs_static")
     args = ap.parse_args()
 
     arms = {

@@ -2,7 +2,7 @@
 # Fifth collapse-rate-narrowing extension, per direct user request ("run
 # another batch for 3 hours") continuing the same line of work as
 # extensions 2-4 (docs/PAPER5_M6_topology.md Parts 11-13 /
-# Paper5/WPC/main.tex Section X-D), which combined primary (900-911),
+# Papers_4-5/Paper_5/WPC/main.tex Section X-D), which combined primary (900-911),
 # replication (1000-1002), and extension 2000-2042 (58 seeds, 174 cells)
 # into 36.2% [25.9%, 46.6%].
 #

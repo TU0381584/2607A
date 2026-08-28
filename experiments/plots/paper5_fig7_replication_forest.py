@@ -26,7 +26,7 @@ not overlaid):
 
 Usage:
     python3 experiments/plots/paper5_fig7_replication_forest.py \
-        --out Paper5/IEEE_Access/figures/fig7_replication_forest
+        --out Papers_4-5/Paper_5/IEEE_Access/figures/fig7_replication_forest
 """
 import argparse
 import json
@@ -114,7 +114,7 @@ def m4_cost(sample, arm, kind, severity):
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--out", default="Paper5/IEEE_Access/figures/fig7_replication_forest")
+    ap.add_argument("--out", default="Papers_4-5/Paper_5/IEEE_Access/figures/fig7_replication_forest")
     args = ap.parse_args()
 
     panel_a_rows = [

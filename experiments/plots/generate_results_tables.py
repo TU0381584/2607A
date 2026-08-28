@@ -3,7 +3,7 @@
 Table II report, from omega logs ONLY (no hand-typed numbers anywhere
 downstream -- per the campaign handover's explicit requirement). Emits:
   - a Markdown results table (for RESULTS_REPORT.md)
-  - a LaTeX results table (CACS26/tables/table2_results.tex)
+  - a LaTeX results table (Papers_4-5/Paper_4/tables/table2_results.tex)
   - paired-seed win/loss counts + simple effect sizes (Cohen's d) between
     baseline and each learned arm, per metric
   - the raw per-arm-per-seed numbers as JSON (for the anomaly-adjudication
@@ -13,7 +13,7 @@ Usage:
     python3 experiments/plots/generate_results_tables.py \
         --live-root experiments/results/live_campaign --seeds 950 951 952 \
         --out-md experiments/results/live_campaign/results_tables.md \
-        --out-tex CACS26/tables/table2_results.tex \
+        --out-tex Papers_4-5/Paper_4/tables/table2_results.tex \
         --out-json experiments/results/live_campaign/results_raw.json
 """
 import argparse
@@ -127,7 +127,7 @@ def main() -> None:
     ap.add_argument("--live-root", default="experiments/results/live_campaign")
     ap.add_argument("--seeds", type=int, nargs="+", default=[950, 951, 952])
     ap.add_argument("--out-md", default="experiments/results/live_campaign/results_tables.md")
-    ap.add_argument("--out-tex", default="CACS26/tables/table2_results.tex")
+    ap.add_argument("--out-tex", default="Papers_4-5/Paper_4/tables/table2_results.tex")
     ap.add_argument("--out-json", default="experiments/results/live_campaign/results_raw.json")
     args = ap.parse_args()
 

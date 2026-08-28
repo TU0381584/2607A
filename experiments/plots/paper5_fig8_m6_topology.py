@@ -25,7 +25,7 @@ reimplemented).
 Usage:
     python3 experiments/plots/paper5_fig8_m6_topology.py \
         --pilot-dir experiments/results/m6_pilot \
-        --out Paper5/IEEE_Access/figures/fig8_m6_topology
+        --out Papers_4-5/Paper_5/IEEE_Access/figures/fig8_m6_topology
 """
 import argparse
 import sys
@@ -76,7 +76,7 @@ def collect(pilot_dir: Path, suffix: str, seeds: list) -> dict:
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--pilot-dir", default="experiments/results/m6_pilot")
-    ap.add_argument("--out", default="Paper5/IEEE_Access/figures/fig8_m6_topology")
+    ap.add_argument("--out", default="Papers_4-5/Paper_5/IEEE_Access/figures/fig8_m6_topology")
     ap.add_argument("--no-titles", action="store_true",
                      help="Bare (a)/(b) panel tags, no descriptive words, no suptitle "
                           "(WPC copy: caption carries the description instead).")

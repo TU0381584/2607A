@@ -21,7 +21,7 @@ already-trained checkpoints.
 
 Usage:
     python3 experiments/plots/paper5_fig2_collapse_reduction.py \
-        --out Paper5/IEEE_Access/figures/fig2_collapse_reduction
+        --out Papers_4-5/Paper_5/IEEE_Access/figures/fig2_collapse_reduction
 """
 import argparse
 import sys
@@ -40,7 +40,7 @@ N_SEEDS = 30
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--out", default="Paper5/IEEE_Access/figures/fig2_collapse_reduction")
+    ap.add_argument("--out", default="Papers_4-5/Paper_5/IEEE_Access/figures/fig2_collapse_reduction")
     ap.add_argument("--no-titles", action="store_true",
                      help="Omit the in-figure title (WPC copy: caption carries it instead).")
     args = ap.parse_args()

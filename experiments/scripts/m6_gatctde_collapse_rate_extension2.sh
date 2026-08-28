@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Second collapse-rate-narrowing extension, per the paper's own flagged
-# future-work item: docs/PAPER5_M6_topology.md Part 10 / Paper5/WPC/main.tex
+# future-work item: docs/PAPER5_M6_topology.md Part 10 / Papers_4-5/Paper_5/WPC/main.tex
 # Section X-D combined all three samples so far (primary 900-911,
 # replication 1000-1002, extension 2000-2005 -- 21 seeds, 63 cells) into
 # 46.0% [28.6%, 65.1%], a still-wide 36.5-point seed-level bootstrap CI.

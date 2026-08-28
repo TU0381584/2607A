@@ -27,7 +27,7 @@ M6's own analysis used.
 Usage:
     python3 experiments/plots/paper5_fig_m27_scaling_reframe.py \
         --results-dir experiments/results/m27_scaling_reframe \
-        --out Paper5/WPC/figures/fig9_m27_scaling_reframe
+        --out Papers_4-5/Paper_5/WPC/figures/fig9_m27_scaling_reframe
 """
 import argparse
 import sys
@@ -121,7 +121,7 @@ def draw_panel(ax, orig_vals, orig_errs, recal, tag, ylabel, show_legend):
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--results-dir", default="experiments/results/m27_scaling_reframe")
-    ap.add_argument("--out", default="Paper5/WPC/figures/fig9_m27_scaling_reframe")
+    ap.add_argument("--out", default="Papers_4-5/Paper_5/WPC/figures/fig9_m27_scaling_reframe")
     args = ap.parse_args()
 
     recal_n7 = recalibrated_collapse_rates(args.results_dir, 7)

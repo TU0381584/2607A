@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Multi-gNB results figures for the WPC-scoped copy (Paper5/WPC/) only --
+"""Multi-gNB results figures for the WPC-scoped copy (Papers_4-5/Paper_5/WPC/) only --
 the centralised M2 campaign (paper5_fig3_m2_campaign.py's two panels)
 and the federated/DP M3 sweep (paper5_fig4_m3_privacy.py's two panels),
 each as its own single-row 2-panel figure. Originally merged into one
@@ -10,7 +10,7 @@ single-column width. Content is untouched from the two source scripts
 -- same data, same statistics, same per-arm styling -- only the layout
 changed and in-figure titles stay bare (a)/(b) tags (the LaTeX caption
 carries the description, matching the rest of the WPC copy's figures).
-Does not touch Paper5/IEEE_Access/'s existing fig3/fig4 PDFs or their generating
+Does not touch Papers_4-5/Paper_5/IEEE_Access/'s existing fig3/fig4 PDFs or their generating
 scripts.
 
 Figure 1 (M2, --out-m2):
@@ -28,8 +28,8 @@ Usage:
         --m2-campaign-dir experiments/results/m2_campaign \
         --m3-results experiments/results/m3_campaign/campaign_results.json \
         --m3-campaign-dir experiments/results/m3_campaign \
-        --out-m2 Paper5/WPC/figures/fig3_m2_results \
-        --out-m3 Paper5/WPC/figures/fig4_m3_privacy
+        --out-m2 Papers_4-5/Paper_5/WPC/figures/fig3_m2_results \
+        --out-m3 Papers_4-5/Paper_5/WPC/figures/fig4_m3_privacy
 """
 import argparse
 import json
@@ -53,8 +53,8 @@ def main() -> None:
     ap.add_argument("--m2-campaign-dir", default="experiments/results/m2_campaign")
     ap.add_argument("--m3-results", default="experiments/results/m3_campaign/campaign_results.json")
     ap.add_argument("--m3-campaign-dir", default="experiments/results/m3_campaign")
-    ap.add_argument("--out-m2", default="Paper5/WPC/figures/fig3_m2_results")
-    ap.add_argument("--out-m3", default="Paper5/WPC/figures/fig4_m3_privacy")
+    ap.add_argument("--out-m2", default="Papers_4-5/Paper_5/WPC/figures/fig3_m2_results")
+    ap.add_argument("--out-m3", default="Papers_4-5/Paper_5/WPC/figures/fig4_m3_privacy")
     args = ap.parse_args()
 
     # ---- load M2 ----

@@ -5,7 +5,7 @@
 #
 # WHY THIS FILE EXISTS: M8's single_agent_dqn seed-900 checkpoint (trained
 # against saclb_offline_live1gnb.yaml, arrivals/step=2) was run live at 3 UEs
-# and again at 6 UEs against the real rig (Paper5/WPC/main.tex Sec. 8.1,
+# and again at 6 UEs against the real rig (Papers_4-5/Paper_5/WPC/main.tex Sec. 8.1,
 # 20 real episodes each, high-confidence bootstrap CIs). Block precision was
 # 1.000 (mmTC-only) in all 20 episodes at 3 UEs, but the SAME checkpoint
 # blocked nothing in any of the 20 episodes at 6 UEs -- precision undefined,

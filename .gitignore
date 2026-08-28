@@ -22,18 +22,19 @@ __pycache__/
 *.pyc
 .pytest_cache/
 
-# LaTeX build artifacts (CACS26 = the CACS 2026 conference paper, Paper5/ =
-# the two parallel Paper #5 lineages, WPC and the longer IEEE Access variant)
-CACS26/*.aux
-CACS26/*.log
-CACS26/*.bbl
-CACS26/*.blg
-CACS26/*.out
-CACS26/figures/*.aux
-CACS26/figures/*.log
-CACS26/figures/*.png
-Paper5/*/*.aux
-Paper5/*/*.log
-Paper5/*/*.bbl
-Paper5/*/*.blg
-Paper5/*/*.out
+# LaTeX build artifacts (Papers_4-5/Paper_4 = the CACS 2026 conference paper,
+# Papers_4-5/Paper_5/ = the two parallel Paper #5 lineages, WPC and the longer
+# IEEE Access variant)
+Papers_4-5/Paper_4/*.aux
+Papers_4-5/Paper_4/*.log
+Papers_4-5/Paper_4/*.bbl
+Papers_4-5/Paper_4/*.blg
+Papers_4-5/Paper_4/*.out
+Papers_4-5/Paper_4/figures/*.aux
+Papers_4-5/Paper_4/figures/*.log
+Papers_4-5/Paper_4/figures/*.png
+Papers_4-5/Paper_5/*/*.aux
+Papers_4-5/Paper_5/*/*.log
+Papers_4-5/Paper_5/*/*.bbl
+Papers_4-5/Paper_5/*/*.blg
+Papers_4-5/Paper_5/*/*.out
