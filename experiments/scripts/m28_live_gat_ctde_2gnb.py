@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 """M28 prep: a live xApp orchestration script for a genuine 2-gNB
-GAT-CTDE demo -- NOT a modification of qoe_oran_framework/xapp/
+multi-agent demo -- NOT a modification of qoe_oran_framework/xapp/
 saclb_xapp.py (frozen, and hard-requires len(cfg.gnbs)==1 by design,
 `parser.error` if not), and not usable via that script's --algorithm
-choices anyway (dqn/a2c/rainbow/lb_only only -- GAT-CTDE is a different,
-multi-agent runner: marl_training.run_episodes_marl +
-marl.ctde_policy.GatCtdeMarlPolicy, not mc_runner.run_single). This is a
-new, minimal, faithful mirror of saclb_xapp.py's own structure
-(same functions in the same order: build policy, load checkpoint,
-construct KpmSource, construct RANEnv, run, log, print summary) with
-exactly the two swaps a genuine 2-gNB run needs: GatCtdeMarlPolicy +
+choices anyway (dqn/a2c/rainbow/lb_only -- single-agent only; the MARL
+policies here are a different runner: marl_training.run_episodes_marl +
+marl.ctde_policy.GatCtdeMarlPolicy /
+marl.independent_dqn_ablation.IndependentPerGnbDqnPolicy, not
+mc_runner.run_single). This is a new, minimal, faithful mirror of
+saclb_xapp.py's own structure (same functions in the same order: build
+policy, load checkpoint, construct KpmSource, construct RANEnv, run,
+log, print summary) with exactly the two swaps a genuine 2-gNB run
+needs: a MARL policy (--algorithm gat_ctde|independent_dqn) +
 run_episodes_marl instead of build_policy/run_single, and
 MultiGnbLiveKpmSource instead of LiveKpmSource.
 
@@ -41,12 +43,14 @@ import json
 import sys
 
 sys.path.insert(0, "/home/kmanojp/oranslice_rig/framework")
+sys.path.insert(0, "/home/kmanojp/oranslice_rig/framework/drl_slicing")  # for oranslice_drl, via independent_dqn_ablation
 sys.path.insert(0, "/home/kmanojp/oranslice_rig/experiments/scripts")
 
 from qoe_oran_framework.config import load_saclb_config  # noqa: E402
 from qoe_oran_framework.env import RANEnv  # noqa: E402
 from qoe_oran_framework.omega_logger import OmegaLogger  # noqa: E402
 from qoe_oran_framework.marl.ctde_policy import GatCtdeMarlPolicy  # noqa: E402
+from qoe_oran_framework.marl.independent_dqn_ablation import IndependentPerGnbDqnPolicy  # noqa: E402
 from qoe_oran_framework.marl.marl_env import node_feature_dim, request_context_dim  # noqa: E402
 from qoe_oran_framework.marl.marl_training import run_episodes_marl  # noqa: E402
 from qoe_oran_framework.marl.topology import build_adjacency, hex_grid_edges, ring_edges  # noqa: E402
@@ -76,6 +80,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--config", required=True)
     parser.add_argument("--checkpoint", required=True)
+    parser.add_argument("--algorithm", default="gat_ctde", choices=["gat_ctde", "independent_dqn"])
     parser.add_argument("--topology", default="fully_connected", choices=["fully_connected", "ring", "hex"])
     parser.add_argument("--gnb0-id", default="gnb-0")
     parser.add_argument("--gnb1-id", default="gnb-1")
@@ -97,9 +102,11 @@ def main() -> None:
     n_agents = len(cfg.gnb_ids)
     node_dim = node_feature_dim(cfg)
     ctx_dim = request_context_dim(cfg)
-    adj = adjacency_for(args.topology, n_agents)
-
-    policy = GatCtdeMarlPolicy(n_agents, node_dim, ctx_dim, ACTION_DIM, adj)
+    if args.algorithm == "gat_ctde":
+        adj = adjacency_for(args.topology, n_agents)
+        policy = GatCtdeMarlPolicy(n_agents, node_dim, ctx_dim, ACTION_DIM, adj)
+    else:
+        policy = IndependentPerGnbDqnPolicy(n_agents, node_dim, ctx_dim, ACTION_DIM)
     policy.load_checkpoint(args.checkpoint)
 
     kpm_source = MultiGnbLiveKpmSource(
@@ -117,7 +124,7 @@ def main() -> None:
     try:
         with OmegaLogger(args.omega_jsonl) as omega:
             summary = run_episodes_marl(
-                env, policy, "gat_ctde", omega, args.episodes, args.seed, args.run_id,
+                env, policy, args.algorithm, omega, args.episodes, args.seed, args.run_id,
                 mode="live_testbed", training=False, cfg=cfg,
                 extra_limitations=[TWO_GNB_LIVE_LIMITATION],
             )

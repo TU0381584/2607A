@@ -71,6 +71,8 @@ Lmax: 10
 gnbs:
   - gnb_id: gnb-0
     prb_capacity: 100
+  - gnb_id: gnb-1
+    prb_capacity: 100
 
 # Ratio bounds deliberately tight relative to observed real demand.
 # RECALIBRATED 2026-07-14 against THIS rig's own live measurement (not
@@ -115,13 +117,45 @@ gnbs:
 # same values, wrong meaning. Kept identical order to remove that risk
 # entirely rather than rely on an assumption about the iteration order
 # not mattering.
+# 2026-08-28 (M28 24-PRB retry, ratio rescale): the ratio values below are
+# percentages (0-100), NOT absolute PRB counts -- confirmed by reading
+# apply_slicing_ctrl() (openair2/E2_AGENT/e2_message_handlers.c) and its
+# consumer in gNB_scheduler_dlsch.c:
+#   SL_sched[i].max_prbs = (n_rb_sched_init * SL_i->spolicy.max_ratio) / 100;
+# (C integer division, truncates toward zero). The values that shipped here
+# before this edit (nominal/floor/cap in the 1-4 range) were calibrated
+# against the ORIGINAL 106-PRB physical channel, where "1 ratio-unit ~= 1
+# real PRB" by near-coincidence (comments below still describe real-PRB
+# targets in those terms). When the physical RAN was scaled down to 24 PRBs
+# for the M28 live-stability retry (docs/PAPER5_M27_M28_scope.md), those same
+# percentages were NOT rescaled, and with n_rb_sched_init<=24,
+# (24 * ratio)/100 == 0 for every ratio value this run ever actually
+# commanded (checked directly against the run's own omega log: urllc=3,
+# embb=3-4, mmtc=1-2 -- all truncate to 0 PRBs). Every slice was getting
+# ZERO scheduler PRBs for the entire run, on both gNBs, which is what
+# produced mmtc's 100% block rate (unschedulable, not an admission-policy
+# choice) and eMBB's runaway RLC "max RETX reached on DRB 1" storm (500Kbps
+# of real traffic funneled through a zero PRB grant) -- confirmed NOT a
+# radio-quality issue since SNR stayed a clean 50-51dB and PHY BLER stayed
+# 1-3% throughout; this was pure MAC-scheduler starvation from the ratio
+# truncating to zero, unrelated to the earlier (106-PRB attempt's) CPU/
+# hyperthreading root-cause finding.
+#
+# Rescaled below to preserve the SAME real-PRB targets the original
+# 106-PRB-calibrated values intended (e.g. embb's original max_ratio_cap=4
+# meant "~4 real PRBs out of ~106"), recomputed for a 24-PRB physical
+# channel: new_ratio_pct = round(target_real_PRBs / 24 * 100), with floors
+# bumped to 8% (not the exact-minimum 5%) for headroom against slots where
+# n_rb_sched_init is transiently below 24 (SSB/CORESET overhead). This is a
+# rescale for the new physical channel width, not a methodology change --
+# the same real-PRB budgets as the original calibration, on a smaller cell.
 slices:
   - slice_id: urllc
     sst: 1
     sd: 1
-    nominal_ratio: 3
-    min_ratio_floor: 1
-    max_ratio_cap: 3  # copied from saclb_offline_live1gnb.yaml -- UNVERIFIED against live demand on this rig (avg_prbs_dl too coarse at this traffic rate to calibrate from directly; see header comment)
+    nominal_ratio: 13  # ~3 real PRB at n=24 (24*13/100=3.12->3), matches original nominal=cap=3 real-PRB target
+    min_ratio_floor: 8  # ~1 real PRB at n=24 (24*8/100=1.92->1), matches original floor=1
+    max_ratio_cap: 13  # ~3 real PRB at n=24 -- copied from saclb_offline_live1gnb.yaml's real-PRB target, UNVERIFIED against live demand on this rig (avg_prbs_dl too coarse at this traffic rate to calibrate from directly; see header comment)
     latency_budget_ms: 15
     loss_budget_pct: 0.8
     priority_weight: 12.0
@@ -130,9 +164,9 @@ slices:
   - slice_id: embb
     sst: 1
     sd: 16777215  # 0xFFFFFF, corrected from 0 -- see comment above
-    nominal_ratio: 3
-    min_ratio_floor: 1
-    max_ratio_cap: 4  # verified below this rig's measured demand (mean 5.17, max 12.00 PRB) -- see comment above
+    nominal_ratio: 13  # ~3 real PRB at n=24, matches original nominal=3 real-PRB target
+    min_ratio_floor: 8  # ~1 real PRB at n=24, matches original floor=1
+    max_ratio_cap: 17  # ~4 real PRB at n=24 (24*17/100=4.08->4) -- verified below this rig's measured demand (mean 5.17, max 12.00 PRB) -- see comment above
     latency_budget_ms: 45
     loss_budget_pct: 2.0
     priority_weight: 3.5  # synced to saclb_offline_live1gnb.yaml's safety-margin weights (was 2.0)
@@ -141,9 +175,9 @@ slices:
   - slice_id: mmtc
     sst: 1
     sd: 2
-    nominal_ratio: 2
-    min_ratio_floor: 1
-    max_ratio_cap: 3  # UNVERIFIED against live demand on this rig -- old rig's reference value, no UE was ever attached to this slice here (Stage 8 curtailed)
+    nominal_ratio: 9  # ~2 real PRB at n=24 (24*9/100=2.16->2), matches original nominal=2 real-PRB target
+    min_ratio_floor: 8  # ~1 real PRB at n=24, matches original floor=1
+    max_ratio_cap: 13  # ~3 real PRB at n=24 -- UNVERIFIED against live demand on this rig -- old rig's reference value, no UE was ever attached to this slice here (Stage 8 curtailed)
     latency_budget_ms: 65
     loss_budget_pct: 3.5
     priority_weight: 0.3  # synced to saclb_offline_live1gnb.yaml's safety-margin weights (was 1.0)

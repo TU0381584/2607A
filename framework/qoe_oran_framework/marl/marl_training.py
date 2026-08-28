@@ -138,6 +138,7 @@ def run_episodes_marl(
 
             while True:
                 step_idx += 1
+                step_start = time.monotonic() if mode == "live_testbed" else None
                 pending = env.pending_requests()
                 cluster_state = env.last_cluster_state
                 node_features = extract_node_features(cluster_state, cfg)
@@ -163,6 +164,23 @@ def run_episodes_marl(
                     )
 
                 result = env.step(actions)
+
+                if step_start is not None:
+                    # This function was originally written to always drive an
+                    # OFFLINE KpmSource (see module docstring), where running
+                    # steps back-to-back as fast as possible is correct. M28
+                    # pointed it at a live 2-gNB KpmSource for the first time
+                    # and this loop had no equivalent of mc_runner.py's own
+                    # step-cadence wait, so live GAT-CTDE steps were completing
+                    # in ~1s (bounded only by the E2 poll/control round-trip)
+                    # instead of the configured cfg.episode.step_seconds (5.0)
+                    # -- confirmed via this run's own omega log step indices.
+                    # Mirrors mc_runner.py's identical pacing block.
+                    elapsed = time.monotonic() - step_start
+                    remaining = cfg.episode.step_seconds - elapsed
+                    if remaining > 0:
+                        time.sleep(remaining)
+
                 next_node_features = extract_node_features(env.last_cluster_state, cfg)
 
                 if training and pending:
