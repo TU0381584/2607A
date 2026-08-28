@@ -121,7 +121,7 @@ def draw_panel(ax, orig_vals, orig_errs, recal, tag, ylabel, show_legend):
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--results-dir", default="experiments/results/m27_scaling_reframe")
-    ap.add_argument("--out", default="paper5_wpc/figures/fig9_m27_scaling_reframe")
+    ap.add_argument("--out", default="Paper5/WPC/figures/fig9_m27_scaling_reframe")
     args = ap.parse_args()
 
     recal_n7 = recalibrated_collapse_rates(args.results_dir, 7)

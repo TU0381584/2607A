@@ -21,7 +21,7 @@ Usage:
         --m4-campaign-dir experiments/results/m4_campaign \
         --m2-campaign-dir experiments/results/m2_campaign \
         --m3-campaign-dir experiments/results/m3_campaign \
-        --out paper5/figures/fig5_m4_disruption
+        --out Paper5/IEEE_Access/figures/fig5_m4_disruption
 """
 import argparse
 import json
@@ -44,7 +44,7 @@ def main() -> None:
     ap.add_argument("--m4-campaign-dir", default="experiments/results/m4_campaign")
     ap.add_argument("--m2-campaign-dir", default="experiments/results/m2_campaign")
     ap.add_argument("--m3-campaign-dir", default="experiments/results/m3_campaign")
-    ap.add_argument("--out", default="paper5/figures/fig5_m4_disruption")
+    ap.add_argument("--out", default="Paper5/IEEE_Access/figures/fig5_m4_disruption")
     ap.add_argument("--no-titles", action="store_true",
                      help="Bare (a)/(b)/(c) panel tags, no descriptive words, no suptitle "
                           "(WPC copy: caption carries the description instead).")

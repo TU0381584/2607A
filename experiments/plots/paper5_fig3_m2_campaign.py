@@ -22,7 +22,7 @@ Usage:
     python3 experiments/plots/paper5_fig3_m2_campaign.py \
         --results experiments/results/m2_campaign/campaign_results.json \
         --campaign-dir experiments/results/m2_campaign \
-        --out paper5/figures/fig3_m2_campaign
+        --out Paper5/IEEE_Access/figures/fig3_m2_campaign
 """
 import argparse
 import sys
@@ -43,7 +43,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--results", default="experiments/results/m2_campaign/campaign_results.json")
     ap.add_argument("--campaign-dir", default="experiments/results/m2_campaign")
-    ap.add_argument("--out", default="paper5/figures/fig3_m2_campaign")
+    ap.add_argument("--out", default="Paper5/IEEE_Access/figures/fig3_m2_campaign")
     args = ap.parse_args()
 
     all_seeds, _results = load_m2_campaign(args.results)

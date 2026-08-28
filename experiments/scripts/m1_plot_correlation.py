@@ -13,7 +13,7 @@ Usage:
         --baseline experiments/results/m1_recalibration/held_out_baseline/compliance_baseline.json \
         --recalibrated experiments/results/m1_recalibration/held_out_recalibrated/compliance_recalibrated.json \
         --live-traces experiments/results/m1_recalibration/live_traces.json \
-        --out paper_conf/figures/m1_offline_live_correlation
+        --out CACS26/figures/m1_offline_live_correlation
 """
 import argparse
 import json

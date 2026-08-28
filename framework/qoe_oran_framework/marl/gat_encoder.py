@@ -1,5 +1,5 @@
 """Graph Attention Network encoder (Velickovic et al. 2018, cited in
-paper_conf/refs.bib as `gat`) over the gNB topology graph, implemented
+CACS26/refs.bib as `gat`) over the gNB topology graph, implemented
 directly in torch (no torch_geometric dependency -- confirmed not
 installed in this project's venv, and the graphs here are small enough
 -- a handful of gNB nodes -- that a dense, masked-attention implementation

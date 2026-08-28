@@ -68,7 +68,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--dqn-jsonl", nargs="+", required=True)
     ap.add_argument("--static-jsonl", nargs="+", required=True)
-    ap.add_argument("--out", default="paper5_wpc/figures/fig_live_policy_vs_static")
+    ap.add_argument("--out", default="Paper5/WPC/figures/fig_live_policy_vs_static")
     args = ap.parse_args()
 
     arms = {

@@ -62,7 +62,7 @@ def main() -> None:
     ap.add_argument("--orig-6ue-jsonl", default="experiments/results/live/m31_highconf/6ue_20ep_omega_log.jsonl")
     ap.add_argument("--fixed-6ue-jsonl",
                      default="experiments/results/live/m34_realistic_retrain_check/6ue_20ep_omega_log.jsonl")
-    ap.add_argument("--out", default="paper5_wpc/figures/fig8_live_recalibrated_fix")
+    ap.add_argument("--out", default="Paper5/WPC/figures/fig8_live_recalibrated_fix")
     args = ap.parse_args()
 
     runs = {

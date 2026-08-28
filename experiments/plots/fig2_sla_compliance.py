@@ -152,14 +152,20 @@ def main() -> None:
         ax_bot.set_ylabel("%")
         ax_bot.set_ylim(0, 105)
         ax_bot.set_title("(b) Compliance summary")
-        ax_bot.legend(loc="lower left", frameon=False)
+        ax_bot.legend(loc="center left", bbox_to_anchor=(1.02, 0.5), frameon=False)
 
         fig.tight_layout()
+        # tight_layout() only sizes the two axes -- it has no notion of the
+        # legend sitting outside ax_bot via bbox_to_anchor, so without this
+        # explicit reservation the legend renders past the figure's right
+        # edge and bbox_inches="tight" (below) crops/rescales around it,
+        # squeezing the two subplots together enough to overlap their titles.
+        fig.subplots_adjust(right=0.80)
 
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(out_path.with_suffix(".pdf"))
-    fig.savefig(out_path.with_suffix(".png"))
+    fig.savefig(out_path.with_suffix(".pdf"), bbox_inches="tight")
+    fig.savefig(out_path.with_suffix(".png"), bbox_inches="tight")
     print(f"[fig2] wrote {out_path}.pdf / .png -- n_seeds per arm: {n_seeds_used}, "
           f"episodes fully compliant: {dict(zip(args.arms, frac_fully_compliant))}, "
           f"worst episode: {dict(zip(args.arms, worst_episode))}")

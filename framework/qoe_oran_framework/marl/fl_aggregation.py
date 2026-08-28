@@ -1,5 +1,5 @@
 """Server-side FedAvg aggregation (McMahan et al. 2017, cited in
-paper_conf/refs.bib as `fedavg`): a plain (optionally weighted) average of
+CACS26/refs.bib as `fedavg`): a plain (optionally weighted) average of
 client state_dicts. FedAvg and FedProx (Li et al. 2020) share this exact
 server-side step -- the only difference between them is in the CLIENT's
 local objective (FedProx adds a proximal term pulling local weights toward

@@ -23,7 +23,7 @@ Usage:
         --m3-campaign-dir experiments/results/m3_campaign \
         --m2-results experiments/results/m2_campaign/campaign_results.json \
         --m2-campaign-dir experiments/results/m2_campaign \
-        --out paper5/figures/fig4_m3_privacy
+        --out Paper5/IEEE_Access/figures/fig4_m3_privacy
 """
 import argparse
 import json
@@ -47,7 +47,7 @@ def main() -> None:
     ap.add_argument("--m3-campaign-dir", default="experiments/results/m3_campaign")
     ap.add_argument("--m2-results", default="experiments/results/m2_campaign/campaign_results.json")
     ap.add_argument("--m2-campaign-dir", default="experiments/results/m2_campaign")
-    ap.add_argument("--out", default="paper5/figures/fig4_m3_privacy")
+    ap.add_argument("--out", default="Paper5/IEEE_Access/figures/fig4_m3_privacy")
     args = ap.parse_args()
 
     with open(args.m3_results) as fh:

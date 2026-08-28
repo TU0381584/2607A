@@ -127,7 +127,7 @@ def main() -> None:
     ap.add_argument("--live-root", default="experiments/results/live_campaign")
     ap.add_argument("--seeds", type=int, nargs="+", default=[950, 951, 952])
     ap.add_argument("--out-md", default="experiments/results/live_campaign/results_tables.md")
-    ap.add_argument("--out-tex", default="paper_conf/tables/table2_results.tex")
+    ap.add_argument("--out-tex", default="CACS26/tables/table2_results.tex")
     ap.add_argument("--out-json", default="experiments/results/live_campaign/results_raw.json")
     args = ap.parse_args()
 

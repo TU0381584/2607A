@@ -56,7 +56,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--run3-jsonl", default="experiments/results/live/m31_highconf/3ue_20ep_omega_log.jsonl")
     ap.add_argument("--run6-jsonl", default="experiments/results/live/m31_highconf/6ue_20ep_omega_log.jsonl")
-    ap.add_argument("--out", default="paper5_wpc/figures/fig_live_3v6")
+    ap.add_argument("--out", default="Paper5/WPC/figures/fig_live_3v6")
     args = ap.parse_args()
 
     runs = {
