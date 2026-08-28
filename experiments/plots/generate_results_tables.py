@@ -3,7 +3,7 @@
 Table II report, from omega logs ONLY (no hand-typed numbers anywhere
 downstream -- per the campaign handover's explicit requirement). Emits:
   - a Markdown results table (for RESULTS_REPORT.md)
-  - a LaTeX results table (paper_conf/tables/table2_results.tex)
+  - a LaTeX results table (CACS26/tables/table2_results.tex)
   - paired-seed win/loss counts + simple effect sizes (Cohen's d) between
     baseline and each learned arm, per metric
   - the raw per-arm-per-seed numbers as JSON (for the anomaly-adjudication
@@ -13,7 +13,7 @@ Usage:
     python3 experiments/plots/generate_results_tables.py \
         --live-root experiments/results/live_campaign --seeds 950 951 952 \
         --out-md experiments/results/live_campaign/results_tables.md \
-        --out-tex paper_conf/tables/table2_results.tex \
+        --out-tex CACS26/tables/table2_results.tex \
         --out-json experiments/results/live_campaign/results_raw.json
 """
 import argparse

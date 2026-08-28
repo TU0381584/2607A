@@ -2,7 +2,7 @@
 # Third collapse-rate-narrowing extension, per direct user request ("run
 # more seeds for GAT-CTDE, up to 6 hours of compute time") continuing the
 # same line of work as extension2 (docs/PAPER5_M6_topology.md Part 11 /
-# paper5/main.tex Section X-D), which combined primary (900-911),
+# Paper5/WPC/main.tex Section X-D), which combined primary (900-911),
 # replication (1000-1002), and extension 2000-2014 (30 seeds, 90 cells)
 # into 36.7% [22.2%, 52.2%].
 #

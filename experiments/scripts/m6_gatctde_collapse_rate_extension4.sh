@@ -2,7 +2,7 @@
 # Fourth collapse-rate-narrowing extension, per direct user request ("run
 # another seed batch for 9 more hours") continuing the same line of work
 # as extensions 2-3 (docs/PAPER5_M6_topology.md Parts 11-12 /
-# paper5/main.tex Section X-D), which combined primary (900-911),
+# Paper5/WPC/main.tex Section X-D), which combined primary (900-911),
 # replication (1000-1002), and extension 2000-2024 (40 seeds, 120 cells)
 # into 37.5% [25.0%, 50.8%].
 #

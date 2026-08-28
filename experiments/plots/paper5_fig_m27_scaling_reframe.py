@@ -27,7 +27,7 @@ M6's own analysis used.
 Usage:
     python3 experiments/plots/paper5_fig_m27_scaling_reframe.py \
         --results-dir experiments/results/m27_scaling_reframe \
-        --out paper5_wpc/figures/fig9_m27_scaling_reframe
+        --out Paper5/WPC/figures/fig9_m27_scaling_reframe
 """
 import argparse
 import sys

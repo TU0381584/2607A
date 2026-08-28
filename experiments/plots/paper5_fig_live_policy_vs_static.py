@@ -23,7 +23,7 @@ Usage:
                     experiments/results/live/m31_campaign/6ue_dqn_run2_omega_log.jsonl \
         --static-jsonl experiments/results/live/m31_campaign/6ue_static_run1_omega_log.jsonl \
                        experiments/results/live/m31_campaign/6ue_static_run2_omega_log.jsonl \
-        --out paper5_wpc/figures/fig_live_policy_vs_static
+        --out Paper5/WPC/figures/fig_live_policy_vs_static
 """
 import argparse
 import json

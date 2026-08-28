@@ -23,7 +23,7 @@ Usage:
         --orig-3ue-jsonl experiments/results/live/m31_highconf/3ue_20ep_omega_log.jsonl \
         --orig-6ue-jsonl experiments/results/live/m31_highconf/6ue_20ep_omega_log.jsonl \
         --fixed-6ue-jsonl experiments/results/live/m34_realistic_retrain_check/6ue_20ep_omega_log.jsonl \
-        --out paper5_wpc/figures/fig8_live_recalibrated_fix
+        --out Paper5/WPC/figures/fig8_live_recalibrated_fix
 """
 import argparse
 import json

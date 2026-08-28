@@ -19,7 +19,7 @@ Usage:
     python3 experiments/plots/paper5_fig_live_3v6.py \
         --run3-jsonl experiments/results/live/m31_highconf/3ue_20ep_omega_log.jsonl \
         --run6-jsonl experiments/results/live/m31_highconf/6ue_20ep_omega_log.jsonl \
-        --out paper5_wpc/figures/fig_live_3v6
+        --out Paper5/WPC/figures/fig_live_3v6
 """
 import argparse
 import json
