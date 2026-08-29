@@ -54,7 +54,7 @@
 \begin{document}
 
 \CACSmaketitle
-  {QoE-DQN Slice Admission Control for Live OAI Open RAN}
+  {DQN-QoE Slice Admission Control for Live OAI Open RAN}
   {Manoj Prasad Kunasegran, Wai Leong Pang\textsuperscript{*}, and Swee King Phang}
 
 \begin{CACSabstract}
@@ -63,7 +63,7 @@ Slice Admission Control (SAC) decides whether an incoming slice request can be a
 current resources. However, static SAC cannot adapt as user demands shift, particularly in dynamic 5G environments.
 Deep Reinforcement Learning (DRL)-driven SAC closes
 this gap by incorporating context-aware mechanisms such as Service Level Agreement (SLA) and Quality of Experience (QoE) into the admission policy. We evaluate a Deep Q-Network (DQN)-based approach on a real OpenAirInterface (OAI)
-gNodeB across three slices. These are Enhanced Mobile Broadband
+gNodeB across three slices, namely Enhanced Mobile Broadband
 (eMBB), Ultra-Reliable Low-Latency Communication (URLLC) and Massive
 Machine-Type Communication (mMTC). The QoE-aware policy is
 benchmarked against a static baseline, an SLA-only reward,
@@ -75,8 +75,8 @@ on every episode, a statistically significant improvement over the
 static baseline's 93.9\% slice-wide compliance. The SLA-only reward
 and the static-at-cap policy converge to a statistically
 indistinguishable compliance rate, 98.6\% and 98.7\% slice-wide
-respectively, only numerically higher than the baseline. Five further SLA-reward checkpoints
-show that live robustness varies substantially by seed despite
+respectively. Five further SLA-reward checkpoints
+show that live robustness also varies substantially despite
 equivalent offline convergence. Under a congested,
 URLLC-preservation scenario, the DQN policy trades eMBB compliance
 for URLLC compliance offline. However, during live evaluation, every arm remains fully
@@ -118,15 +118,14 @@ were validated only in simulation. Our systematic review
 \cite{survey-paper3} places this research space into three evidence
 tiers. These are literature-supported work, preliminary simulated
 studies and a proposed but not-yet-validated graph-attention
-multi-agent federated-learning (GAT-MARL-FL) framework. This
-identifies validated deployment as a gap.
+multi-agent federated-learning (GAT-MARL-FL) framework, identifying validated deployment as a gap.
 This paper closes that gap for the same formulation. We realise it on
 a real OpenAirInterface (OAI) gNB over its native E2 interface, the
 O-RAN near-real-time RAN Intelligent Controller (RIC)
 \cite{oran-e2ap}. Only the radio channel remains simulated, a mode we
-denote rfsim throughout, and the reward is centred on QoE rather than
+denote '\textit{rfsim}' throughout, and the reward is centred on QoE rather than
 SLA compliance alone. This paper makes the following
-contributions.
+contributions:
 \begin{enumerate}[itemsep=1pt,topsep=2pt,parsep=0pt,partopsep=0pt]
 \item We deploy a DRL-based SAC policy on a real O-RAN E2 control
 loop and identify a structural difference from existing work
@@ -271,7 +270,7 @@ rank-correlate with live outcomes.
 
 \node[gnb, minimum width=2.9cm, below=0.6cm of log] (e2) {E2 Agent\\(RIC-free UDP loop)};
 \node[gnb, minimum width=2.9cm, below=0.3cm of e2] (mac) {MAC scheduler\\\texttt{slicing\_control\_m}\\enforcement};
-\node[font=\sffamily\bfseries\scriptsize, text=palYellow!55!black, below=0.14cm of mac] (gnbtitle) {gNB, OAI, rfsim, 106 PRBs $\mu{=}1$};
+\node[font=\sffamily\bfseries\scriptsize, text=palYellow!55!black, below=0.14cm of mac] (gnbtitle) {gNB, OAI, \textit{rfsim}, 106 PRBs $\mu{=}1$};
 \node[fit=(mac)(e2), inner sep=5pt] (gnbbox) {};
 
 \node[ue, right=2.0cm of e2, yshift=1.1cm] (ue1) {UE1\\eMBB (\texttt{nr-uesoftmodem})};
@@ -282,7 +281,7 @@ rank-correlate with live outcomes.
 \draw[arrow] (e2.east) -- (ue1.west);
 \draw[arrow] (gnbbox.east) -- (ue2.west);
 \draw[arrow] (mac.east) -- (ue3.west);
-\node[font=\tiny, below=0.08cm of ue3] {Uu / rfsim};
+\node[font=\tiny, below=0.08cm of ue3] {Uu / \textit{rfsim}};
 \draw[dashedarrow] (e2.west) .. controls +(-0.4,-0.1) and +(-0.4,0.1) .. (xapp.west);
 \draw[arrow] (xapp) -- (log);
 \end{tikzpicture}
@@ -294,7 +293,7 @@ Fig.~\ref{fig:architecture} shows the Open5GS core connecting over
 N2/N3, carrying signalling to the Access and Mobility Management
 Function (AMF) and data to the User Plane Function (UPF). Both reach
 a real OAI gNB, an ORANSlice fork \cite{oranslice} with a simulated
-radio channel, rfsim. Its nominal capacity is 106 Physical Resource
+radio channel, \textit{rfsim}. Its nominal capacity is 106 Physical Resource
 Blocks (PRBs) at $\mu=1$, and its Medium Access Control (MAC)
 scheduler enforces the per-slice ceiling. Three
 \texttt{nr-uesoftmodem} UEs, one per slice, attach over the radio
@@ -348,7 +347,7 @@ against a differently-shaped reward, our own prior work's eq.\,(9)
 \setlength{\abovedisplayshortskip}{3pt plus 1pt minus 1pt}%
 \setlength{\belowdisplayshortskip}{3pt plus 1pt minus 1pt}%
 \begin{equation}
-r^{\mathrm{QoE}}(s_t,a_t) = \kappa\,\overline{\mathrm{MOS}}_t - \nu\,\mathrm{cost}_t - \xi\,\mathrm{viol}_t,
+r^{\mathrm{QoE}}(s_t,a_t) = \kappa\,\overline{\mathrm{MOS}}_t - \nu\,\mathrm{cost}_t - \theta\,\mathrm{viol}_t,
 \label{eq:qoe-reward}
 \end{equation}
 where $\overline{\mathrm{MOS}}_t\in[0,1]$ rescales the mean per-slice
@@ -589,16 +588,33 @@ This paper moved an existing simulated DRL-based SAC formulation
 onto a real OAI gNB over its native E2 control loop, with the radio
 channel still simulated. A fully powered live evaluation across 128
 episodes per arm confirmed the QoE-aware reward's significant
-compliance advantage over the static baseline (Table~\ref{tab:results}),
-with the SLA-only reward and static-at-cap policy only numerically
-ahead of it, and negligible control-loop overhead throughout. Under
-offline congestion, the learned policy prioritises URLLC unless
-priorities are weighted. No live arm faced that tradeoff, though
-the QoE-aware reward gave URLLC a better experience score.
+compliance advantage over the static baseline, 100.0\% against
+93.9\% slice-wide. It is the only arm whose gain over baseline
+survives Holm-Bonferroni correction, $p=0.021$. The SLA-only reward
+and static-at-cap policy reach 98.6\% and 98.7\%, numerically ahead
+of the baseline but not significant after correction, $p=0.205$.
+Control-loop overhead stayed negligible throughout. Median E2
+round-trip latency was 0.57\,ms and DQN inference
+67.9--68.3\,$\mu$s, several orders of magnitude below the 5\,s
+control cadence, from a model under 20,000 parameters. Under offline
+congestion, the learned policy prioritises URLLC unless priorities
+are weighted through $W$. No live arm faced that tradeoff at this
+rig's contention level. The QoE-aware reward still gave URLLC a
+materially higher experience score, MOS 4.83 against 2.44--2.66, at
+matched compliance.
 
 Our future work will improve the offline environment's fidelity to
-real traffic and extend this deployment toward the fully-fledged
-GAT-MARL-FL framework from our earlier review. This leaves
+real traffic. In particular, the closed-loop simulator's
+backlog-capacity parameter needs validating against measured live
+SLA-margin magnitude rather than offered-load levels alone, since
+held-out evaluation of the same checkpoints does not rank-correlate
+with live compliance. We will also extend this deployment toward the
+fully-fledged GAT-MARL-FL framework from our earlier review. This
+single-agent, single-gNB deployment leaves open whether the E2
+interface's per-slice ceiling primitive still suffices once a
+graph-attention policy coordinates multiple gNBs, and whether the
+negligible control-loop overhead measured here holds once
+coordination and federated aggregation run on top of it. This leaves
 topology-scalability, federated-learning privacy and
 disruption-resilience open.
 
@@ -607,6 +623,7 @@ This research was supported by the Ministry of Higher Education
 (MOHE), Malaysia through the Fundamental Research Grant Scheme
 (FRGS/1/2024/ICT06/TAYLOR/02/1).
 
+\enlargethispage{4\baselineskip}
 \bibliographystyle{IEEEtran}
 \bibliography{refs}
 
