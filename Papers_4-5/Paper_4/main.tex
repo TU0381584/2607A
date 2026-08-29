@@ -37,6 +37,19 @@
 % not overridden here, matching the official template's own instruction
 % not to alter margins/spacing.
 
+% article's default float-placement limits (topfraction=0.7, topnumber=2,
+% totalnumber=3) are too tight for this section's cluster of one table +
+% three figures declared close together: LaTeX defers floats past those
+% limits onto their own column instead of the same column as the text
+% discussing them, leaving that column mostly-float and the facing one
+% empty. Loosening only the placement fractions/counts, not any spacing
+% cacs2026.sty itself sets.
+\renewcommand{\topfraction}{0.95}
+\renewcommand{\textfraction}{0.05}
+\renewcommand{\floatpagefraction}{0.8}
+\setcounter{topnumber}{4}
+\setcounter{totalnumber}{6}
+
 \begin{document}
 
 \CACSmaketitle
@@ -457,27 +470,6 @@ DQN (QoE reward) & \textbf{100.0} & \textbf{100.0} & \textbf{100.0} \\
 \end{tabular}
 \end{table}
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.98\linewidth]{figures/fig_sla_vs_qoe_ceiling.pdf}
-\caption{Commanded ceiling per slice, DQN-SLA vs.\ DQN-QoE, seed 955, episode 1.}
-\label{fig:sla-vs-qoe-ceiling}
-\end{figure}
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.98\linewidth]{figures/fig2_sla_compliance_a.pdf}
-\caption{Per-episode SLA compliance (\%), one point per episode.}
-\label{fig:compliance-a}
-\end{figure}
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.98\linewidth]{figures/fig2_sla_compliance_b.pdf}
-\caption{Compliance summary, fraction of episodes fully SLA-compliant and worst single-episode compliance, by arm.}
-\label{fig:compliance-b}
-\end{figure}
-
 Fig.~\ref{fig:sla-vs-qoe-ceiling} plots DQN-QoE against DQN-SLA on
 the one seed where DQN-SLA collapses. Between steps 33--36, it drops
 URLLC's ceiling as low as half its cap before recovering, while
@@ -495,6 +487,13 @@ $p=0.0070$ for DQN-QoE vs.\ baseline become $p=0.205$ and
 $p=0.021$ after correction. The QoE-aware reward's advantage
 survives correction, but the SLA-only reward's does not.
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\linewidth]{figures/fig_sla_vs_qoe_ceiling.pdf}
+\caption{Commanded ceiling per slice, DQN-SLA vs.\ DQN-QoE, seed 955, episode 1.}
+\label{fig:sla-vs-qoe-ceiling}
+\end{figure}
+
 Fig.~\ref{fig:compliance-a} shows this episode-by-episode, one point
 per episode, DQN-QoE at 100\% throughout and the other three in the
 same bimodal split. Fig.~\ref{fig:compliance-b} shows two bars per
@@ -506,6 +505,20 @@ This observation confirms that live
 robustness is not
 predictable from offline convergence alone, as
 Section~\ref{sec:offline-env} details.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\linewidth]{figures/fig2_sla_compliance_a.pdf}
+\caption{Per-episode SLA compliance (\%), one point per episode.}
+\label{fig:compliance-a}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.98\linewidth]{figures/fig2_sla_compliance_b.pdf}
+\caption{Compliance summary, fraction of episodes fully SLA-compliant and worst single-episode compliance, by arm.}
+\label{fig:compliance-b}
+\end{figure}
 
 \subsection{Deployment Feasibility}
 \label{sec:feasibility}
