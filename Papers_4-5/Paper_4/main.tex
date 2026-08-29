@@ -513,12 +513,21 @@ Section~\ref{sec:offline-env} details.
 \label{fig:compliance-a}
 \end{figure}
 
-\begin{figure}[t]
+\begin{table}[t]
 \centering
-\includegraphics[width=0.98\linewidth]{figures/fig2_sla_compliance_b.pdf}
-\caption{Compliance summary, fraction of episodes fully SLA-compliant and worst single-episode compliance, by arm.}
-\label{fig:compliance-b}
-\end{figure}
+\caption{Congested offline compliance (\%), pooled 165 ep/arm}
+\label{tab:congested}
+\footnotesize
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Arm & URLLC & eMBB & mMTC & $W$ \\
+\midrule
+Static baseline & 19.7 & 32.7 & 19.8 & \textbf{24.9} \\
+DQN (SLA reward) & 27.7 & 7.7 & 9.4 & 19.1 \\
+DQN (QoE reward) & 25.0 & 8.2 & 11.6 & 17.9 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{Deployment Feasibility}
 \label{sec:feasibility}
@@ -567,21 +576,12 @@ materially higher URLLC MOS of 4.83 out of 5 than the SLA-only
 reward's 2.44 or the static baseline's 2.66, at the same 100\%
 compliance.
 
-\begin{table}[t]
+\begin{figure}[t]
 \centering
-\caption{Congested offline compliance (\%), pooled 165 ep/arm}
-\label{tab:congested}
-\footnotesize
-\begin{tabular}{@{}lrrrr@{}}
-\toprule
-Arm & URLLC & eMBB & mMTC & $W$ \\
-\midrule
-Static baseline & 19.7 & 32.7 & 19.8 & \textbf{24.9} \\
-DQN (SLA reward) & 27.7 & 7.7 & 9.4 & 19.1 \\
-DQN (QoE reward) & 25.0 & 8.2 & 11.6 & 17.9 \\
-\bottomrule
-\end{tabular}
-\end{table}
+\includegraphics[width=0.98\linewidth]{figures/fig2_sla_compliance_b.pdf}
+\caption{Compliance summary, fraction of episodes fully SLA-compliant and worst single-episode compliance, by arm.}
+\label{fig:compliance-b}
+\end{figure}
 
 \section{Conclusion and Future Work}
 This paper moved an existing simulated DRL-based SAC formulation
