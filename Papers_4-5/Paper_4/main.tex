@@ -9,6 +9,7 @@
 \usepackage{algorithmic}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning,fit,backgrounds}
+\usepackage{float} % [H] to pin Fig. 5 exactly under its preceding paragraph, not float elsewhere
 % cacs2026.sty's own caption config names figures "Figure" (name=Figure),
 % but the template's own written instructions ("Use the abbreviation
 % 'Fig. 1'") and every in-text reference in this paper use "Fig." --
@@ -576,7 +577,7 @@ materially higher URLLC MOS of 4.83 out of 5 than the SLA-only
 reward's 2.44 or the static baseline's 2.66, at the same 100\%
 compliance.
 
-\begin{figure}[t]
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.98\linewidth]{figures/fig2_sla_compliance_b.pdf}
 \caption{Compliance summary, fraction of episodes fully SLA-compliant and worst single-episode compliance, by arm.}
