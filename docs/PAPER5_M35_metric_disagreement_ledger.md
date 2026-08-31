@@ -62,15 +62,28 @@ are distinguished, since they carry very different evidential weight:
 
 ## GATE M35 report
 
-Output: `experiments/results/m35_metric_disagreement_ledger.csv` (49
-rows: 25 scored comparisons, 24 gaps).
+Output: `experiments/results/m35_metric_disagreement_ledger.csv` (73
+rows: 49 scored comparisons, 24 gaps).
 
-**Compliance disagreed with the correctness-aware pair in 23 of 25
-comparisons (92.0%).**
-- 15 of those 23 are a **significance flip** (the strong form).
-- 8 of those 23 are **direction-only** splits between two
+**Compliance disagreed with the correctness-aware pair in 44 of 49
+comparisons (89.8%).**
+- 29 of those 44 are a **significance flip** (the strong form).
+- 15 of those 44 are **direction-only** splits between two
   already-non-significant results (the weak form, small-n noise, mostly
   M6's N=7 topologies at n=3 seeds).
+
+**Update, same day**: added a supplementary batch (24 more comparisons)
+re-running the M4 conditions originally listed as gaps against
+`fresh_seed_retrain`'s own matching m2/m3/m4 campaigns, which use a
+different, independently-drawn seed batch (1000-1009) with full
+arm/kind coverage. Kept as clearly separate rows
+(`campaign=M4-supplementary(seeds1000s)`), never merged into the
+official-seed rows above. This batch **independently replicates the
+same disagreement pattern**: 21 of 24 (87.5%), matching the official
+seeds' 23/25 (92.0%) closely. Two different seed batches, same
+qualitative finding -- exactly the reproduction-vs-replication
+discipline this project's own methodology already establishes as
+necessary before trusting a result.
 
 Concrete examples of the strong form, cross-checked against numbers
 already published in this project's own docs to validate the script

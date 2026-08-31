@@ -70,6 +70,9 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 M2_DIR = REPO_ROOT / "experiments/results/m2_campaign"
 M3_DIR = REPO_ROOT / "experiments/results/m3_campaign"
 M4_PAIRED_DIR = REPO_ROOT / "experiments/results/m4_paired_test"
+FRESH_M2_DIR = REPO_ROOT / "experiments/results/fresh_seed_retrain/m2_campaign"
+FRESH_M3_DIR = REPO_ROOT / "experiments/results/fresh_seed_retrain/m3_campaign"
+FRESH_M4_DIR = REPO_ROOT / "experiments/results/fresh_seed_retrain/m4_campaign"
 M4_CAMPAIGN_RESULTS = REPO_ROOT / "experiments/results/m4_campaign/campaign_results.json"
 M6_DIR = REPO_ROOT / "experiments/results/m6_pilot"
 
@@ -281,6 +284,32 @@ def build_comparisons() -> list:
                         "compliance-only available in m4_campaign/campaign_results.json; "
                         "reward/precision exist only under the independently-seeded "
                         "(1000-1009), not-git-tracked fresh_seed_retrain/m4_campaign/"),
+            })
+
+    # Supplementary (NOT a substitute for the gaps above): the same
+    # gap_conditions, computed against fresh_seed_retrain's own matching
+    # m2/m3/m4 campaigns at its OWN seeds (1000-1009), which do have full
+    # arm/kind coverage plus a matching undisrupted baseline. Kept as
+    # clearly separate, clearly labeled rows -- never merged into the
+    # official-seed comparisons above -- per this project's own established
+    # lesson (docs/PAPER5_M4_disruption.md's churn retraction) that
+    # swapping seed sets under one label can silently flip a verdict.
+    def fresh_baseline_path(arm):
+        if arm == "fl_gat_ctde_sigma0.0":
+            return lambda s: eval_path_flat_or_nested(FRESH_M3_DIR, "fl_gat_ctde_sigma0.0", s)
+        return lambda s: eval_path_flat_or_nested(FRESH_M2_DIR, arm, s)
+
+    fresh_seeds = list(range(1000, 1010))
+    for arm, kind in gap_conditions:
+        for sev in [1, 2, 3]:
+            sev_label = f"{kind}_sev{sev}"
+            comparisons.append({
+                "campaign": "M4-supplementary(seeds1000s)",
+                "label": f"{arm} {sev_label} vs own undisrupted baseline [fresh_seed_retrain, seeds 1000-1009]",
+                "seeds": fresh_seeds, "n_seeds_label": len(fresh_seeds),
+                "path_a": fresh_baseline_path(arm),
+                "path_b": lambda s, a=arm, sl=sev_label: FRESH_M4_DIR / a / sl / f"seed{s}" / "eval" / "omega_log.jsonl",
+                "reward_fn": per_seed_metrics_normalized,
             })
 
     # ---- M6: gat_ctde vs single_agent_dqn, per topology, at N=19
