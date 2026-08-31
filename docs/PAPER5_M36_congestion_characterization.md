@@ -105,38 +105,113 @@ on this session's rig state, not a configuration mistake in how I
 invoked the documented, previously-working setup -- but I could not
 resolve it with the diagnostic tools available.
 
+## Update, same session: iperf3-target blocker resolved (transient), 1-UE done, 2-UE hit a different, real rig instability
+
+After the ~90-minute blocker above, tried once more with better
+tooling: installed `tcpdump`/`conntrack` into `upf-slice1` (`apt-get
+install`, this image is Debian-based, not Alpine) and did a fresh
+gNB+UE1 restart before retesting. **The exact same setup then worked
+immediately** -- `tcpdump` on both `upf-slice1` interfaces
+(`eth0`/`ogstun`) during a ping showed a clean, complete round trip,
+and a real 6-second UDP iperf3 test (4 Mbps, 1200B, matching the embb
+profile) confirmed 0% loss. Root cause was never conclusively
+identified (the fresh restart could have cleared stale ARP/conntrack
+state, or something else entirely) -- recorded honestly as unresolved
+rather than claiming a diagnosis the evidence doesn't support.
+
+**1-UE congestion probe: completed successfully.** 10 episodes, real
+sustained embb UDP traffic (4 Mbps) throughout. `congestion_level`
+pinned flat at 0.140 (n=3600 decisions, zero variance) -- up from the
+idle-attached floor of 0.050 measured earlier, confirming real traffic
+genuinely moves this feature. Block precision 1.000, zero collapsed
+episodes. Committed: `experiments/results/m36_live/ue1/`, commit
+`e1b1f3a`.
+
+One live E2 `TimeoutError` (`no INDICATION_RESPONSE from gNB E2 agent
+within 30.0s`) occurred on the first launch attempt for this run,
+before the successful one -- not previously documented anywhere in
+this project's history. Treated as a one-off retriable condition
+(matching `run_live_eval_arm.py`'s own established health-check-and-
+restart discipline); the immediate retry succeeded cleanly with no
+further recurrence during the full 1-UE campaign.
+
+**2-UE attempt: blocked by a real, recurring UE1 radio-link failure,
+not a new bug.** Adding UE2 (mmtc, `ue2ns`) itself went cleanly --
+netns/veth isolation confirmed correct (UE1's and UE2's `oaitun_ue1`
+interfaces are properly separate, different ifindexes, no collision),
+both UEs independently reached 0% packet loss to the internet right
+after attach. Shortly after starting sustained traffic on both UEs
+together, UE1 dropped to 100% packet loss with `[RLC] max RETX reached
+on DRB 1` repeating in its log -- **this exact failure signature is
+already documented** in this project's own `run_live_eval_arm.py`
+docstring as a real, prior production incident ("UE1/embb hit an RLC
+max-RETX failure 3 times within ~1 hour of cumulative uptime"), with
+`restart_ran_stack.sh` built specifically because hot-restarting a
+single UE into a running stack doesn't reliably fix it -- only a full
+stop-everything-and-relaunch-in-sequence does.
+
+Did exactly that (full kill of gNB+UE1+UE2, fresh relaunch of gNB, then
+UE1, then UE2, each connectivity-checked before proceeding) -- both UEs
+came up clean, 0% loss. Launched the 2-UE probe. **Within a few
+minutes of both UEs carrying real traffic simultaneously, UE1 failed
+the same way again** (100% loss, same RLC max-RETX signature). This is
+the second occurrence of a real, previously-documented instability
+within one session, not a new failure mode and not something traceable
+to a mistake in this session's own procedure (the restart followed the
+project's own validated recipe exactly).
+
+**Decision: stopped rather than attempt a third restart cycle.** Two
+recurrences of a known-but-supposedly-rare failure within roughly an
+hour suggested the rig itself may have been in a degraded state after
+several hours of continuous operation (thermal, resource
+fragmentation from repeated process churn, or simply this failure mode
+being less rare under sustained 2-UE real traffic than the single prior
+documented incident suggested) rather than one-off bad luck. The
+partial 2-UE state/omega logs collected during the failure window were
+discarded (not committed) rather than kept as data, since a KPM/reward
+signal measured while UE1's radio link is actively failing reflects a
+link-failure artifact, not the demand-driven congestion this milestone
+is trying to characterize -- keeping it would risk contaminating the
+eventual UE-count-vs-congestion curve with a qualitatively different
+phenomenon.
+
 ## State at end of this entry: fully torn down, clean
 
-UE1, gNB, `iperf3-target` all stopped; core network containers stopped
-(not removed -- `docker compose stop`, not `down`, so the subscriber DB
-volume and container definitions are preserved for a fast resume).
-Verified: zero RAN processes, zero running containers, memory back to
-4.9Gi available, zero crash/OOM signatures in dmesg across the entire
-~2-hour session. Chosen deliberately over leaving a half-working stack
-running unattended for several more hours with no way to make further
-M36 progress on it.
+All RAN processes, traffic generators, and the `iperf3-target`
+container stopped/removed; core network containers stopped (not
+removed -- DB volume and container definitions preserved for a fast
+resume). `ue2ns` network namespace left in place (cheap to keep,
+matches `restart_ran_stack.sh`'s own idempotent-creation convention).
+Verified at teardown: zero RAN/traffic processes, zero running
+containers, memory fully recovered to 5.3Gi available, **zero
+crash/OOM signatures in dmesg across the entire ~4-hour session**
+(confirming the RLC failures are a radio-link/RRC-layer protocol
+issue, not a kernel-level crash, memory exhaustion, or the M28 2-gNB
+incident's resource-contention pattern -- this was single-gNB
+throughout).
 
 ## Recommended next steps (for whoever resumes this)
-1. **Bring the core+gNB+UE1 back up** (`docker compose ... start`, then
-   gNB, then UE1 -- containers and DB are already there, this should be
-   fast) and get a **second pair of eyes / `tcpdump`-capable tooling**
-   on the UE1-to-iperf3-target path specifically, since every rule-level
-   check passed but the actual packet doesn't arrive. Installing
-   `tcpdump` into the minimal Alpine-based containers
-   (`apk add tcpdump` inside `upf-slice1`/`iperf3-target`, if their
-   image has `apk`) would let the exact drop point be found in minutes
-   rather than inferred indirectly.
-2. **Alternative if that stays blocked**: skip the docker-internal
-   target entirely and generate real per-slice load a different way --
-   e.g. a UDP echo/sink script run directly in the UE's own default
-   netns (loopback-adjacent, sidesteps the UPF-to-docker-bridge hop
-   entirely) if the actual requirement is "real, sustained per-slice
-   demand the KPM layer measures", not specifically "traffic to this
-   particular container".
-3. Once real traffic is confirmed flowing (checked directly via
-   `dl_mac_buffer_occupation` going non-zero, per BRINGUP_LOG's own
-   established verification method, before trusting anything
-   downstream), redo the 1-UE congestion probe from scratch (the
-   invalid idle-attached run was not saved as a result), then proceed
-   UE-count by UE-count exactly as this doc's still-open plan describes,
-   with a health/memory check after every addition.
+1. **Before the next attempt, consider whether this rig needs a cooldown
+   period or reboot** rather than an immediate retry -- two RLC
+   max-RETX recurrences within about an hour, after several hours of
+   continuous gNB/UE operation across this session's earlier work, is
+   worth treating as a real signal rather than assumed-independent bad
+   luck, even though it isn't conclusively diagnosed as thermal or
+   resource-related.
+2. **Re-attempt 2-UE (and beyond) fresh**, ideally with the user present
+   given the now-twice-observed instability under 2-UE combined real
+   traffic specifically (1-UE alone ran a full 10-episode, real-traffic
+   campaign without a single RLC error) -- this may be a genuine
+   2-UE-specific finding worth its own investigation rather than purely
+   an unlucky rig state, and distinguishing those two possibilities
+   likely needs closer, real-time observation than a single unattended
+   session allows.
+3. If it recurs a third time under the same conditions, that upgrades
+   from "worth flagging" to "a real, reportable finding about this
+   rig's live multi-UE ceiling" analogous to M28's 2-gNB hardware
+   ceiling -- write it up rather than keep treating it as transient.
+4. Once 2-UE is stable for a full campaign, continue the UE-count
+   sequence (3, 4, 5, 6) exactly as originally planned, with a
+   health/memory/connectivity check after every addition, matching the
+   discipline that got 1-UE and the initial 2-UE attach (before traffic
+   load) both cleanly verified.
