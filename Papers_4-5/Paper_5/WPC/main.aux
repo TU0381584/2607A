@@ -5,6 +5,7 @@
 \providecommand\HyField@AuxAddToCoFields[2]{}
 \Newlabel{1}{1}
 \citation{mecon-paper1,icraie-paper2}
+\citation{cacs26-paper}
 \citation{gat}
 \@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{2}{section.1}\protected@file@percent }
 \citation{ref:access}
@@ -29,9 +30,9 @@
 \@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces GAT-CTDE architecture. (a) A shared Graph Attention encoder over the fully-connected 3-gNB topology produces one embedding per node; per-slice Q-heads, each with its own parameters, consume that node's own embedding row at action-selection time (decentralised execution). (b) The federated training variant: each gNB is a client with a private copy of the same network, synchronised via periodic FedAvg with an optional per-client DP-SGD clip-and-noise step.}}{5}{figure.1}\protected@file@percent }
 \newlabel{fig:architecture}{{1}{5}{GAT-CTDE architecture. (a) A shared Graph Attention encoder over the fully-connected 3-gNB topology produces one embedding per node; per-slice Q-heads, each with its own parameters, consume that node's own embedding row at action-selection time (decentralised execution). (b) The federated training variant: each gNB is a client with a private copy of the same network, synchronised via periodic FedAvg with an optional per-client DP-SGD clip-and-noise step}{figure.1}{}}
 \newlabel{sec:methodology-perslice}{{4.1}{5}{Shared Encoder, Decentralised Q-Heads}{subsection.4.1}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Federated Training with Differential Privacy}{5}{subsection.4.2}\protected@file@percent }
 \@writefile{loa}{\contentsline {algorithm}{\numberline {1}{\ignorespaces GAT-CTDE: centralised training, decentralised execution}}{6}{algorithm.1}\protected@file@percent }
 \newlabel{alg:gat-ctde}{{1}{6}{Shared Encoder, Decentralised Q-Heads}{algorithm.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Federated Training with Differential Privacy}{6}{subsection.4.2}\protected@file@percent }
 \citation{dpsgd}
 \citation{zcdp}
 \citation{dpsgd}
@@ -41,9 +42,9 @@
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Experimental Setup}{7}{subsection.4.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {5}Evaluation-Integrity Findings: A Training Collapse, Diagnosed and Fixed}{8}{section.5}\protected@file@percent }
 \newlabel{sec:collapse}{{5}{8}{Evaluation-Integrity Findings: A Training Collapse, Diagnosed and Fixed}{section.5}{}}
-\newlabel{sec:eval-log-bug}{{5}{8}{Evaluation-Integrity Findings: A Training Collapse, Diagnosed and Fixed}{figure.2}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Fraction of the 30 campaign seeds reaching genuine, correctly-targeted differentiated shedding (mMTC-only blocking under congestion), across the original unnormalised encoder and the two fixes described in Section~\ref {sec:collapse}.}}{9}{figure.2}\protected@file@percent }
 \newlabel{fig:collapse}{{2}{9}{Fraction of the 30 campaign seeds reaching genuine, correctly-targeted differentiated shedding (mMTC-only blocking under congestion), across the original unnormalised encoder and the two fixes described in Section~\ref {sec:collapse}}{figure.2}{}}
+\newlabel{sec:eval-log-bug}{{5}{9}{Evaluation-Integrity Findings: A Training Collapse, Diagnosed and Fixed}{figure.2}{}}
 \newlabel{sec:correctness-metrics}{{5}{9}{Evaluation-Integrity Findings: A Training Collapse, Diagnosed and Fixed}{figure.2}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces M2 centralised campaign, per-seed evidence for the correctness-aware metrics (Section~\ref {sec:correctness-metrics}). (a) Paired per-seed comparison against single-agent DQN on mean reward per step. Each line is one seed, coloured by whether GAT-CTDE scored higher (green, 20), tied (grey, 3), or lower (red, 7), the source of this figure's borderline $p=0.0577$. (b) Full per-seed reward distribution for all three arms; GAT-CTDE is split into seeds that learned genuine differentiated shedding (blue, 21) versus seeds still stuck at the always-accept collapse (grey $\times $, 9), shown without claiming the split predicts reward, since several still-collapsed seeds score among the arm's highest.}}{10}{figure.3}\protected@file@percent }
 \newlabel{fig:m2-results}{{3}{10}{M2 centralised campaign, per-seed evidence for the correctness-aware metrics (Section~\ref {sec:correctness-metrics}). (a) Paired per-seed comparison against single-agent DQN on mean reward per step. Each line is one seed, coloured by whether GAT-CTDE scored higher (green, 20), tied (grey, 3), or lower (red, 7), the source of this figure's borderline $p=0.0577$. (b) Full per-seed reward distribution for all three arms; GAT-CTDE is split into seeds that learned genuine differentiated shedding (blue, 21) versus seeds still stuck at the always-accept collapse (grey $\times $, 9), shown without claiming the split predicts reward, since several still-collapsed seeds score among the arm's highest}{figure.3}{}}
@@ -80,27 +81,30 @@
 \newlabel{sec:results-m27}{{8.3}{20}{Extending the Recalibration to the Topology-Scaling Axis}{subsection.8.3}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces Collapse rate, original topology-scaling campaign (grey, ClosedLoopKpmSource, \S  \ref {sec:results-m6}'s own published values) against this recalibrated resample (teal, RealisticServedKpmSource, 12 seeds $\times $ 3 topologies, bootstrapped over seeds since collapse status correlates within a seed across its topologies). (a) $N{=}7$: the original bars are a single $n{=}3$ pilot point estimate with no CI ever reported, not a zero-width interval. (b) $N{=}19$: both sides are properly powered. Single-agent DQN and GAT-CTDE are statistically unchanged at $N{=}19$; at $N{=}7$, GAT-CTDE now matches its own $N{=}19$ rate and single-agent DQN collapses far more than the original pilot suggested.}}{21}{figure.9}\protected@file@percent }
 \newlabel{fig:m27-reframe}{{9}{21}{Collapse rate, original topology-scaling campaign (grey, ClosedLoopKpmSource, \S \ref {sec:results-m6}'s own published values) against this recalibrated resample (teal, RealisticServedKpmSource, 12 seeds $\times $ 3 topologies, bootstrapped over seeds since collapse status correlates within a seed across its topologies). (a) $N{=}7$: the original bars are a single $n{=}3$ pilot point estimate with no CI ever reported, not a zero-width interval. (b) $N{=}19$: both sides are properly powered. Single-agent DQN and GAT-CTDE are statistically unchanged at $N{=}19$; at $N{=}7$, GAT-CTDE now matches its own $N{=}19$ rate and single-agent DQN collapses far more than the original pilot suggested}{figure.9}{}}
+\citation{cacs26-paper}
 \@writefile{toc}{\contentsline {section}{\numberline {9}Conclusion}{22}{section.9}\protected@file@percent }
 \newlabel{sec:conclusion}{{9}{22}{Conclusion}{section.9}{}}
+\citation{cacs26-paper}
+\@writefile{toc}{\contentsline {subparagraph}{Acknowledgements}{23}{section*.2}\protected@file@percent }
 \bibdata{refs}
 \bibcite{dpsgd}{{1}{2016}{{Abadi et~al.}}{{Abadi, Chu, Goodfellow, McMahan, Mironov, Talwar, and Zhang}}}
 \bibcite{ahmadi2024generalizable}{{2}{2024}{{Ahmadi et~al.}}{{Ahmadi, Moayyedi, Sulaiman, Salahuddin, Boutaba, and Saleh}}}
 \bibcite{bouroudi2025gnnmarl}{{3}{2025}{{Bouroudi et~al.}}{{Bouroudi, Outtagarts, and Hadjadj-Aoul}}}
-\@writefile{toc}{\contentsline {subparagraph}{Acknowledgements}{23}{section*.2}\protected@file@percent }
 \bibcite{zcdp}{{4}{2016}{{Bun and Steinke}}{{}}}
 \bibcite{fatehi2026attentionmarl}{{5}{2026}{{Fatehi et~al.}}{{Fatehi, {Rahmani Ghourtani}, Sonee, Yadav, Russo, Ahmadi, and Calinescu}}}
 \bibcite{gong2026femaddpg}{{6}{2026}{{Gong et~al.}}{{Gong, Gong, Jiang, Xie, Wang, and Xu}}}
 \bibcite{mecon-paper1}{{7}{2025{}}{{Kunasegran et~al.}}{{Kunasegran, Pang, and Phang}}}
 \bibcite{icraie-paper2}{{8}{2025{}}{{Kunasegran et~al.}}{{Kunasegran, Pang, and Phang}}}
-\bibcite{ref:access}{{9}{2026}{{Kunasegran et~al.}}{{Kunasegran, Pang, and Phang}}}
-\bibcite{fedprox}{{10}{2020}{{Li et~al.}}{{Li, Sahu, Zaheer, Sanjabi, Talwalkar, and Smith}}}
-\bibcite{fedavg}{{11}{2017}{{McMahan et~al.}}{{McMahan, Moore, Ramage, Hampson, and y~Arcas}}}
-\bibcite{mohajer2026pronto}{{12}{2026}{{Mohajer et~al.}}{{Mohajer, Mirzaei, Darabi, and Fernando}}}
-\bibcite{qasim2025tgnnfl}{{13}{2025}{{Qasim et~al.}}{{Qasim, Imran, Akram, {Ahmad Bilal}, and {Jaleed Khan}}}}
-\bibcite{shao2021gatmarl}{{14}{2021}{{Shao et~al.}}{{Shao, Li, Hu, Wu, Zhao, and Zhang}}}
-\bibcite{sulaiman2023coordinated}{{15}{2023}{{Sulaiman et~al.}}{{Sulaiman, Moayyedi, Ahmadi, Salahuddin, Boutaba, and Saleh}}}
-\bibcite{tashman2026adversarial}{{16}{2026}{{Tashman and Cherkaoui}}{{}}}
-\bibcite{gat}{{17}{2018}{{Veli{\v {c}}kovi{\'c} et~al.}}{{Veli{\v {c}}kovi{\'c}, Cucurull, Casanova, Romero, Li{\`o}, and Bengio}}}
-\bibcite{yasin2025dpfl}{{18}{2025}{{Yasin et~al.}}{{Yasin, Yu, and Wang}}}
-\bibcite{zhang2022federatedoran}{{19}{2022}{{Zhang et~al.}}{{Zhang, Zhou, and Erol-Kantarci}}}
+\bibcite{ref:access}{{9}{2026{}}{{Kunasegran et~al.}}{{Kunasegran, Pang, and Phang}}}
+\bibcite{cacs26-paper}{{10}{2026{}}{{Kunasegran et~al.}}{{Kunasegran, Pang, and Phang}}}
+\bibcite{fedprox}{{11}{2020}{{Li et~al.}}{{Li, Sahu, Zaheer, Sanjabi, Talwalkar, and Smith}}}
+\bibcite{fedavg}{{12}{2017}{{McMahan et~al.}}{{McMahan, Moore, Ramage, Hampson, and y~Arcas}}}
+\bibcite{mohajer2026pronto}{{13}{2026}{{Mohajer et~al.}}{{Mohajer, Mirzaei, Darabi, and Fernando}}}
+\bibcite{qasim2025tgnnfl}{{14}{2025}{{Qasim et~al.}}{{Qasim, Imran, Akram, {Ahmad Bilal}, and {Jaleed Khan}}}}
+\bibcite{shao2021gatmarl}{{15}{2021}{{Shao et~al.}}{{Shao, Li, Hu, Wu, Zhao, and Zhang}}}
+\bibcite{sulaiman2023coordinated}{{16}{2023}{{Sulaiman et~al.}}{{Sulaiman, Moayyedi, Ahmadi, Salahuddin, Boutaba, and Saleh}}}
+\bibcite{tashman2026adversarial}{{17}{2026}{{Tashman and Cherkaoui}}{{}}}
+\bibcite{gat}{{18}{2018}{{Veli{\v {c}}kovi{\'c} et~al.}}{{Veli{\v {c}}kovi{\'c}, Cucurull, Casanova, Romero, Li{\`o}, and Bengio}}}
+\bibcite{yasin2025dpfl}{{19}{2025}{{Yasin et~al.}}{{Yasin, Yu, and Wang}}}
+\bibcite{zhang2022federatedoran}{{20}{2022}{{Zhang et~al.}}{{Zhang, Zhou, and Erol-Kantarci}}}
 \gdef \@abspage@last{25}
