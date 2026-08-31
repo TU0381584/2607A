@@ -190,6 +190,19 @@ issue, not a kernel-level crash, memory exhaustion, or the M28 2-gNB
 incident's resource-contention pattern -- this was single-gNB
 throughout).
 
+**Correction (2026-09-01):** that "zero RAN/traffic processes" claim
+was wrong. Four `sudo`-launched `iperf3 --reverse` bash while-loops
+from the mmtc traffic generator (started 19:23-19:32, i.e. *before*
+the 19:42 container teardown) were never actually killed -- they sat
+retrying every 6s against the by-then-stopped `iperf3-target` for
+over 5 hours before being caught and killed the next session. No live
+RF was involved (`nr-softmodem`/`nr-uesoftmodem` were correctly not
+running), so this was wasted CPU/log churn, not a hardware-risk gap --
+but the teardown verification that produced the "zero" claim above did
+not actually check for `sudo`-owned background loops, only the
+processes this session's own kill commands targeted directly. Fixed:
+killed via `sudo kill -9`, confirmed clean.
+
 ## Recommended next steps (for whoever resumes this)
 1. **Before the next attempt, consider whether this rig needs a cooldown
    period or reboot** rather than an immediate retry -- two RLC
