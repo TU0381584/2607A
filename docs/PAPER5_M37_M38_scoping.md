@@ -335,24 +335,61 @@ recovered to 4.4Gi available. CPU governor left at `performance`
 (user's call to revert for battery life). `ue2ns`/`ue3ns` namespaces
 left in place per established convention.
 
-### Recommended next steps
+### Attempt 3: CPU-affinity isolation (user-directed), also failed -- rules out host scheduling
 
-1. This is now a **twice-confirmed-in-one-session, mechanism-narrowed**
-   finding, not a vague instability -- it may be worth writing up as a
-   real result (multi-UE live control-loop ceiling, analogous to M28's
-   2-gNB hardware ceiling) rather than continuing to treat it as a
-   blocker to route around.
-2. If further live debugging is wanted, the next genuinely new lever is
-   CPU-affinity isolation of the 4 native processes (gNB, UE1, UE2, UE3)
-   across the 4 physical cores, explicitly reserving none of them for
-   the probe -- testing whether reducing host-scheduling noise around
-   the control-write moment helps at all, which would argue for a
-   host-side rather than gNB-source-side cause after all. This has not
-   been tried.
-3. Alternatively, someone with OAI/ORANSlice source familiarity could
-   look at what `slicing_control_m` application actually does on the
-   gNB side when multiple UEs are RRC-connected -- whether it touches
-   shared MAC-scheduler state in a way that could stall or corrupt an
-   in-flight transmission on an unrelated UE.
-4. M37/M38 stay blocked either way until this resolves -- both need
+User chose to pursue the CPU-affinity lever directly. Fresh restart, all
+4 native processes (gNB, UE1, UE2, UE3) launched via `taskset -c
+0,1,2,4,5,6` (a shared 6-logical-CPU / 3-physical-core pool, preserving
+their original free-roaming-among-each-other behavior, which the 100s
+clean windows in attempts 1 and 2 already proved was never the problem)
+-- physical core 3 (logical CPUs 3,7) reserved exclusively, never
+touched by any RAN process. Verified via `taskset -pc <pid>` on every
+relevant PID before proceeding, not just assumed. Confirmed OAI's
+`threadCreate()` (`common/utils/system.c:252`) does not override thread
+affinity when `affinity == -1` (the "ffffffff" in earlier logs is just
+`-1` printed as a 32-bit hex, not a literal all-cores bitmask) -- so a
+taskset at process launch genuinely propagates to every child thread,
+this was checked in source before relying on it.
+
+100+ seconds of clean combined traffic again (same as attempts 1-2).
+Probe launched via `taskset -c 3,7` -- confirmed via `taskset -pc` on
+its actual PID to be running exclusively on the reserved cores, zero
+overlap with the RAN pool. **RLC max-RETX still occurred.** The pattern
+changed, though: instead of all three UEs failing near-simultaneously
+(attempts 1-2), this time UE2 (mmtc) failed first and worst (638 by
++30s, 2524 final), UE1 lagged roughly 30s behind (1425 final), UE3
+stayed comparatively mild (940 final) -- a staggered, asymmetric onset
+rather than a synchronized one.
+
+**This rules out host-level CPU scheduling contention as the cause.**
+The probe never shared a core with any RAN process, verified directly,
+and the failure still happened. Combined with attempt 2's governor/
+memory results, three separate host-side explanations have now been
+tested and eliminated: CPU frequency scaling, general memory/rig
+fatigue, and CPU scheduling contention between the probe and the RAN
+processes. What's left standing is the content/effect of the E2 control
+write itself on the gNB's shared MAC-scheduler state -- something that
+happens identically regardless of which core sent it.
+
+Torn down clean after this attempt too (by PID, all RAN/traffic
+processes confirmed gone, memory recovered to 4.1Gi available).
+
+### Recommended next steps (revised after attempt 3)
+
+1. **Host-side explanations are now exhausted** (governor, memory,
+   CPU-scheduling isolation all tested and ruled out). The remaining two
+   options from the original proposal are the live ones:
+   - **(B) Read the OAI/ORANSlice source** for what `slicing_control_m`
+     application actually does on the gNB side when multiple UEs are
+     RRC-connected -- whether it touches shared MAC-scheduler state in a
+     way that could stall or corrupt an in-flight transmission on an
+     unrelated UE. The staggered, asymmetric onset in attempt 3 (mmtc
+     first and worst) is a new, potentially useful clue for whoever does
+     this -- it suggests the effect isn't uniform across slices, which a
+     shared-state race condition might well produce depending on
+     ordering.
+   - **(C) Write this up as a genuine finding** -- a live multi-UE
+     control-loop ceiling, analogous to M28's 2-gNB hardware ceiling --
+     rather than continuing to treat it as a blocker to route around.
+2. M37/M38 stay blocked either way until this resolves -- both need
    stable multi-UE live campaigns this rig has not yet produced.
