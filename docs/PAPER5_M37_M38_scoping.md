@@ -449,25 +449,87 @@ UEs = worse" framing that organized M36/M37/M38 may be conflating two
 different things: UE count, and this being the first time mmtc traffic
 was ever run concurrently with the live control loop at all.
 
-### Recommended next steps (revised after the sched_lock fix + retest)
+### mmtc isolated at 1 UE (user-directed, "keep diagnosing and fixing"): the multi-UE framing was wrong
 
-1. The sched_lock fix should be kept -- it's a real correctness
-   improvement independent of this investigation's outcome.
-2. **Test mmtc in isolation before assuming it's a UE-count effect**:
-   run 1-UE live with *only* mmtc traffic (no embb, no urllc) and the
-   probe attached. If this alone reproduces RLC failures, the entire
-   "multi-UE ceiling" framing needs revisiting -- it would mean this was
-   never about concurrency at all, and 2-UE/3-UE just happened to be the
-   first configurations that ever exercised mmtc traffic under live
-   control.
-3. If 1-UE-mmtc-only is clean, the asymmetry is genuinely multi-UE- and
-   race-adjacent after all, and the next step is checking whether other
-   E2-write paths (`apply_max_cell_prb`, `apply_ue_info`) have the same
-   kind of gap the sched_lock fix just closed for slicing control --
-   worth an audit now that one real instance has been found.
-4. Otherwise, treat this as a genuine finding (a live control-loop
-   interaction with mmtc's bursty traffic shape, independent of UE
-   count) and write it up rather than keep chasing it as a pure
-   concurrency bug.
-5. M37/M38 stay blocked until one of these resolves -- both need a
-   stable multi-slice live campaign this rig has not yet produced.
+**Test 1: mmtc alone, 1 UE, mmtc's own bursty traffic (2s on/6s off), probe
+attached (recalibrated checkpoint, fixed sched_lock binary).** Fresh
+clean bring-up (single UE using `nrUE_slice2.conf` in the default netns
+-- no netns isolation needed with only one UE process). 60s of clean
+bursty-mmtc-traffic-only baseline (0 RETX) before the probe. **The
+probe alone, at 1 UE, with zero other slices active, reproduced the
+failure just as fast as the 3-UE case**: 1697 RETX by +30s, 5118 by
++90s. This is unambiguous: **the failure was never about concurrency.**
+2-UE and 3-UE were simply the first configurations in this project's
+history to ever run mmtc traffic under the live control loop at all --
+M36's only prior successful live campaign was embb-only.
+
+**Test 2: mmtc alone, sustained (non-bursty) traffic instead of its
+native bursty pattern, no probe.** Confirms traffic shape alone,
+without the probe, is never sufficient (0 RETX after 60s) -- consistent
+with bursty-alone's earlier clean result. The live control loop is a
+necessary ingredient regardless of traffic shape.
+
+**Test 3: mmtc alone, sustained traffic, probe attached, on a properly
+fresh restart** (a first attempt at this without restarting between
+tests produced a contaminated 13,823-RETX reading carried over from the
+prior failed run -- caught and redone; noted here as a reminder that
+"swap the traffic generator" is not equivalent to "clean baseline," only
+a full process restart is). **Sustained mmtc traffic + probe also
+eventually fails** -- clean through +60s, then 155 at +90s, climbing to
+5828 by +150s. Slower onset than bursty (which failed within 30s), but
+the same eventual outcome. **Traffic burstiness affects how fast the
+failure appears, not whether it happens.**
+
+**Ruled out as an explanation**: per-slice RLC AM configuration (no
+per-slice retransmission-threshold override exists in the gNB conf --
+just a global `rlc_log_level`) and per-slice QoS/GBR treatment (every
+subscriber's `qos.index` is identically 9 regardless of slice in the
+provisioned DB, checked directly via `mongosh`). Whatever makes mmtc
+specifically fragile isn't a config-level asymmetry visible from either
+of these angles.
+
+### Where this leaves the investigation
+
+Established, with direct evidence, everything the failure is **not**:
+not CPU governor, not general host/memory contention, not CPU-core
+scheduling contention with the probe (isolated and ruled out), not the
+real sched_lock race this session found and fixed (fixed and ruled out
+as sufficient), not UE concurrency (ruled out -- fails identically at
+1 UE), not traffic burstiness alone (ruled out -- purely a rate-of-onset
+effect, not a yes/no one), not per-slice RLC or QoS provisioning (ruled
+out via direct config/DB inspection).
+
+What's established, positively: **the mmtc slice specifically, under
+live E2 ceiling-reconfiguration control, eventually degrades into RLC
+max-RETX regardless of UE count or traffic shape; embb has never once
+failed this way under the identical control loop.** The mechanism
+connecting "repeated ceiling writes" to "mmtc's RLC entity specifically
+degrading" is not yet identified -- it would need either RLC/MAC-layer
+instrumentation this session didn't have tooling for, or a source-level
+audit of whatever differs in how mmtc's specific NSSAI (`sst=1,
+sd=0x000001` per the gNB conf's slice list) is scheduled versus embb's
+(`sd=0xFFFFFF`) once ceilings converge to `{min:1,max:1}` -- which
+happens for mmtc in every observed run, consistently, regardless of
+condition.
+
+### Recommended next steps (revised again)
+
+1. The sched_lock fix stays -- real correctness improvement,
+   independent of this outcome.
+2. **This is now a well-characterized, reproducible, mechanism-narrowed
+   finding, not a vague instability.** Given how much has already been
+   ruled out with direct evidence, the responsible framing going forward
+   is: *live E2 slicing control destabilizes the mmtc slice specifically
+   on this rig, independent of UE count* -- a real, reportable result in
+   its own right, arguably more interesting than the "multi-UE ceiling"
+   framing M36-M38 started with.
+3. If further live debugging is wanted, the next genuinely new levers
+   are: (a) RLC-layer logging/instrumentation to see exactly what
+   `nr_rlc_entity_am_recv_sdu`/retransmission logic does differently for
+   mmtc's DRB when a ceiling write lands mid-transmission, or (b) test
+   whether *forcing* mmtc's ceiling to stay fixed (never re-write it,
+   even though the policy wants to) prevents the failure -- this would
+   directly confirm or rule out the ceiling-convergence-to-{1,1} pattern
+   as causal rather than incidental.
+4. M37/M38 stay blocked until this resolves, or until the finding above
+   is accepted as the answer and written up instead of chased further.
