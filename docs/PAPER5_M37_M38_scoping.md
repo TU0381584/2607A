@@ -512,6 +512,43 @@ sd=0x000001` per the gNB conf's slice list) is scheduled versus embb's
 happens for mmtc in every observed run, consistently, regardless of
 condition.
 
+### urllc-alone and embb-reconfirm tests (user pushed for a more decisive
+finding): the slice-identity theory was also wrong
+
+Tested urllc alone (1 UE, its own native sustained 300K/100B traffic,
+probe attached, same fixed binary): **failed at almost the same rate as
+mmtc** (1319 RETX by +30s, 4160 by +90s). This looked, briefly, like a
+much sharper and more publishable finding than "mmtc is fragile":
+embb's slice entry in the gNB conf uses a **wildcard** SD
+(`sst=1,sd=0xFFFFFF`), while urllc (`sd=0x000002`) and mmtc
+(`sd=0x000001`) use specific values, and `apply_slicing_ctrl()` matches
+slices by exact `(sst,sd)` equality -- a plausible mechanism for exactly
+this asymmetry.
+
+**Reconfirming embb alone on this same fixed binary, same session,
+ruled that out too.** Clean through +90s (matching the historical
+"embb never fails" pattern) -- then **also degraded**: 1536 RETX by
++120s, 2948 by +150s, 4358 by +180s. Every one of the three slices
+tested today eventually failed under the live control loop; only the
+*onset time* differed (mmtc/urllc: ~30s; embb: ~90-120s).
+
+**This is not a slice-identity effect after all.** The two live
+candidate explanations now are: (a) something in the E2 control loop
+itself destabilizes any slice given enough repeated ceiling-write
+cycles, with the specific onset time depending on that slice's own
+traffic/backlog dynamics (embb's larger, steadier backlog buffer may
+simply take longer to reach whatever threshold triggers the cascade);
+or (b) cumulative host/session degradation across a long day of
+continuous native-process bring-up/teardown cycles on this laptop
+(`uptime` showed load average 7.5-7.8 immediately after tearing down
+all RAN processes, at nearly the full 8-core ceiling, though this may
+just be 1-minute EWMA decay from the just-killed heavy processes rather
+than a real ongoing load -- not conclusively distinguished under time
+pressure). A full machine reboot (not just a process-level restart,
+which has been the recovery method all day) would help separate these
+two, but is a larger, harder-to-reverse action than anything else tried
+today and was not taken without asking first.
+
 ### Recommended next steps (revised again)
 
 1. The sched_lock fix stays -- real correctness improvement,
