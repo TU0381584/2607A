@@ -374,22 +374,100 @@ happens identically regardless of which core sent it.
 Torn down clean after this attempt too (by PID, all RAN/traffic
 processes confirmed gone, memory recovered to 4.1Gi available).
 
-### Recommended next steps (revised after attempt 3)
+### Source investigation and a real bug fix found (user-directed, option B)
 
-1. **Host-side explanations are now exhausted** (governor, memory,
-   CPU-scheduling isolation all tested and ruled out). The remaining two
-   options from the original proposal are the live ones:
-   - **(B) Read the OAI/ORANSlice source** for what `slicing_control_m`
-     application actually does on the gNB side when multiple UEs are
-     RRC-connected -- whether it touches shared MAC-scheduler state in a
-     way that could stall or corrupt an in-flight transmission on an
-     unrelated UE. The staggered, asymmetric onset in attempt 3 (mmtc
-     first and worst) is a new, potentially useful clue for whoever does
-     this -- it suggests the effect isn't uniform across slices, which a
-     shared-state race condition might well produce depending on
-     ordering.
-   - **(C) Write this up as a genuine finding** -- a live multi-UE
-     control-loop ceiling, analogous to M28's 2-gNB hardware ceiling --
-     rather than continuing to treat it as a blocker to route around.
-2. M37/M38 stay blocked either way until this resolves -- both need
-   stable multi-UE live campaigns this rig has not yet produced.
+Traced the exact code path: `apply_slicing_ctrl()` in
+`ORANSlice/oai_ran/openair2/E2_AGENT/e2_message_handlers.c` (called from
+`ran_write()`, which is what every incoming E2 control message from the
+xApp/probe ultimately dispatches through) writes directly into
+`RC.nrmac[0]->SL_info.list[*].spolicy.{min_ratio,max_ratio}` --
+**with no lock held**. The DL/UL scheduler
+(`gNB_scheduler_dlsch.c`'s `nr_slice_preprocess`/`slice_prb_estimate`,
+called every scheduling slot) reads this exact same state, and every
+function on that path either holds `mac->sched_lock` for the whole
+scheduling pass (`gNB_scheduler.c:206-310`) or explicitly asserts via
+`NR_SCHED_ENSURE_LOCKED` that it must already be held. `sched_lock` is
+declared in `nr_mac_gNB.h` immediately adjacent to the `SL_info` field
+it's clearly meant to protect, and is used pervasively everywhere else
+in the scheduler -- including `mac_rrc_dl_handler.c`, which is the
+structurally identical case (an asynchronous external writer touching
+shared MAC state) and correctly takes `NR_SCHED_LOCK`/`NR_SCHED_UNLOCK`
+around its writes. `apply_slicing_ctrl()` is the one clear exception to
+an otherwise completely consistent locking convention -- a genuine,
+unsynchronized data race between the E2_AGENT thread and the real-time
+scheduler thread, whose corruption probability scales with how much
+scheduling work happens per slot (i.e. with UE count), which fully
+explains why 1-UE tolerated it and why 2-3 UEs did not.
+
+**Fixed**: wrapped the read-modify-write section of `apply_slicing_ctrl()`
+with `NR_SCHED_LOCK(&mac->sched_lock)` / `NR_SCHED_UNLOCK(&mac->sched_lock)`,
+mirroring `mac_rrc_dl_handler.c`'s existing pattern exactly. No new
+includes needed (`e2_message_handlers.h` already pulls in `nr_mac_gNB.h`,
+where the macros live). Rebuilt `nr-softmodem` incrementally via `ninja
+nr-softmodem` -- clean build, only the one changed object file
+recompiled and relinked. `ORANSlice/` is a separate git clone of the
+upstream `wineslab/ORANSlice` fork and is gitignored by this project's
+own repo (matching the existing, pre-2026-09-01 practice of leaving
+local ORANSlice modifications -- a config file, a regenerated protobuf
+-- as uncommitted working-tree changes rather than committed there), so
+the fix lives as an uncommitted change in that clone. To make sure it
+isn't silently lost if that clone is ever reset, the diff is preserved
+here too: `docs/patches/e2_agent_slicing_ctrl_sched_lock.patch`.
+
+**Retest with the fixed binary: the RLC failure recurred anyway.**
+Fresh bring-up, same traffic profile, 60s clean pre-probe window (as
+expected -- that phase was never the failure point), probe launched.
+Within 30-90s, the **exact same asymmetric pattern from the CPU-pinned
+attempt reproduced almost identically**: mmtc (UE2) failed first and
+worst (732->1260->1794 RETX), embb (UE1) lagged roughly 30s behind
+(0->370->904), urllc (UE3) stayed completely clean throughout (0
+RETX). Stopped and torn down.
+
+**This is itself an important result, not a dead end.** The sched_lock
+fix is real, correctly identified and correctly applied per the
+codebase's own established convention -- it should stay, since it
+removes a genuine race regardless of whether it's the whole story here.
+But the *identical* mmtc-worst/urllc-clean asymmetry reproducing across
+two structurally different experiments (CPU-pinned-but-unlocked, and
+locked-but-unpinned) argues against pure race-timing luck as the
+explanation for *which* slice fails -- a true race's victim would be
+expected to vary more with timing conditions, not repeat the same
+pattern under two different interventions. This points toward something
+more structural to the **mmtc slice specifically**: its ceiling was
+`{min_ratio:1, max_ratio:1}` in this run (zero scheduling flexibility --
+though embb's was identically `{1,1}` in the same decision, so ceiling
+value alone doesn't explain the asymmetry) combined with mmtc's bursty
+traffic shape (2s on / 6s off, per `traffic_profiles.yaml`) as the more
+likely differentiator, rather than raw UE count.
+
+**A relevant fact this raises**: M36's successful 1-UE live campaign
+(10 episodes, zero collapse, `experiments/results/m36_live/ue1/`) used
+**only embb traffic** -- mmtc's bursty pattern combined with the live
+probe's control loop has never actually been validated successfully at
+*any* UE count in this project's history, single or multi. The "more
+UEs = worse" framing that organized M36/M37/M38 may be conflating two
+different things: UE count, and this being the first time mmtc traffic
+was ever run concurrently with the live control loop at all.
+
+### Recommended next steps (revised after the sched_lock fix + retest)
+
+1. The sched_lock fix should be kept -- it's a real correctness
+   improvement independent of this investigation's outcome.
+2. **Test mmtc in isolation before assuming it's a UE-count effect**:
+   run 1-UE live with *only* mmtc traffic (no embb, no urllc) and the
+   probe attached. If this alone reproduces RLC failures, the entire
+   "multi-UE ceiling" framing needs revisiting -- it would mean this was
+   never about concurrency at all, and 2-UE/3-UE just happened to be the
+   first configurations that ever exercised mmtc traffic under live
+   control.
+3. If 1-UE-mmtc-only is clean, the asymmetry is genuinely multi-UE- and
+   race-adjacent after all, and the next step is checking whether other
+   E2-write paths (`apply_max_cell_prb`, `apply_ue_info`) have the same
+   kind of gap the sched_lock fix just closed for slicing control --
+   worth an audit now that one real instance has been found.
+4. Otherwise, treat this as a genuine finding (a live control-loop
+   interaction with mmtc's bursty traffic shape, independent of UE
+   count) and write it up rather than keep chasing it as a pure
+   concurrency bug.
+5. M37/M38 stay blocked until one of these resolves -- both need a
+   stable multi-slice live campaign this rig has not yet produced.

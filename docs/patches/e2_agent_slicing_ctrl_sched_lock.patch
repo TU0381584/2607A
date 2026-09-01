@@ -1,0 +1,27 @@
+diff --git a/oai_ran/openair2/E2_AGENT/e2_message_handlers.c b/oai_ran/openair2/E2_AGENT/e2_message_handlers.c
+index 0abf654..3f6e751 100644
+--- a/oai_ran/openair2/E2_AGENT/e2_message_handlers.c
++++ b/oai_ran/openair2/E2_AGENT/e2_message_handlers.c
+@@ -199,6 +199,14 @@ void apply_slicing_ctrl(SlicingControlM* slicing_ctrl_mess)
+     min_ratio = slicing_ctrl_mess->min_ratio;
+     max_ratio = slicing_ctrl_mess->max_ratio;
+ 
++    // SL_info is also read every scheduling slot by the DL/UL scheduler
++    // (gNB_scheduler_dlsch.c's nr_slice_preprocess/slice_prb_estimate,
++    // which run under sched_lock -- see NR_SCHED_ENSURE_LOCKED there).
++    // This E2-triggered write previously took no lock at all, unlike
++    // every other asynchronous external writer into gNB_MAC_INST state
++    // (see mac_rrc_dl_handler.c), making it a genuine unsynchronized
++    // data race against the real-time scheduler thread.
++    NR_SCHED_LOCK(&mac->sched_lock);
+     SL_iterator(SL_info->list, SL) {
+       if (SL->nssai.sst == sst && SL->nssai.sd == sd) {
+         SL->spolicy.min_ratio = min_ratio;
+@@ -207,6 +215,7 @@ void apply_slicing_ctrl(SlicingControlM* slicing_ctrl_mess)
+       }
+       sum_min_ratio += SL->spolicy.min_ratio;
+     }
++    NR_SCHED_UNLOCK(&mac->sched_lock);
+     if (sum_min_ratio > 100)
+         AssertFatal(1 == 0, "Sum of min ratios in the prb policy exceeding 100 \n");
+ }
