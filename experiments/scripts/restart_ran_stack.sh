@@ -15,7 +15,7 @@ set -uo pipefail
 ORANSLICE_HOME="$HOME/oranslice_rig"
 BUILD_DIR="$ORANSLICE_HOME/ORANSlice/oai_ran/cmake_targets/ran_build/build"
 CONF_DIR="$ORANSLICE_HOME/ORANSlice/oai_ran/targets/PROJECTS/GENERIC-NR-5GC/CONF"
-LOG_DIR="$ORANSLICE_HOME/logs"
+LOG_DIR="$ORANSLICE_HOME/experiments/logs"
 TS=$(date +%Y%m%d_%H%M%S)
 
 echo "[restart] stopping all RAN processes and tmux sessions"

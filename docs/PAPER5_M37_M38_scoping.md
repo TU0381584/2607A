@@ -1,12 +1,25 @@
-# M37/M38 scoping (both fully blocked on live rig -- no live work done here)
+# M37/M38 scoping (blocked on a newly-characterized, deeper rig instability)
 
-Written 2026-09-01 as offline prep only, per explicit user instruction to
-hold all new live-hardware risk (the M36 2-UE RLC max-RETX instability,
-twice recurring, `docs/PAPER5_M36_congestion_characterization.md`) until
-they can be present. Nothing below touches the rig. This is the same
-"make the concrete design decisions the spec never made, grounded in
-what the code and checkpoints support" approach already used for M4's
-own plan.
+Written 2026-09-01, originally as offline prep only, per explicit user
+instruction to hold all new live-hardware risk (the M36 2-UE RLC
+max-RETX instability, twice recurring,
+`docs/PAPER5_M36_congestion_characterization.md`) until they could be
+present. The offline scoping below (checkpoint identities, gap analysis,
+gate-check tooling) was written first with the rig untouched.
+
+**Update, same day, user present and directing the live attempt:** user
+authorized a live 3-UE pilot for the recalibrated checkpoint (M38's
+missing recal@3UE cell), explicitly instructing "reuse the 3UE/6UE"
+existing data (already cross-validated against the manuscript's own
+numbers, see below) rather than rerun it, and "investigate deep,
+diagnose and rectify whatever you can" once the pilot failed. Full
+account of that investigation is in its own section near the bottom of
+this doc. Headline result: **the failure is not simple CPU/RAM
+contention or "tired rig" -- it tracks the live probe's own control
+activity, not traffic level, and two host-level fixes (CPU governor,
+swappiness) that would have helped a pure-contention story did not
+change the outcome.** M37/M38 remain blocked, now on a better-understood
+but unresolved problem.
 
 ## Exact reviewer spec (recovered verbatim from the pre-compaction
 transcript -- the milestone-status memory only carried a lossy one-line
@@ -177,3 +190,169 @@ recommended sequence: 2, 3 UE with health checks, then decide on 4/5/6)
    to test it against until step 4 completes.
 6. Write `docs/PAPER5_M38_live_correctness.md` with the full CI table
    once all cells exist, mirroring every prior milestone doc's structure.
+
+## Live 3-UE pilot attempts, 2026-09-01: two failures, deep investigation, root cause narrowed but not fixed
+
+User authorized a live pilot with the recalibrated (M34) checkpoint at 3
+UEs, present and directing the attempt, explicitly asking to reuse the
+existing 3UE/6UE data rather than rerun it. That existing data was
+re-validated first: `m37_generalization_gate.py` reproduces the
+manuscript's own published reward means/CIs for all three existing
+conditions exactly (see table above), so "reuse, don't rerun" stands --
+nothing about that data is in question.
+
+### Attempt 1: clean bring-up, failure during the probe
+
+Docker core (17 containers) up clean, subscriber DB intact (9 IMSIs
+survived). gNB + UE1 + UE2 + UE3 all attached cleanly via
+`restart_ran_stack.sh` (after fixing a real bug in it, see below) plus
+manual continuation. All 3 UEs reachable, 60s of real combined traffic
+(embb 4M/1200B sustained, urllc 300K/100B sustained, mmtc 50K/80B
+bursty, exactly `traffic_profiles.yaml`'s spec) with zero packet loss
+and zero RLC errors before the probe was launched -- this is already
+further than either 2-UE attempt in M36 got.
+
+Shortly after the pilot probe (recalibrated seed900 checkpoint, 6
+episodes) started making live decisions, **all three UEs** hit `[RLC]
+max RETX reached on DRB 1` simultaneously and went to 100% packet loss
+-- worse than M36's 2-UE failures, where only one UE failed at a time.
+The probe process died silently around episode 1/step 29 of 60 (no
+Python traceback, no OOM-killer signature in dmesg). The last few
+logged decisions showed `per_slice_sla_margin` around -10^5 to -10^6 --
+the exact catastrophic-backlog-explosion artifact the manuscript's own
+recalibration section already documents ("$\approx$-1,002,377.5") as
+what happens once a real backlog-failure regime is entered. That data
+was discarded, not kept, same reasoning as M36's 2-UE discard.
+
+**Found and fixed a real, unrelated bug while diagnosing this**:
+`restart_ran_stack.sh` sets `LOG_DIR="$ORANSLICE_HOME/logs"`, a
+directory that doesn't exist (every other script in this project uses
+`experiments/logs`). The gNB was actually healthy and heartbeating the
+whole time (confirmed via `tmux capture-pane`); the script's own health
+check just couldn't find the log file it had written, reported a false
+FATAL, and aborted before launching any UEs. Fixed in the script
+(commit pending); the actual bring-up was continued by hand using the
+corrected path.
+
+### Investigation: CPU governor and memory, both real findings, neither the cause
+
+1. **`ulimit -r` / RTPRIO check**: initially looked like the RAN
+   processes weren't getting real-time scheduling at all (checked the
+   wrong PIDs -- the sudo wrapper and main control thread, both
+   legitimately SCHED_OTHER). Checking the actual worker threads
+   (`Tpool0-7`, `UEthread_0`) showed **RTPRIO=97 correctly granted** --
+   real-time scheduling is working as OAI intends. Not the cause.
+2. **CPU governor was `powersave`**, cores running ~2.7GHz against a
+   4.2GHz max (64%) even under moderate load -- not thermal throttling
+   (dmesg clean, temps 69-71C, well under this CPU's throttle point).
+   Switched all 8 logical CPUs to `performance` (safe, reversible,
+   standard tuning; left in place afterward -- revert manually if
+   battery life matters more for daily use).
+3. **Memory was genuinely tight**: the gNB process alone uses ~2.17GB
+   RSS and runs at a sustained ~159% CPU even at idle (real PHY-layer
+   rfsim compute cost, not obviously a leak, but worth someone
+   double-checking against an earlier session's gNB footprint if this
+   recurs). This laptop was also running a full desktop session (Chrome,
+   Firefox, VS Code, gnome-shell) concurrently with the entire live 5G
+   stack -- genuine resource competition on a 7.4GB/8-core machine.
+   Lowered `vm.swappiness` 60->10 to reduce unnecessary swap activity.
+   Did **not** close the user's other applications -- out of scope to
+   touch without asking.
+4. **This is an i5-1135G7, 4 physical cores + HT = 8 logical**, 106-PRB
+   band78 rfsim gNB + 3 native UE processes is genuinely demanding for
+   this hardware class.
+
+### Attempt 2: full clean restart with both fixes applied -- failed again, faster
+
+Full teardown (by exact PID, not `pkill -f` pattern -- see footgun note
+below), fresh relaunch of gNB+UE1+UE2+UE3, governor confirmed
+`performance` throughout. **100+ seconds of combined 3-UE traffic ran
+completely clean** (0 RLC errors, 0% packet loss) before the probe was
+launched -- a materially longer clean window than attempt 1 had. The
+same pilot probe was launched again. RLC max-RETX began within the
+first ~30s of the probe running and reached into the thousands per UE
+within 90s -- **faster than attempt 1**, despite the governor/swappiness
+fixes and a longer proven-clean pre-probe window.
+
+**This is the key diagnostic result**: the failure's onset tracks the
+*probe starting*, not cumulative traffic duration, not CPU governor,
+not "rig fatigue" from a long prior session (this was a fresh restart).
+The exact same traffic, on the exact same freshly-restarted stack, ran
+fine for 100+s with no probe attached. The moment the probe began
+issuing live ceiling-reconfiguration decisions (~1/s cadence, PRB
+min/max_ratio via `slicing_control_m`, one shared decision affecting
+all 3 slices' currently-active bearers simultaneously), failures began
+almost immediately.
+
+Direct evidence at the point of first failure: UE1's log shows a single
+anomalous `RSRP = -93 dBm` reading (every other reading throughout the
+whole session, before and after, reads -42dBm) immediately preceding
+the first `max RETX` line -- consistent with a transient PHY-layer
+timing/sample discontinuity in the rfsim channel simulation at that
+exact instant, not a gradual signal degradation.
+
+**Working hypothesis, not confirmed**: with only 1 UE (M36's own
+successful 10-episode campaign, same probe, same ~1/s decision cadence),
+a ceiling-reconfiguration event only ever touches one active bearer.
+With 3 UEs, the identical event touches three simultaneously-active
+bearers at once. If applying `slicing_control_m` on the gNB side
+introduces even a brief processing hiccup, one UE's momentary miss might
+be recoverable; three at once, sharing the same finite radio-frame
+timing budget, may not be. This points at the gNB-side handling of
+concurrent ceiling application under live traffic, not at probe-side
+CPU scheduling -- which is why CPU-pinning the probe process was
+considered and **not attempted**: the mechanism increasingly looks like
+it lives on the gNB/OAI-source side, and pinning the probe alone
+wouldn't test that.
+
+**Not attempted, and why**: modifying the decision cadence (would need a
+sleep/pacing knob) doesn't exist in `m33_live_state_probe.py` or the
+live config, and the cadence is likely emergent from
+`qoe_oran_framework/`'s own live-stepping logic -- frozen, not to be
+touched (see [[feedback-never-invent-honest-reporting]]'s constraint 1).
+CPU-affinity isolation of all 4 native RAN processes was considered but
+not attempted given the mechanism now looks gNB-side rather than
+host-scheduling-side, and reconfiguring affinity on an already-live
+multi-process stack carries real risk of a *new*, harder-to-diagnose
+failure mode for uncertain benefit.
+
+**A process-management footgun worth recording**: `pkill -f "<pattern>"`
+and `pgrep -f "<pattern>"` match against the full command line of every
+process -- including the shell wrapper currently running the very
+`pkill`/`pgrep` invocation, if that wrapper's own argv happens to
+contain the same substring (it does, here, since the pattern text is
+literally an argument on that line). This silently SIGKILLs the
+invoking shell mid-script with no further output. Killing by exact PID
+avoids it entirely; this bit twice in one session before being
+diagnosed.
+
+### State after attempt 2: fully torn down
+
+Native RAN processes and traffic generators killed (by PID, not
+pattern). Docker core (17 containers) and `iperf3-target` left running
+-- never implicated in either failure, no reason to cycle them. Memory
+recovered to 4.4Gi available. CPU governor left at `performance`
+(user's call to revert for battery life). `ue2ns`/`ue3ns` namespaces
+left in place per established convention.
+
+### Recommended next steps
+
+1. This is now a **twice-confirmed-in-one-session, mechanism-narrowed**
+   finding, not a vague instability -- it may be worth writing up as a
+   real result (multi-UE live control-loop ceiling, analogous to M28's
+   2-gNB hardware ceiling) rather than continuing to treat it as a
+   blocker to route around.
+2. If further live debugging is wanted, the next genuinely new lever is
+   CPU-affinity isolation of the 4 native processes (gNB, UE1, UE2, UE3)
+   across the 4 physical cores, explicitly reserving none of them for
+   the probe -- testing whether reducing host-scheduling noise around
+   the control-write moment helps at all, which would argue for a
+   host-side rather than gNB-source-side cause after all. This has not
+   been tried.
+3. Alternatively, someone with OAI/ORANSlice source familiarity could
+   look at what `slicing_control_m` application actually does on the
+   gNB side when multiple UEs are RRC-connected -- whether it touches
+   shared MAC-scheduler state in a way that could stall or corrupt an
+   in-flight transmission on an unrelated UE.
+4. M37/M38 stay blocked either way until this resolves -- both need
+   stable multi-UE live campaigns this rig has not yet produced.
