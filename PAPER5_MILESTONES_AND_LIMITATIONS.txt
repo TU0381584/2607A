@@ -1,0 +1,532 @@
+PAPER #4 (CACS26) / PAPER #5 (WPC) — FULL MILESTONE HISTORY, LIMITATIONS, AND MAJOR PROBLEMS
+Compiled 2026-09-03 for external review. Every entry below is drawn directly from a
+committed project doc or this session's own live-rig work — nothing here is invented
+or estimated. Where a finding was later corrected or retracted, both the original and
+the corrected state are given, since this project's own standing practice is to mark
+things "superseded, not erased" rather than silently fix history.
+
+================================================================================
+PROJECT OVERVIEW
+================================================================================
+
+This is a real, physical O-RAN/OpenAirInterface (OAI) live testbed research program,
+not a pure-simulation study. One physical laptop runs the entire stack: a real Open5GS
+5G core (Docker), a real native OAI gNB and up to six native OAI UE processes (all
+software-simulated radio via "rfsim" — no physical RF hardware, but a genuine running
+E2 control loop, RRC/MAC/RLC stack, and UDP wire protocol, not a discrete-event
+simulator). The research question, broadly: can reinforcement-learning-based network
+slice admission control (single-agent, then multi-agent with graph attention,
+federated, and disruption-tested) be trained offline and deployed live against real
+hardware, and does its offline-reported behavior actually transfer.
+
+Paper lineage:
+  Paper #1 (MECON)   — DRL admission control (DQN/A2C/Rainbow), single-gNB, 2 slices.
+  Paper #2 (ICRAIE)  — extends #1 with a 3rd slice (mMTC) + multi-gNB load-balancing.
+  Paper #3           — IEEE Access survey naming the target: QoE-aware, GNN-MARL-FL
+                        O-RAN slicing framework. Proposed, not built at the time.
+  Paper #4 (CACS26)  — live single-agent validation of a QoE-aware reward variant on
+                        this exact rig. SUBMITTED 2026-08-31.
+  Paper #5 (WPC)     — the "fully-fledged GAT-MARL-FL framework" Paper #3 named as
+                        proposed-but-unvalidated: GAT-CTDE architecture, federated
+                        training + differential privacy, disruption resilience,
+                        cluster-size scaling, and a live single-gNB anchor. ACTIVE,
+                        this is the paper currently being worked on.
+  Paper #5 (IEEE Access variant) — a parallel, currently PAUSED manuscript track,
+                        standing instruction not to touch it until told otherwise.
+
+The project's own stated throughline, from the WPC abstract: results were made
+"trustworthy, not just favourable" by two safeguards the paper itself contributes —
+a correctness-aware metric pair that caught a real training collapse a standard
+compliance metric scored no worse than correct behavior, and a reproduction-vs-
+replication discipline that caught and retracted one architectural overclaim before
+publication. This discipline (verify, don't assume; retract rather than hide; never
+invent a number) is the connective thread across essentially every milestone below.
+
+================================================================================
+PART 1 — PAPER #4 / PRE-PAPER#5 ERA: STAGE 0 THROUGH STAGE 15
+================================================================================
+(This is the rig bring-up and Paper #4 manuscript-hardening sequence. Paper #5's
+M-numbered milestones, Part 2 below, build on the infrastructure this part
+establishes.)
+
+BRINGUP: fresh-rig bring-up (2026-07-14, resumed 2026-08-19)
+  Migrated off an old, physically different rig running a segfaulting OAI v2.1.0
+  (Feb 2024) checkout (100% reproducible single-UE-attach segfault, root-caused via
+  dmesg+addr2line to nr_dci_size/get_ul_tdalist reading incomplete UE bandwidth-part
+  config — NULL-guard fixes between v2.1.0 and the new target base were judged likely
+  but not provably the fix; the new build's own 30+ minute soak test was the actual
+  gate). Verified vanilla upstream OAI has NO usable RIC-free E2 agent (only FlexRIC
+  E2AP/SCTP requiring a real near-RT RIC) — the ORANSlice fork (wineslab), rebased
+  onto OAI 2024.w28, is the only source of the RIC-free UDP E2 agent and the
+  slicing_control_m control primitive this whole project depends on.
+  PROBLEMS ENCOUNTERED AND FIXED:
+    - build_oai's own "BUILD SHOULD BE SUCCESSFUL" message was unreliable (a
+      sudo-owned log directory silently broke its own success check) — caught only
+      because the target binaries were verified to actually exist.
+    - Several OAI dlopen-loaded runtime plugins (params_libconfig, coding,
+      rfsimulator, nr-cuup) were missed by an incomplete recovery build — only
+      surfaced at gNB launch time.
+    - Stale placeholder IPs/interface names in the shipped gNB config.
+    - This rig's docker_open5gs + ORANSlice checkout ships only 2 real S-NSSAIs
+      (eMBB, mMTC) by default, not 3 — a real 3rd slice (URLLC) required creating new
+      SMF3/UPF3 services and, critically, updating the NSSF's OWN independently
+      gatekept slice list (found only by testing: AMF returned HTTP 403 then 400
+      until NSSF was updated too).
+    - A real sd-routing bug: embb's slice config used sd=0, but this checkout's
+      actual "no SD configured" wire sentinel is 0xFFFFFF — every "embb" ceiling
+      control command would have silently no-op'd against a nonexistent slice.
+    - Native multi-UE TUN interface name collision (hardcoded oaitun_ue1 per
+      process) — fixed via Linux network namespaces + veth pairs, the pattern used
+      throughout the rest of the project for every multi-UE live test.
+    - RAM shortfall (7.4GiB, below the project's own 8GB floor) — flagged, user
+      approved proceeding single-UE-scale-out-limited.
+    - A false-positive segfault-soak result from an unprivileged dmesg watcher
+      silently failing after ~39 seconds instead of running the intended 30 minutes.
+  RESULT: core + gNB + 3 UEs live with real per-slice traffic, contention gate
+  passing. No closed-loop (trained-policy-driven) live evaluation existed yet at the
+  end of this stage — explicitly flagged as a distinctly larger, riskier task still
+  to come.
+
+STAGE 0 (AUDIT) — Read-only audit of the Paper #4 draft for claim-to-artifact
+  traceability before any editing. Found two real citation/prose errors (wrong
+  equation number cited for the QoE reward; the implemented Weber-Fechner MOS formula
+  mislabeled as "IQX", a different family) plus a spurious word in a bibliography
+  title. One claim (an acronym collision) could not be confirmed and was left flagged
+  rather than guessed.
+
+STAGE 1 (DIFFS) — Applied Stage 0's fixes as text/LaTeX-only edits. Clean compile
+  verified (6 pages, 15 citations, 0 errors).
+
+STAGE 2 (METRICS) — Computed priority-weighted SLA utility and severity statistics.
+  MAJOR NEGATIVE FINDING: under the congested scenario, the naive baseline actually
+  WINS on priority-weighted utility (27.2% vs 21.0%/19.0% for the DQN arms), because
+  eMBB's declared priority weight outweighs the gains DQN buys on URLLC. Under an
+  alternative weighting, DQN is at best a statistical tie. The live campaign's
+  Fisher-exact test did not clear p<0.05 (p=0.0996) at this sample size. Explicitly
+  recorded: "neither weighting scheme supports the DQN-wins framing" as then measured.
+
+STAGE 3 (ORACLE) — Tested DQN against a trivial "always park ceiling at cap" oracle.
+  Initial 3-seed result was underpowered (p=0.0996); a 2-seed reverification combined
+  with it reached significance (p=0.0149). NOTE: this specific result was LATER
+  SUPERSEDED (see Stage 10) and did not hold at larger sample sizes — an early example
+  of this project's recurring "small-sample finding overturned by a bigger one"
+  pattern.
+
+STAGE 4 (INSTRUMENTATION) — Measured real engineering numbers directly (not
+  estimated): E2 round-trip latency median 0.566ms; DQN inference median 67.9-68.3us;
+  model footprint 18,562 parameters (~300KB); control loop hits its configured 5.0s
+  cadence within 0.7ms. Explicitly flagged one measurement limitation: this OAI E2
+  agent's control-send path is fire-and-forget (no ack), so the reported "latency" for
+  that direction is send-overhead only, not a true round trip.
+
+STAGE 5 (RECALIBRATION) — Root-caused and fixed three real calibration bugs by direct
+  code inspection: (1) eMBB's MOS calibration used the wrong throughput scale; (2)
+  URLLC/mMTC used generic default SLA deadlines instead of the campaign's real ones;
+  (3) the offline training environment's demand scale was ~4x smaller than real
+  measured live demand. A 1-hour live trial's dqn_sla result (0% URLLC compliance) was
+  corrected by a larger 3-hour trial to 100% — documented explicitly as an example of
+  a misleading single-seed draw, not smoothed over. The full 3-seed x 5-episode
+  validation was explicitly deferred by the user at the time ("we'll do the 6-hour one
+  later") — later executed in Stage 10.
+
+STAGE 6 (SCARCITY) — Assessed whether real (not synthetic) multi-slice demand
+  scarcity could be created live. Judged infeasible given available UE configs and
+  the rig's already-tight memory headroom (1.4GiB free / 3.0GiB available of 7.4GiB
+  total, even at only 3 UEs). Live demand-driven scarcity was never attempted; the
+  offline synthetic mechanism stays as-is, honestly labeled as simulated.
+
+STAGE 9 (HYGIENE) — Final pre-submission sweep. Found and fixed a real bug: a figure
+  script's own usage example pointed at a nonexistent directory and a stale seed.
+  Two reference-verification notes deliberately left open (an O-RAN spec version
+  needing member-portal access, a DOI needing the citing paper's own publication) —
+  explicitly not guessed at, per the "never invent a citation" rule.
+
+STAGE 10 (FULLPOWER REEVAL) — Executed the two items deferred at Stage 5/6: a
+  fully-powered live re-evaluation (top-up to n=21, then an overnight run to n=46) and
+  a live congested-scenario pilot. MAJOR FINDING, REVISED HONESTLY: DQN-SLA's earlier
+  collapse-avoidance edge over the trivial oracle (Stage 3's p=0.0149) DID NOT
+  REPLICATE at n=21 or n=46 (p=1.0 both times) — reported as a genuine revision, not
+  reconciled away. DQN-QoE remained the strongest performer throughout (46/46 fully
+  compliant at n=46). Also found and fixed a real relative-path bug in offline
+  reverification scripts that silently caused FileNotFoundError while still printing
+  "COMPLETE".
+
+STAGE 11 (CHECKPOINT SENSITIVITY) — Live-evaluated all 6 trained dqn_sla checkpoints
+  (not just the one used in the headline table). MAJOR FINDING: huge live-robustness
+  spread across checkpoints with statistically indistinguishable offline training
+  convergence — one checkpoint (257) collapsed catastrophically live (13/21,
+  significantly WORSE than the trivial baseline, p=0.0009), others hit 90-100%.
+  Conclusion stated explicitly: offline training convergence is not a reliable
+  predictor of live robustness for this policy/reward. A real data-corruption bug was
+  also caught mid-stage (naive retry logic duplicated log rows) and fixed with a full
+  re-run.
+
+STAGE 12 (OFFLINE/ONLINE GAP) — Root-cause investigation of why offline evaluation
+  doesn't predict live performance. MAJOR FINDING: offline held-out compliance
+  (9-20%) showed ZERO correlation with live compliance (62-100%) for the same
+  checkpoints — the worst offline performers were among the best live. Root cause:
+  offline per-step dynamics are far harsher than live (offline margins ~-0.6, live
+  ~+0.9) even after Stage 5 matched the MEAN of offered demand — the TEMPORAL
+  STRUCTURE (burstiness/autocorrelation) was never matched. Explicit conclusion: no
+  amount of additional offline simulation can pre-select or validate a checkpoint
+  before spending live-rig time, until KPM-source temporal dynamics (not just mean)
+  are validated against real traffic.
+
+STAGE 13 (RECALIBRATION ATTEMPT) — Attempted to fix the Stage 12 gap by correcting
+  backlog_capacity (found miscalibrated). NEGATIVE RESULT: no meaningful improvement
+  (Spearman rho 0.10->0.23, both statistically indistinguishable from zero at n=6);
+  the previously-best-live checkpoint became the WORST offline performer under the
+  "fixed" environment. Explicit conclusion: the offline/live gap is not explained by,
+  or fixable via, backlog_capacity alone — an open research question. Also surfaced
+  (without chasing further at the time) a real RLC-max-RETX-style failure signature
+  present in 3.5-8.5% of live SLA-margin readings.
+
+STAGE 14 (END-TO-END AUDIT) — Full independent re-derivation of every reported number
+  in the manuscript, per explicit user request to check for fake/mocked data. RESULT:
+  every number re-verified matched exactly; no fabrication found anywhere. One
+  imprecision caught: an "under 70us" inference-latency claim was actually the
+  median, not a hard bound (mean 75.4us, p90 89.3us) — a wording fix, not a
+  correctness issue.
+
+STAGE 15 (N128 CAMPAIGN) — Extended the live campaign to n=128/arm on direct user
+  request. DQN-QoE reached 128/128 fully compliant, now significant vs. baseline
+  (p=0.0070, previously p=0.12 at n=46 — resolving an earlier "needs a larger sample"
+  caveat). DQN-SLA vs. the trivial oracle remained a statistical tie even at 3x the
+  sample (p=1.0). PROBLEM: actual wall-clock time was 64.0 hours (2 days 16h), almost
+  double the ~32.8h estimate, almost entirely because of a health-check script bug
+  (an unbounded dmesg window falsely flagged the rig unhealthy for hours after an
+  already-resolved crash) — found and fixed mid-campaign.
+
+================================================================================
+PART 2 — PAPER #5 (WPC) ERA: M1 THROUGH M38
+================================================================================
+
+M1 (RECALIBRATION) — Attempted to close the offline/live rank-correlation gap (from
+  Stage 12/13, now on Paper #5's own architecture question) via a 162-config grid
+  search over backlog_capacity/drift/volatility/autocorrelation, then a 10-fresh-seed
+  held-out evaluation. NEGATIVE RESULT: the loss surface is flat and the live target
+  is unreachable within this parameter family (Spearman rho stayed near zero,
+  p=0.855). Explicit conclusion carried forward into every later milestone: "the
+  offline environment should be used as a live-anchored stress environment, not as a
+  live-rank predictor; any new arm should be evaluated live before any relative-
+  quality claim is made."
+
+M2 (GAT-CTDE) — Built the paper's central architecture (shared Graph-Attention
+  encoder, decentralized per-slice Q-heads, centralized-training/decentralized-
+  execution) and two ablations (independent-DQN, single-agent-DQN baseline). MAJOR,
+  MULTIPLY-CORRECTED FINDING (three successive corrections of the same headline
+  claim):
+    1. Initial 30-seed campaign reported GAT-CTDE decisively beating the single-agent
+       baseline (p<0.0001).
+    2. While building M3, discovered the entire campaign rested on a training
+       collapse: the GAT encoder had no normalization, so all 30/30 seeds converged
+       to a degenerate "always accept" policy that happened to score well on the
+       (flawed) compliance metric alone.
+    3. Fixed via LayerNorm (collapse reduced to 27/30) then per-slice Q-heads
+       (reduced further to 8/30, with 22/30 correctly differentiating).
+    4. A THIRD bug found: the eval logger's append-mode had silently stacked three
+       retraining runs' logs together, contaminating every number again.
+  FINAL, standing numbers: GAT-CTDE beats independent-DQN decisively (p<0.0001, held
+  throughout every correction) but its edge over the single-agent baseline does NOT
+  clear significance (p=0.0577, having originally been reported as p=0.0001) — this
+  is now the paper's own honestly-reported central limit, not hidden.
+
+M3 (FEDERATED + DP) — Federated (FedAvg) training of GAT-CTDE plus a differential-
+  privacy noise sweep. Inherited and required the same two-bug fix cycle as M2 (same
+  shared GATEncoder/Q-head code), so the full sweep was re-run three times. FINAL
+  RESULT: federating the architecture costs nothing measurable in reward (p=0.8125,
+  previously reported as a "small, borderline-significant" cost at p=0.055 before
+  correction); block_precision (not raw compliance) is the trustworthy privacy-
+  utility metric, staying perfect through sigma=1.0 and degrading sharply past it
+  (0.834 at sigma=2.0, 0.584 at sigma=4.0). No DP-accounting library was available
+  (opacus not installed) — used one conservative closed-form bound rather than invent
+  one.
+  M3 FOLLOW-UP (privacy threshold location): found per-seed block counts are NOT
+  monotonic in sigma — individual seeds collapse and recover unpredictably. Conclusion:
+  a "threshold location" from any single seed sample is an order statistic, not a
+  fixed population parameter.
+
+M4 (DISRUPTION) — Evaluated frozen M2/M3 checkpoints under mid-episode disruption
+  (gNB dropout, demand spikes, agent churn) without retraining. Dropout and churn show
+  a genuine accelerating, threshold-like cost with severity across every arm. Demand
+  spike shows no threshold on the correct metric (block_precision) — an apparent
+  "spike helps reward" signal was traced to a pure mechanical artifact of the reward
+  formula. MAJOR RETRACTION: the original claim that independent-DQN is
+  "architecturally immune" to agent churn (p=0.06-0.11, not significant) DID NOT
+  SURVIVE an independent-seed replication (highly significant in the fresh sample,
+  p=0.002) — explicitly retracted, not deleted from the record.
+
+M6 (TOPOLOGY SCALING) — Does GAT-CTDE's edge grow with cluster size (N=3,7,19) and
+  topology sparsity? MAJOR FINDING, CONFOUNDED THEN CORRECTED: the pilot's initial
+  "edge grows with N" reading was reversed on correction — raw reward scales
+  mechanically with N (more gNBs = more accept volume); once normalized per-gNB, the
+  effect is flat or shrinks. What DID hold up, after iteratively narrowing across five
+  successive seed-batch extensions (12->64 total seeds, converging 31%->78%->46%-
+  >36.7%->37.5%->36.2%->35.4%): single-agent DQN suffers TOTAL collapse at N=19
+  (eventually 15/15 across two independent samples, zero exceptions), while GAT-CTDE's
+  own collapse rate converges to ~35.4% [25.5%, 45.8%] CI — a real, hard-won, well-
+  supported finding. Multiple real bugs found and fixed along the way: an N=19
+  arrival-cap silently truncating the intended stress level (fixed; the underlying
+  signal survived and got stronger), a metric-aggregation bug hiding per-seed
+  collapse, and two separate concurrent-process data-corruption incidents from
+  orphaned processes racing legitimate runs.
+
+M7 (HETEROGENEITY) — Does FedProx's proximal term help under genuine per-gNB load
+  heterogeneity? NEGATIVE RESULT, CONFIRMED MECHANISTICALLY: zero measurable
+  heterogeneity dividend at any tested mu (0.01-1.0) or round length — real per-round
+  client drift is too small (0.03% of TD loss at 50 local steps, still only 1.44% at
+  500) to ever flip a single eval-time decision. Explicitly treated as a genuine,
+  well-supported finding, not a failure to find something.
+
+M8 (LIVE SINGLE-GNB ANCHOR) — Bounded live sanity check (NOT a ranking claim, per
+  M1's own limit): does single_agent_dqn's offline differentiated-shedding behavior
+  transfer to the real testbed at all. Two independent live runs. WHAT REPLICATES:
+  block precision 1.000 in both runs (only mmTC ever blocked, zero urllc/embb
+  blocks) — the strongest direct evidence in the project that the differentiated-
+  shedding finding is not an offline-simulator artifact. WHAT ALSO REPLICATES, AND
+  IS A REAL LIMITATION: by the end of each run, dl_mac_buffer_occupation reached
+  100% on ALL THREE slices regardless of starting condition, with several SLA-margin
+  values matching to the DECIMAL across two independent runs (e.g. embb:
+  -1,002,377.5 in both) — a genuine, replicated property of sustained real traffic on
+  this rig, not contamination (initially suspected as such, then ruled out because a
+  verified-clean-baseline second run reached the identical saturated state).
+  Conclusion: the offline-trained decision LOGIC transfers live; the offline
+  environment's backlog/margin DYNAMICS do not, and this rig's live traffic
+  saturates them almost immediately independent of policy quality — a limitation of
+  the measurement, not evidence against the policy.
+
+M27 (SCALING REFRAME) — Reran M6's full N=7/19 topology sweep against a corrected,
+  realistically-calibrated offline simulator (RealisticServedKpmSource, built for
+  M34 — see below) instead of the original ClosedLoopKpmSource (found fundamentally
+  miscalibrated: capped near 0.03-0.09 congestion by construction vs. 0.23-0.69 real
+  measured live congestion). RESULT: at N=19, both headline findings (single-agent
+  DQN's near-total collapse, GAT-CTDE's ~35% collapse) held up essentially unchanged
+  — the recalibration validates rather than retracts M6. At N=7, a genuinely NEW
+  finding emerged from the larger, recalibrated sample: single-agent DQN collapses in
+  50% of cells, directly contradicting M6's original 3-seed pilot's "holds 1.000 at
+  N=7" — explicitly reported as an open, honest attribution question (recalibration
+  vs. original pilot simply being too small to see a ~50% rate) rather than resolved
+  one way. Independent DQN's own "never fully collapses" claim also softened from
+  0/36 to "rarely, not never" (3/36 recalibrated cells fully collapsed).
+
+M28 (LIVE 2-GNB DEMO) — MAJOR ATTEMPTED-AND-ABORTED MILESTONE, HONEST NEGATIVE
+  RESULT. All prep completed safely offline first (N=2 training config, validated
+  non-collapsed checkpoint candidates, new orchestration script, a real E2-port
+  conflict between two gNB instances found and fixed at compile time only) — the
+  live run itself was deliberately held for the user to be present, given this rig's
+  documented history of live-instability risk. With the user present: achieved a
+  genuine FIRST — two complete, independent live radio links running simultaneously
+  (gNB2 registered, its own UE attached with a distinct RNTI, both UEs at 0% packet
+  loss with real traffic). IT DID NOT HOLD under sustained load: the user reported
+  real, severe slowdown; investigation found genuine iowait/swap spikes. Attempted a
+  CPU cgroup fix — CPUQuota (CFS bandwidth control) had NO EFFECT because ~21 of the
+  gNB's own threads run under real-time SCHED_RR scheduling, which cgroup v2's
+  cpu.max does not govern at all. Switching to cpuset (hard core restriction) DID
+  measurably reduce CPU usage but made the actual failure WORSE, not better — both
+  UEs eventually developed 100% packet loss with their processes still alive (a real
+  link failure, not just reduced throughput). Aborted and torn down cleanly. ROOT-
+  CAUSE FOLLOW-UP (source-level, no live hardware): confirmed via direct OAI source
+  reading that this is NOT a hardcoded-core-collision bug (the relevant pinning code
+  path is provably dead) — it is that this CPU is 4 physical cores (not 8 independent
+  units), and TWO complete, independent, maximum-real-time-priority RF stacks
+  simultaneously is a genuinely demanding configuration for that hardware, independent
+  of any scheduling/cgroup arrangement — explicitly reported as a real, reportable
+  hardware-capacity finding, analogous in spirit to what M36/M38 (see below) would
+  later find for a different, single-gNB-but-multi-slice failure mode. M28's live
+  demo remains not achieved as designed; this is recorded as a genuine limitation of
+  the rig, not a bug still to be fixed.
+
+M35 (METRIC-DISAGREEMENT LEDGER) — Re-analysis only, no rig. Recomputed every already-
+  reported paired comparison across M2/M3/M4/M6 under three metrics from the same
+  saved logs: sla_compliance_all_slices, the correctness-aware reward metric, and
+  block_precision. MAJOR FINDING: compliance disagreed with the correctness-aware
+  pair in 44 of 49 comparisons (89.8%) — 29 as a strong "significance flip" (one
+  metric significant, the other not), 15 as a weaker "direction-only" split at small
+  n. Independently replicated on a disjoint seed batch (21/24, 87.5%, vs. the primary
+  sample's 23/25, 92.0%) — the same qualitative finding on two different seed draws.
+
+M36 (SIM-TO-REAL CONGESTION CHARACTERIZATION) — Offline half: fully completed,
+  confirmed the offline simulator's congestion_level is structurally capped at p50=
+  0.080 regardless of demand lever. Live half: 1-UE congestion probe completed
+  successfully (10 episodes, real embb traffic, zero collapse). 2-UE ATTEMPT FAILED
+  TWICE with a real, already-documented RLC max-RETX signature (matching a prior
+  incident already in this project's own code comments: "UE1/embb hit an RLC max-
+  RETX failure 3 times within ~1 hour of cumulative uptime") — stopped deliberately
+  after the second recurrence rather than risk a third unsupervised cycle. This
+  became the starting point for the much deeper M38 investigation below.
+
+M37 / M38 (RECALIBRATED-SIM GENERALIZATION / LIVE CORRECTNESS CAMPAIGN) — Originally
+  scoped (per an external Claude Web review of the WPC manuscript) as: M37 — take a
+  recalibrated checkpoint live at a held-out UE count, gate pass = precision>=0.9 AND
+  zero collapsed episodes; M38 — a properly-powered original-vs-recalibrated live
+  comparison at {3, 6, held-out} UEs. BOTH REMAIN BLOCKED, having instead produced a
+  substantial, independent finding of their own (full account below).
+
+================================================================================
+PART 3 — THE M38 LIVE-INSTABILITY INVESTIGATION (2026-09-01 to 2026-09-03),
+THE MOST RECENT AND MOST DEEPLY INVESTIGATED FINDING
+================================================================================
+
+STARTING POINT: a live 3-UE pilot (recalibrated checkpoint, real per-slice traffic)
+was attempted to fill M38's data gaps. Bring-up succeeded cleanly (further than
+M36's 2-UE attempts ever got — 100+ seconds of verified-clean combined traffic), but
+shortly after the live control loop (the xApp probe) began issuing its normal ~once-
+per-second per-slice PRB-ceiling reconfiguration decisions, ALL THREE UEs hit
+"[RLC] max RETX reached on DRB 1" simultaneously and went to 100% packet loss. The
+last live decisions before failure showed per_slice_sla_margin values around
+-10^5 to -10^6 — the same catastrophic-magnitude artifact M8 (above) had already
+documented as a real, replicated property of this rig's live backlog saturation.
+
+CANDIDATE EXPLANATIONS TESTED, EACH WITH DIRECT EVIDENCE, IN ORDER:
+
+1. CPU governor. Found set to "powersave" (cores running ~64% of max frequency even
+   under load). Switched to "performance". Retested: FAILURE RECURRED, faster than
+   before. Ruled out.
+
+2. General host/memory fatigue ("the rig was just tired after a long session"). Did a
+   full clean process-level restart (not just retrying) with the governor fix in
+   place. FAILURE RECURRED. Ruled out as the sole explanation.
+
+3. A REAL BUG WAS FOUND AND FIXED along the way: `apply_slicing_ctrl()` in
+   ORANSlice's E2 message handler (openair2/E2_AGENT/e2_message_handlers.c) writes
+   the shared per-slice PRB-ratio state with NO LOCK, while the real-time MAC
+   scheduler reads that same state every scheduling slot under a dedicated lock
+   (`sched_lock`) — every other asynchronous external writer into this state in the
+   codebase correctly takes that lock; this function was the one exception to an
+   otherwise fully consistent locking convention. This is a genuine, confirmed data
+   race, independently discovered via direct source reading (not by analogy or
+   guesswork), and FIXED (added the missing lock, mirroring the existing pattern
+   exactly). The fix was rebuilt and kept as a real correctness improvement.
+   RETESTED WITH THE FIX: FAILURE STILL RECURRED, with the same asymmetric per-slice
+   pattern as before. The race condition was real but not sufficient to explain the
+   whole failure alone.
+
+4. CPU-core scheduling contention between the live-control-loop process and the RAN
+   processes. Isolated the control-loop process onto a dedicated CPU core sharing
+   zero cores with any RAN process (verified directly via taskset, not assumed).
+   FAILURE STILL RECURRED. Ruled out.
+
+5. UE concurrency / multi-UE-specific interaction. Tested each slice completely
+   ALONE at 1 UE (no other slices active at all): mmtc alone failed just as fast as
+   the 3-UE case; urllc alone failed at nearly the same rate; embb alone was clean
+   for roughly 90 seconds and then ALSO failed. CONCLUSION: this was never a
+   concurrency/UE-count effect. Every slice, alone, eventually fails under the live
+   control loop — only the onset timing differs by slice/traffic pattern (roughly
+   30 seconds for mmtc/urllc, 90-180 seconds for embb or full 3-slice combined
+   traffic).
+
+6. Traffic burstiness (mmtc's native profile is bursty, 2s-on/6s-off; embb/urllc are
+   sustained). Tested mmtc with sustained (non-bursty) traffic instead of its native
+   pattern: it ALSO eventually failed, just later (~90-150s instead of ~30s).
+   Burstiness affects only how fast the failure appears, not whether it happens.
+
+7. Per-slice RLC/QoS configuration asymmetry (e.g. embb's slice uses a WILDCARD SD
+   value, 0xFFFFFF, while urllc/mmtc use specific SD values, and the control-write
+   function matches slices by exact equality — a mechanistically plausible
+   asymmetry). Checked directly: no per-slice RLC retransmission-threshold override
+   exists in the gNB config (just a global log-level setting); every subscriber's
+   provisioned QoS index is identically 9 regardless of slice (checked directly in
+   the subscriber database). No config-level asymmetry found at either level.
+
+8. CUMULATIVE HOST/SESSION DEGRADATION ACROSS A LONG DAY OF TESTING (the last
+   remaining plausible non-mechanism explanation). The user performed a full,
+   genuine MACHINE REBOOT (not a process restart) — verified fresh (3 minutes
+   uptime, load average 1.40, swap reset from 2.3GB to 117MB). Rebuilt the ENTIRE
+   stack from scratch and reran the full 3-UE comprehensive pilot, this time for 10
+   episodes (longer than any prior attempt, specifically to give room for a delayed-
+   onset failure like embb's to reappear if the cause were session-length-dependent).
+   THE FAILURE REPRODUCED FULLY AGAIN (mmtc and embb both climbed rapidly from the
+   first 30-second check; urllc lagged furthest behind, as it consistently had in
+   every multi-slice attempt, but still failed by the time the run was stopped).
+   This rules out cumulative host/session degradation as an explanation.
+
+CURRENT STATE OF THIS FINDING (as of this document): every plausible non-mechanism
+explanation has been tested directly and ruled out. What remains, positively
+established: LIVE PER-SLICE PRB-CEILING RECONFIGURATION VIA THIS RIG'S E2 CONTROL
+LOOP DESTABILIZES RLC TRANSMISSION, UNIVERSALLY ACROSS EVERY SLICE AND EVERY UE-COUNT
+CONFIGURATION TESTED (1, 2, 3), INDEPENDENT OF CPU GOVERNOR, CPU-CORE SCHEDULING
+CONTENTION, A REAL (NOW-FIXED) LOCKING RACE CONDITION, TRAFFIC BURSTINESS, PER-SLICE
+RLC/QOS PROVISIONING, AND HOST/SESSION STATE (SURVIVES A CLEAN REBOOT). Onset timing
+varies by slice and condition but the eventual outcome does not.
+
+WHAT IS NOT YET KNOWN: the exact RLC/MAC mechanism connecting a repeated ceiling
+write to an active DRB's eventual transmission failure. Two concrete, not-yet-tried
+next steps are on record: (a) RLC-layer logging/instrumentation around the
+retransmission path to see what changes right as a ceiling write lands mid-
+transmission; (b) testing whether FREEZING the ceiling after a single write (never
+rewriting it again, even though the live policy wants to) prevents the failure
+entirely — this would directly confirm "repeated writes" as the causal ingredient
+rather than "a live control loop merely existing."
+
+CURRENT RECOMMENDATION ON RECORD: given how thoroughly this has been characterized
+without finding a fix, treat it as the paper's own genuine, reportable live finding
+— "this rig's live E2 slicing-control loop has a reproducible RLC-destabilizing
+failure mode, independent of UE count or slice identity" — rather than continuing to
+treat it purely as a blocker standing in the way of M37/M38's originally-envisioned
+design.
+
+================================================================================
+PART 4 — RECURRING PATTERNS AND STANDING LIMITATIONS ACROSS THE WHOLE PROJECT
+================================================================================
+
+1. SMALL-SAMPLE FINDINGS REPEATEDLY GET OVERTURNED BY LARGER ONES. This happened at
+   least four separate times across the project's history: Stage 3's oracle-beating
+   claim (Stage 10), M2's GAT-CTDE-vs-baseline claim (its own 3-stage correction),
+   M4's independent-DQN-churn-immunity claim (retracted on replication), and M6's
+   N=7 collapse-rate claim (reversed by M27's larger recalibrated sample). The
+   project's own standing countermeasure is a mandatory reproduction-vs-replication
+   step on an independently-drawn seed batch before trusting any headline finding.
+
+2. THE CHOICE OF METRIC MATERIALLY CHANGES CONCLUSIONS. Compliance-based metrics
+   repeatedly disagreed with correctness-aware ones (reward, block_precision) — this
+   is itself a formally quantified, reported finding (M35: 89.8% disagreement rate)
+   and is one of the paper's own two headline methodological contributions.
+
+3. THE OFFLINE/LIVE GAP HAS NEVER BEEN FULLY CLOSED. M1's recalibration attempt
+   (162-config grid search) failed; Stage 13's backlog_capacity fix failed; Stage
+   12's root-cause finding (temporal structure, not mean, is what's missing) remains
+   the best available diagnosis but was never itself fixed. M34's later
+   RealisticServedKpmSource (measured-anchor interpolation) is the closest working
+   mitigation, validated single-gNB and extended multi-gNB in M27, but is itself an
+   approximation, not a closed-form fix.
+
+4. THIS RIG HAS A DOCUMENTED HISTORY OF SEVERE INSTABILITY SPECIFICALLY AT THE POINT
+   OF PUSHING CONCURRENCY OR CONTROL-LOOP INTENSITY, REGARDLESS OF WHICH AXIS IS
+   PUSHED: M28's 2-gNB attempt failed under sustained dual-link real traffic load
+   (root-caused to genuine 4-physical-core real-time-scheduling saturation, not a
+   fixable bug); M36/M38's 2-3-UE attempts failed with RLC max-RETX (root-caused,
+   after extensive elimination, to something in the live control loop's interaction
+   with RLC transmission, not host contention). These are two structurally different
+   failure mechanisms (one is host CPU/RT-scheduling capacity, the other survives
+   even when host contention is fully ruled out) that happen to look superficially
+   similar ("things break under multi-X live load") — worth NOT conflating when
+   writing this up, since the actual causes are now known to be different.
+
+5. THIS PROJECT HAS A STRONG, CONSISTENT PRACTICE OF REPORTING NEGATIVE AND RETRACTED
+   RESULTS RATHER THAN HIDING THEM (Stage 2's utility-metric reversal, Stage 13's
+   failed recalibration, M4's churn-immunity retraction, M7's FedProx null result,
+   M28's aborted 2-gNB demo). This is worth preserving in whatever new content gets
+   written about the M38 finding above — it fits the project's own established
+   voice, not a novel departure.
+
+6. RESOURCE CONSTRAINTS ARE REAL AND RECURRING, NOT INCIDENTAL. This is a single
+   7.4GB-RAM, 4-physical-core laptop running an entire 5G core + native RAN stack +
+   RL inference loop simultaneously — memory/CPU tightness has directly caused or
+   contributed to at least three separate documented incidents (Stage 6's decision
+   not to attempt real multi-UE-per-slice scarcity, M28's 2-gNB CPU-saturation
+   failure, and this session's own careful memory monitoring throughout the M38
+   investigation, though memory itself was ultimately ruled out as that specific
+   failure's cause).
+
+================================================================================
+PART 5 — CURRENT STATUS SNAPSHOT (as of this document)
+================================================================================
+
+- Paper #4 (CACS26): SUBMITTED 2026-08-31. Final title: "DQN-QoE Slice Admission
+  Control for Live OAI Open RAN." Nothing further planned unless reviewers respond.
+- Paper #5 (WPC): ACTIVE. 25 pages, compiles clean, cites Paper #4 as a companion
+  submission. M1-M8, M27, M35, M36(offline) complete and written in. M28's live demo
+  and M36(live)/M37/M38's live components are blocked, per the findings in Part 3.
+- Paper #5 (IEEE Access variant): PAUSED, standing instruction not to edit.
+- The corresponding-author email in both manuscripts is still a placeholder
+  (TODO@taylors.edu.my) — needs a real address from a co-author, not guessable.
