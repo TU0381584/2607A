@@ -549,24 +549,76 @@ which has been the recovery method all day) would help separate these
 two, but is a larger, harder-to-reverse action than anything else tried
 today and was not taken without asking first.
 
-### Recommended next steps (revised again)
+### Post-reboot comprehensive pilot (user rebooted the machine themselves):
+the failure survives a genuine reboot -- host/session fatigue ruled out
+
+User did a full machine reboot (not a process-level restart) to test the
+one remaining live explanation from the previous entry. Verified
+genuinely fresh: `uptime` 3 minutes, load average 1.40, swap 117MB used
+(down from 2.3GB pre-reboot). Re-established the whole stack from
+scratch: Docker core (17 containers, subscriber DB intact --
+`iperf3-target` auto-started via its own restart policy, the 5G core
+containers did not and were brought up fresh), `ue2ns`/`ue3ns` recreated
+(confirmed these do not survive a reboot, as already documented),
+gNB + all 3 UEs, full 3-slice traffic profile, 60s clean stabilization,
+then the recalibrated-checkpoint probe -- this time for 10 episodes
+(longer than every prior pilot) specifically to give enough runway to
+see whether a delayed-onset failure (like pre-reboot embb's ~90-180s)
+would reappear, not just an immediate one.
+
+**The failure reproduced fully.** UE2 (mmtc) and UE1 (embb) both climbed
+rapidly from the first check (181-396 by +30s, 1255-1468 by +90s); UE3
+(urllc) lagged furthest behind of the three (as it also had in the
+pre-reboot 3-UE runs) but still reached 547 by the time the run was
+stopped. Same staggered-but-universal pattern as every other multi-slice
+attempt today.
+
+**This rules out cumulative host/session degradation as the
+explanation.** Combined with everything else eliminated earlier today
+(CPU governor, CPU-core scheduling isolation from the probe, the real
+sched_lock race condition -- found, fixed, confirmed insufficient alone
+-- UE concurrency, traffic burstiness, per-slice RLC/QoS provisioning,
+and slice identity itself), this is now a **fully robust, reproducible
+finding**, not a vague or transient instability: live per-slice PRB
+ceiling reconfiguration via the E2 control loop destabilizes RLC
+transmission on this rig, universally across every slice and UE-count
+configuration tested, independent of host state, and survives a clean
+machine reboot. The only remaining open question is the exact RLC/MAC
+mechanism -- everything about *when* and *whether* it happens outside
+that mechanism has now been characterized.
+
+### Recommended next steps (final, after the reboot test)
 
 1. The sched_lock fix stays -- real correctness improvement,
    independent of this outcome.
-2. **This is now a well-characterized, reproducible, mechanism-narrowed
-   finding, not a vague instability.** Given how much has already been
-   ruled out with direct evidence, the responsible framing going forward
-   is: *live E2 slicing control destabilizes the mmtc slice specifically
-   on this rig, independent of UE count* -- a real, reportable result in
-   its own right, arguably more interesting than the "multi-UE ceiling"
-   framing M36-M38 started with.
-3. If further live debugging is wanted, the next genuinely new levers
-   are: (a) RLC-layer logging/instrumentation to see exactly what
-   `nr_rlc_entity_am_recv_sdu`/retransmission logic does differently for
-   mmtc's DRB when a ceiling write lands mid-transmission, or (b) test
-   whether *forcing* mmtc's ceiling to stay fixed (never re-write it,
-   even though the policy wants to) prevents the failure -- this would
-   directly confirm or rule out the ceiling-convergence-to-{1,1} pattern
-   as causal rather than incidental.
-4. M37/M38 stay blocked until this resolves, or until the finding above
-   is accepted as the answer and written up instead of chased further.
+2. **The finding, as it stands after everything ruled out today**: live
+   per-slice PRB ceiling reconfiguration via this rig's E2 control loop
+   eventually destabilizes RLC transmission, on every slice tested
+   (embb, urllc, mmtc) and every UE-count configuration tested (1, 2, 3),
+   independent of CPU governor, CPU-core scheduling contention, a real
+   (now-fixed) locking race, traffic burstiness, per-slice RLC/QoS
+   provisioning, and host/session state (survives a clean reboot). Onset
+   timing varies by slice/condition (roughly 30s for mmtc/urllc alone,
+   90-180s for embb alone or for combined 3-UE traffic), but the
+   eventual outcome does not. This is a real, decisive, well-supported
+   result in its own right -- a live per-slice-control ceiling on this
+   platform, not a vague instability and not specific to any one slice
+   or UE count.
+3. **The one thing not yet found is the RLC/MAC mechanism itself** --
+   why repeated ceiling writes eventually corrupt an active DRB's
+   transmission state. Two concrete, not-yet-tried ways to get there:
+   (a) RLC-layer logging/instrumentation around
+   `nr_rlc_entity_am_recv_sdu`/the retransmission path to see what
+   changes right as a ceiling write lands mid-transmission; (b) test
+   whether *freezing* the ceiling (apply it once, then stop the probe
+   from ever rewriting it again) prevents the failure entirely -- this
+   would directly confirm "repeated writes" as the causal ingredient
+   rather than merely "a live control loop exists at all."
+4. M37/M38 (which need a stable multi-slice live campaign to fill their
+   remaining data gaps) stay blocked on this. Given how thoroughly this
+   has now been characterized without finding a fix, the more realistic
+   framing for the manuscript is: report this as the paper's own live
+   finding -- "this rig's live E2 slicing control loop has a genuine,
+   reproducible RLC-destabilizing failure mode, independent of UE count
+   or slice identity" -- rather than continuing to treat it purely as a
+   blocker to M37/M38's original design.
