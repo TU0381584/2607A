@@ -121,7 +121,11 @@ def run_contention_gate(ts: str) -> bool:
         f"--gnb-id gnb0 --host 127.0.0.1 --sd 16777215 --slice-label embb --out {out}"
     )
     print(f"[m41] running contention gate...", file=sys.stderr)
-    r = sh(cmd, timeout=180)
+    try:
+        r = sh(cmd, timeout=240)
+    except subprocess.TimeoutExpired as exc:
+        print(f"[m41] contention gate TIMED OUT after 240s: {exc}", file=sys.stderr)
+        return False
     print(r.stdout, file=sys.stderr)
     print(r.stderr, file=sys.stderr)
     return r.returncode == 0
@@ -340,13 +344,14 @@ def orchestrate(args) -> int:
         write_manifest_row(row)
         return 1
 
-    gate_ok = run_contention_gate(ts)
-    row["gate_pass"] = gate_ok
-    if not gate_ok:
-        print("[m41] GATE FAIL: contention gate did not pass, aborting condition", file=sys.stderr)
-        write_manifest_row(row)
-        return 1
-
+    # Bring-up and real traffic MUST precede the contention gate: the gate's
+    # own protocol (pin ceiling -> prove backlog rises -> restore -> prove it
+    # recovers, phase1_contention_gate.py) needs an already-attached UE
+    # producing real traffic-driven backlog to have anything to measure --
+    # run against a cold rig it just polls a nonexistent gNB and times out.
+    # (First live attempt of this script got this ordering backwards; fixed
+    # here after that attempt's own TimeoutExpired traceback made the cause
+    # obvious.)
     bringup_ok = restart_native_stack(ts)
     row["bringup_ok"] = bringup_ok
     if not bringup_ok:
@@ -355,9 +360,38 @@ def orchestrate(args) -> int:
         write_manifest_row(row)
         return 1
 
-    start_traffic(args.load_mult, ts)
-    print("[m41] traffic launched, 60s pre-probe stabilization window...", file=sys.stderr)
-    time.sleep(60)
+    # From here on, the native stack is live -- everything below is wrapped
+    # so ANY unexpected exception still tears down cleanly rather than
+    # leaving gNB/UEs/traffic running unattended (a real gap this script
+    # had on its first live attempt: an uncaught subprocess.TimeoutExpired
+    # from the gate would have crashed straight past teardown() once the
+    # gate was moved to run after bring-up).
+    probe_proc = None
+    reached_probe_launch = False
+    try:
+        start_traffic(args.load_mult, ts)
+        print("[m41] traffic launched, 30s pre-gate stabilization window...", file=sys.stderr)
+        time.sleep(30)
+
+        gate_ok = run_contention_gate(ts)
+        row["gate_pass"] = gate_ok
+        if not gate_ok:
+            print("[m41] GATE FAIL: contention gate did not pass, aborting condition", file=sys.stderr)
+            row.update(survived=False, onset_reason="gate_failed")
+            write_manifest_row(row)
+            return 1
+
+        print("[m41] gate passed, 15s settle before launching the probe...", file=sys.stderr)
+        time.sleep(15)
+        reached_probe_launch = True
+    except Exception as exc:
+        print(f"[m41] FATAL (pre-probe): {exc!r}", file=sys.stderr)
+        row.update(survived=False, onset_reason=f"pre_probe_exception:{exc!r}")
+        write_manifest_row(row)
+        return 1
+    finally:
+        if not reached_probe_launch:
+            teardown(probe_proc, ts)
 
     ue_logs = {
         "embb": RIG / f"experiments/logs/ue1_m41_{ts}.log",
