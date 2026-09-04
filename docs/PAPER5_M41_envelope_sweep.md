@@ -132,15 +132,66 @@ buffering when stdout is redirected to a file rather than a terminal.
 Retried with `python3 -u` (unbuffered) and got a clean, fully-logged
 result. Worth keeping `-u` on all future invocations of this script.
 
+## Write-magnitude test: implemented, run, but the cap never engaged
+
+Added `--write-magnitude-cap N` to the harness: wraps `send_control`
+(same non-invasive technique, `env.py` untouched) to clamp each write's
+ratio to move at most N units from *this process's own last-sent value*
+for that slice key. Verified offline first (unit tests for the clamp
+logic, including a simulated PIN-like jump correctly smoothed into
+gradual steps) before running live. Also fixed a real harness bug
+found on the way: `restart_native_stack()`'s final 3-way ping
+connectivity check had no diagnostic output at all on failure (unlike
+every other check in the same function) -- a run died with exit 1 and
+an apparently-silent log even under `python3 -u`, and the cause turned
+out to be this one unlogged branch, not buffering. Fixed with per-UE
+diagnostics and one retry after a 5s grace period.
+
+**Result at cap=1** (native load, 1s cadence): failed at t=10.0s,
+identical to every uncapped condition -- **and zero
+`magnitude-capped` log lines appeared at all.** The cap never had
+anything to clamp. On reflection this makes sense and is itself
+informative: the policy's own per-decision step size is already ±1
+ratio unit (`ceiling_step_ratio: 1` in `saclb_live.yaml`), and the
+gate's own PIN-phase damage does **not** carry over into the probe's
+own ceiling tracking -- each probe launch constructs a fresh
+policy/environment/`AdmissionGate` instance via its own
+`reset_ceilings()` call, with no memory of what a separate, already-
+killed process (the gate) wrote to a since-restarted gNB. There is no
+large, discontinuous jump anywhere in this pipeline for a magnitude cap
+of 1 to ever need to intervene on.
+
+**This means "magnitude," as a policy-driven per-step quantity in this
+architecture, was never actually large to begin with** -- it is not
+that capping it failed to help; it is that there was nothing here for
+capping to do. A genuinely different test of this axis would need
+`--write-magnitude-cap 0` (freeze the ceiling at its reset default
+forever, never letting even the first decision move it) -- but this is
+very close to what C2's static mode already tested (one real write,
+then permanent silence) and already failed identically at t=10s, so a
+different outcome here seems unlikely and was not run, to avoid
+spending more live-rig time on a low-probability repeat of an existing
+result without being asked to confirm that specific redundancy first.
+
 ## Status
 
-GATE S0 and GATE S1 both complete, reported. Per S1's own result, there
-is no promising region to hand to S2. Awaiting a decision on the next
-lever: finer/lower load steps (e.g. mult=0.1, 0.05), write-magnitude
-(a lever not yet touched at all -- everything so far has varied *when*
-a ceiling write happens, never *how different* the new ceiling is from
-the old one), or accepting this as the answer (a live per-slice ceiling
-write of any cadence, at any of the tested load levels down to 1/4
-native, destabilizes this rig within about 10 seconds -- a much more
-absolute, more decisive limitation finding than "there's a narrow safe
-operating window," if that turns out to be where this lands).
+All three proposed axes (write cadence, offered load, write magnitude)
+have now been explored and none of them changes the outcome: every
+condition across all three fails within roughly the same 10-second
+window, at native load down to 1/4, at cadences from 1s to 30s, and
+under a magnitude cap that (it turns out) never needed to bind. GATE
+S0 and S1 are both closed; the magnitude axis produced a null-
+engagement result rather than a clean comparison, for the structural
+reason above.
+
+**Recommendation**: treat the empty envelope as the finding itself --
+this rig's live per-slice E2 ceiling control destabilizes RLC within
+about 10 seconds regardless of cadence, load (within the tested 4x
+range), or the (already-small) natural magnitude of each write. The one
+lever that hasn't been tried is `--write-magnitude-cap 0` for full
+confirmation, or reading the actual RLC/MAC source path directly (this
+project's own earlier, non-M41 investigation already proposed this and
+did not pursue it) to find the real mechanism rather than continuing to
+screen around it black-box. Awaiting direction on which, if either, to
+pursue, or to close this out and write the empty-envelope result into
+the manuscript.
