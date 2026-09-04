@@ -84,10 +84,25 @@ def sh(cmd: str, timeout=None, check=False) -> subprocess.CompletedProcess:
     return subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=timeout)
 
 
+def pkill_pattern(pattern: str) -> None:
+    """pkill -9 -f <pattern>, WITHOUT shell=True. A shell=True subprocess.run
+    spawns /bin/sh -c "<cmd>", whose own argv then literally contains the
+    pattern text -- pkill -f matches against every process's full command
+    line, so that wrapper shell (not just the intended target) can match and
+    get killed too, silently truncating whatever command was still running
+    (this bit an earlier live run in this same session: 'iperf3 -c 172' as
+    a pkill -f pattern matched and killed its own invoking shell mid-cleanup,
+    leaving a stray iperf3 client running past teardown). Passing argv as a
+    list with shell=False execs pkill directly -- no wrapper shell exists to
+    self-match, and pkill's own well-known behavior already excludes its own
+    PID from any pattern it searches."""
+    subprocess.run(["sudo", "pkill", "-9", "-f", pattern], capture_output=True, text=True)
+
+
 def run_pid_kill(pids) -> None:
     pids = [p for p in pids if p]
     if pids:
-        sh(f"sudo kill -9 {' '.join(str(p) for p in pids)}")
+        subprocess.run(["sudo", "kill", "-9", *[str(p) for p in pids]], capture_output=True, text=True)
 
 
 # ---------------------------------------------------------------------------
@@ -135,8 +150,8 @@ def restart_native_stack(ts: str) -> bool:
     log_dir = RIG / "experiments/logs"
     tmux_kill = "for s in gnb ue1 ue2 ue3; do tmux kill-session -t \"$s\" 2>/dev/null || true; done"
     sh(tmux_kill)
-    sh("sudo pkill -9 -f nr-uesoftmodem 2>/dev/null; true")
-    sh("sudo pkill -9 -f nr-softmodem 2>/dev/null; true")
+    pkill_pattern("nr-uesoftmodem")
+    pkill_pattern("nr-softmodem")
     time.sleep(2)
 
     for ns, veth_h, veth_n, subnet_h, subnet_n in [
@@ -225,8 +240,8 @@ def start_traffic(load_mult: float, ts: str) -> dict:
 
 
 def stop_traffic() -> None:
-    sh("sudo pkill -9 -f 'iperf3 -c 172' 2>/dev/null; true")
-    sh("sudo pkill -9 -f 'while true.*iperf3' 2>/dev/null; true")
+    pkill_pattern("iperf3 -c 172")
+    pkill_pattern("while true.*iperf3")
 
 
 def launch_probe(args, ts: str) -> subprocess.Popen:
@@ -307,8 +322,8 @@ def teardown(probe_proc, ts: str) -> None:
     stop_traffic()
     for s in ["gnb", "ue1", "ue2", "ue3"]:
         sh(f"tmux kill-session -t {s} 2>/dev/null; true")
-    sh("sudo pkill -9 -f nr-uesoftmodem 2>/dev/null; true")
-    sh("sudo pkill -9 -f nr-softmodem 2>/dev/null; true")
+    pkill_pattern("nr-uesoftmodem")
+    pkill_pattern("nr-softmodem")
     time.sleep(2)
 
 
@@ -381,8 +396,26 @@ def orchestrate(args) -> int:
             write_manifest_row(row)
             return 1
 
-        print("[m41] gate passed, 15s settle before launching the probe...", file=sys.stderr)
-        time.sleep(15)
+        print("[m41] gate PASSED -- but the gate's own PIN phase deliberately drives "
+              "embb's backlog to a catastrophic level to prove ceiling-down => backlog-up, "
+              "and this rig's own already-documented behavior (M8) is that this backlog "
+              "does NOT drain back down within the gate's 30-poll restore window (confirmed "
+              "directly: this run's own recovery mean == pinned max, unchanged). Doing a "
+              "full fresh restart now so the actual measured condition starts from a clean "
+              "slate, not from gate-damaged state.", file=sys.stderr)
+        teardown(None, ts)
+        ts2 = time.strftime("%Y%m%d_%H%M%S")
+        row["ts"] = ts2
+        bringup2_ok = restart_native_stack(ts2)
+        if not bringup2_ok:
+            row.update(survived=False, onset_reason="post_gate_bringup_failed")
+            write_manifest_row(row)
+            return 1
+        start_traffic(args.load_mult, ts2)
+        print("[m41] post-gate fresh stack up, traffic launched, 30s settle before the probe...",
+              file=sys.stderr)
+        time.sleep(30)
+        ts = ts2
         reached_probe_launch = True
     except Exception as exc:
         print(f"[m41] FATAL (pre-probe): {exc!r}", file=sys.stderr)
