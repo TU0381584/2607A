@@ -92,6 +92,55 @@ the earlier bugged/confounded attempts too, left in place rather than
 deleted, each row's own `gate_pass`/`onset_reason` making clear which
 ones predate which fix).
 
+## GATE S1 result: the envelope is empty at every level tested
+
+Coarse 1D screens (300s each, native recalibrated checkpoint), reusing
+C1 as the interval=1s/mult=1.0 anchor point on both axes:
+
+| Axis | Value | Onset | Trigger |
+|---|---|---|---|
+| cadence (mult=1.0) | interval=1s (=C1) | 10.0s | 100% loss, all 3 slices |
+| cadence (mult=1.0) | interval=5s | 10.0s | 100% loss, all 3 slices |
+| cadence (mult=1.0) | interval=30s | 10.0s | 100% loss, all 3 slices |
+| load (interval=1s) | mult=1.0 (=C1) | 10.0s | 100% loss, all 3 slices |
+| load (interval=1s) | mult=0.5 | 10.0s | max_retx (embb, n=1) |
+| load (interval=1s) | mult=0.25 | 10.0s | max_retx (urllc, n=8) |
+
+**Every point on both axes fails within the same ~10-second window.**
+There is no survivor anywhere in this screen -- slowing the write
+cadence 30x (1s -> 30s) makes no difference, and cutting native load to
+a quarter makes no difference either (the trigger shifts from a clean
+100%-loss reading to a smaller, earlier RLC max-RETX count, but the
+onset timing and ultimate outcome are identical). Per the plan's own
+GATE S1 instruction: **"If NOTHING survives 300s on either axis -> STOP
+and report (envelope empty at these levels; next lever is finer/lower
+steps or write-magnitude, await decision -- do not auto-expand)."**
+Stopping here; not proceeding to S2 (which the plan gates behind a
+"promising region" from S1 -- none exists to refine).
+
+One operational note from this stage: a single condition
+(`S1_load0.25`, first attempt) exited with code 1 and an apparently
+truncated console log (stopped right after the Docker-core-cycle step,
+no explicit error printed). The run's own `manifest.csv` row, written
+via direct file I/O rather than the buffered console log, correctly
+recorded `onset_reason=post_gate_bringup_failed` -- i.e. the script
+itself handled the failure cleanly (a native-stack bring-up call simply
+returned `False` that one time, plausibly just transient timing after
+many consecutive live cycles in one session), and only the *console*
+log was incomplete, almost certainly due to Python's default block
+buffering when stdout is redirected to a file rather than a terminal.
+Retried with `python3 -u` (unbuffered) and got a clean, fully-logged
+result. Worth keeping `-u` on all future invocations of this script.
+
 ## Status
 
-GATE S0 complete, reported. Awaiting go before S1.
+GATE S0 and GATE S1 both complete, reported. Per S1's own result, there
+is no promising region to hand to S2. Awaiting a decision on the next
+lever: finer/lower load steps (e.g. mult=0.1, 0.05), write-magnitude
+(a lever not yet touched at all -- everything so far has varied *when*
+a ceiling write happens, never *how different* the new ceiling is from
+the old one), or accepting this as the answer (a live per-slice ceiling
+write of any cadence, at any of the tested load levels down to 1/4
+native, destabilizes this rig within about 10 seconds -- a much more
+absolute, more decisive limitation finding than "there's a narrow safe
+operating window," if that turns out to be where this lands).

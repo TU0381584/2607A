@@ -5,3 +5,8 @@ S0_C1,1.0,1.0,normal,300.0,20260904_115453,True,True,False,10.0,"100pct_loss:{'e
 S0_C2,1.0,1.0,static,300.0,20260904_120313,True,True,False,10.0,"100pct_loss:{'embb': 100.0, 'mmtc': 100.0, 'urllc': 100.0}",21.5,TODO(MEASURE),TODO(MEASURE)
 S0_C1,1.0,1.0,normal,300.0,20260904_121305,True,True,False,10.0,"100pct_loss:{'embb': 100.0, 'mmtc': 100.0, 'urllc': 100.0}",21.5,TODO(MEASURE),TODO(MEASURE)
 S0_C2,1.0,1.0,static,300.0,20260904_122121,True,True,False,10.0,"100pct_loss:{'embb': 100.0, 'mmtc': 100.0, 'urllc': 100.0}",21.5,TODO(MEASURE),TODO(MEASURE)
+S1_cadence5s,1.0,5.0,normal,300.0,20260904_123844,True,True,False,10.0,"100pct_loss:{'embb': 100.0, 'mmtc': 100.0, 'urllc': 100.0}",21.5,TODO(MEASURE),TODO(MEASURE)
+S1_cadence30s,1.0,30.0,normal,300.0,20260904_124630,True,True,False,10.0,"100pct_loss:{'embb': 100.0, 'mmtc': 100.0, 'urllc': 100.0}",21.5,TODO(MEASURE),TODO(MEASURE)
+S1_load0.5,0.5,1.0,normal,300.0,20260904_125417,True,True,False,10.0,"max_retx:{'embb': 1, 'mmtc': 0, 'urllc': 0}",12.3,TODO(MEASURE),TODO(MEASURE)
+S1_load0.25,0.25,1.0,normal,300.0,20260904_130438,True,True,False,,post_gate_bringup_failed,,TODO(MEASURE),TODO(MEASURE)
+S1_load0.25,0.25,1.0,normal,300.0,20260904_131325,True,True,False,10.0,"max_retx:{'embb': 0, 'mmtc': 0, 'urllc': 8}",12.3,TODO(MEASURE),TODO(MEASURE)
