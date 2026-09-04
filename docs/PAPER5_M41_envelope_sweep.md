@@ -173,9 +173,65 @@ different outcome here seems unlikely and was not run, to avoid
 spending more live-rig time on a low-probability repeat of an existing
 result without being asked to confirm that specific redundancy first.
 
+## A previously-untested axis: true UE-count (concurrency), not just load intensity
+
+Every condition above -- including S1's own "load" axis (mult=1.0/0.5/
+0.25) -- kept all 3 UEs simultaneously RRC-attached throughout; `--load-
+mult` only scales each already-attached UE's traffic bitrate, never the
+number of UEs actually connected. This project's own earlier M38
+investigation found a genuinely single UE (embb alone, nothing else
+attached) survives much longer before eventually failing (~90-180s at
+native load) than any multi-UE combined condition -- but that was never
+re-tested under M41's own more rigorous methodology (gate, full core+
+native fresh restart, write-cadence control).
+
+Extended the harness with `--slices` (comma-separated subset of embb/
+urllc/mmtc controlling which UEs actually get attached and traffic-
+loaded, independent of `--load-mult`) and ran a genuine single-UE
+condition.
+
+**At native (1x) load, embb alone: the contention gate itself could not
+validate the run.** Backlog stayed at exactly 0.000 throughout baseline,
+pinned, AND recovery phases -- pinning the ceiling to 1 created no
+measurable contention at all with only one UE's traffic present. This
+is a real, informative signal in its own right (a completely different
+signature from every 3-UE gate trace, which all showed 8-10 million
+backlog units under the identical pin), independently corroborating
+that concurrency changes the contention picture -- but it also means
+the actual live-control-loop probe never ran, since the gate blocked
+the condition per the standing "gate must pass before every live run"
+rule.
+
+**Retried at 5x native load (20 Mbps) so the gate could pass legitimately
+(it did) -- and the actual probe then failed at the identical t=10.0s
+onset, clean 100% loss, single UE.** This is a real result, but a
+**confounded** one: reaching a passing gate required jumping load all
+the way to 5x, a level never tested at 3 UEs (S1's own load axis only
+went up to native 1.0x). It is not possible to tell from this run alone
+whether the ~10s failure here is because UE-count doesn't actually
+matter after all (matching the S0/S1 pattern), or because 5x load is
+simply high enough to fail fast regardless of UE-count, independent of
+concurrency.
+
+**Open question, not resolved**: does single-UE, *native* load survive
+meaningfully longer than 10s (matching M38's own ~90-180s prior
+finding), or does it also fail fast once the current sched_lock-fixed,
+gate-checked, freshly-restarted methodology is applied? Answering this
+cleanly needs either (a) deliberately running the probe at native load
+with the gate check skipped for this one condition (a real, flagged
+deviation from the standing "gate must pass" rule, since the gate's own
+detection method demonstrably doesn't apply at this specific low-
+contention operating point -- not evidence the rig itself is unhealthy),
+or (b) finding some load level between 1x (gate can't detect anything)
+and 5x (fails immediately, confounded) that both passes the gate and
+stays close enough to native to isolate the concurrency question
+cleanly. Neither has been run; flagging rather than deciding
+unilaterally, since (a) specifically means deviating from an explicit
+standing instruction from the reviewer's own plan.
+
 ## Status
 
-All three proposed axes (write cadence, offered load, write magnitude)
+All three originally-proposed axes (write cadence, offered load, write magnitude)
 have now been explored and none of them changes the outcome: every
 condition across all three fails within roughly the same 10-second
 window, at native load down to 1/4, at cadences from 1s to 30s, and
@@ -184,14 +240,26 @@ S0 and S1 are both closed; the magnitude axis produced a null-
 engagement result rather than a clean comparison, for the structural
 reason above.
 
-**Recommendation**: treat the empty envelope as the finding itself --
-this rig's live per-slice E2 ceiling control destabilizes RLC within
-about 10 seconds regardless of cadence, load (within the tested 4x
-range), or the (already-small) natural magnitude of each write. The one
-lever that hasn't been tried is `--write-magnitude-cap 0` for full
-confirmation, or reading the actual RLC/MAC source path directly (this
-project's own earlier, non-M41 investigation already proposed this and
-did not pursue it) to find the real mechanism rather than continuing to
-screen around it black-box. Awaiting direction on which, if either, to
-pursue, or to close this out and write the empty-envelope result into
-the manuscript.
+A fourth axis (true UE-count/concurrency, distinct from load intensity)
+was added afterward and produced a genuinely new but confounded data
+point: single-UE at native load couldn't even clear the contention gate
+(zero measurable backlog pressure with only one UE), and single-UE at
+5x load to force a gate pass failed at the same ~10s onset as
+everything else -- but 5x is high enough that this doesn't cleanly rule
+concurrency in or out.
+
+**Recommendation**: treat the empty envelope (across cadence, load, and
+magnitude, all at 3-UE concurrency) as the finding itself for the
+manuscript -- this rig's live per-slice E2 ceiling control destabilizes
+RLC within about 10 seconds across a wide, deliberately-explored
+parameter range. Two genuinely open threads remain, both requiring a
+decision rather than a unilateral next step: (1) the UE-count question
+above -- does native-load single-UE survive meaningfully longer, which
+would need either skipping the gate for that one condition (a real,
+flagged deviation from the plan's own standing rule) or finding an
+intermediate load level; (2) reading the actual RLC/MAC source path
+directly to find the real mechanism instead of continuing to screen
+around it black-box (this project's own earlier, non-M41 investigation
+already proposed this and did not pursue it). Awaiting direction on
+either, or to close this out and write the empty-envelope result into
+the manuscript as-is.
