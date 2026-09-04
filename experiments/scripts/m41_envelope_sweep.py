@@ -273,6 +273,8 @@ def launch_probe(args, ts: str) -> subprocess.Popen:
         "--omega-jsonl", str(out_dir / "omega_log.jsonl"),
         "--state-log", str(out_dir / "state_log.jsonl"),
     ]
+    if args.write_magnitude_cap is not None:
+        cmd += ["--write-magnitude-cap", str(args.write_magnitude_cap)]
     log_fh = open(log_path, "w")
     proc = subprocess.Popen(
         cmd, cwd=str(RIG / "framework"), stdout=log_fh, stderr=subprocess.STDOUT,
@@ -357,14 +359,29 @@ def teardown(probe_proc, ts: str) -> None:
     time.sleep(2)
 
 
+# Fixed, explicit schema -- NOT derived from whatever keys a given row
+# dict happens to have. write_manifest_row() appends to an existing file
+# without re-reading its header; if fieldnames varied between calls (e.g.
+# after adding write_magnitude_cap for S2), new rows would carry more
+# columns than the already-committed header line, silently misaligning
+# every column for any later reader. Any new field goes here, and
+# row.get(f, "") backfills it as blank for rows that don't set it.
+MANIFEST_FIELDS = [
+    "condition_label", "load_mult", "write_interval_s", "write_mode",
+    "write_magnitude_cap", "duration_s_target", "ts", "gate_pass",
+    "bringup_ok", "survived", "onset_s", "onset_reason", "elapsed_s",
+    "final_block_precision", "final_reward_mean",
+]
+
+
 def write_manifest_row(row: dict) -> None:
     RESULTS_ROOT.mkdir(parents=True, exist_ok=True)
     is_new = not MANIFEST_PATH.exists()
     with open(MANIFEST_PATH, "a", newline="") as fh:
-        w = csv.DictWriter(fh, fieldnames=list(row.keys()))
+        w = csv.DictWriter(fh, fieldnames=MANIFEST_FIELDS)
         if is_new:
             w.writeheader()
-        w.writerow(row)
+        w.writerow({f: row.get(f, "") for f in MANIFEST_FIELDS})
 
 
 def orchestrate(args) -> int:
@@ -378,6 +395,7 @@ def orchestrate(args) -> int:
     row = {
         "condition_label": args.condition_label, "load_mult": args.load_mult,
         "write_interval_s": args.write_interval_s, "write_mode": args.write_mode,
+        "write_magnitude_cap": args.write_magnitude_cap if args.write_magnitude_cap is not None else "",
         "duration_s_target": args.duration_s, "ts": ts,
         "gate_pass": None, "bringup_ok": None, "survived": None,
         "onset_s": "", "onset_reason": "", "elapsed_s": "",
@@ -558,12 +576,26 @@ def probe_main(args) -> None:
 
     kpm_source = LiveKpmSource(gnb_id=args.gnb_id, xapp_listen_port=6600, gnb_listen_port=6655, recv_timeout_s=30.0)
 
-    # write-cadence gate: wraps the INSTANCE's send_control, env.py's call
-    # site (frozen) is untouched. "changed" writes from AdmissionGate.apply()
-    # arrive here unconditionally every step a slice has a pending request --
-    # confirmed by reading action_mapping.py before writing this wrapper.
+    # write-cadence AND write-magnitude gate: wraps the INSTANCE's
+    # send_control, env.py's call site (frozen) is untouched. "changed"
+    # writes from AdmissionGate.apply() arrive here unconditionally every
+    # step a slice has a pending request -- confirmed by reading
+    # action_mapping.py before writing this wrapper. Magnitude capping is
+    # the one axis M41-S0/S1 never touched: every prior condition varied
+    # *when* a write happens, never *how far* the new ceiling is from the
+    # last one this process actually sent. Clamped relative to our own last
+    # SENT value (not assumed gNB state, which this process can't observe
+    # directly) -- the very first write per key has no reference yet and
+    # passes through uncapped by construction.
     original_send = kpm_source.send_control
-    write_state = {"last_sent": {}, "sent_once": set()}
+    write_state = {"last_sent": {}, "sent_once": set(), "last_sent_vals": {}}
+
+    def clamp_step(new_val: int, last_val: int, cap: int) -> int:
+        if new_val > last_val + cap:
+            return last_val + cap
+        if new_val < last_val - cap:
+            return last_val - cap
+        return new_val
 
     def gated_send_control(gnb_id, sst, sd, min_ratio, max_ratio):
         key = (gnb_id, sst, sd)
@@ -576,14 +608,28 @@ def probe_main(args) -> None:
             last = write_state["last_sent"].get(key)
             if last is not None and (now - last) < args.write_interval_s:
                 return
+        if args.write_magnitude_cap is not None:
+            last_vals = write_state["last_sent_vals"].get(key)
+            if last_vals is not None:
+                last_min, last_max = last_vals
+                capped_min = clamp_step(min_ratio, last_min, args.write_magnitude_cap)
+                capped_max = clamp_step(max_ratio, last_max, args.write_magnitude_cap)
+                if (capped_min, capped_max) != (min_ratio, max_ratio):
+                    print(f"[{args.run_id}] magnitude-capped ({sst},{sd}): "
+                          f"requested ({min_ratio},{max_ratio}) -> sent ({capped_min},{capped_max}) "
+                          f"[last was ({last_min},{last_max}), cap={args.write_magnitude_cap}]",
+                          file=sys.stderr)
+                min_ratio, max_ratio = capped_min, capped_max
         write_state["last_sent"][key] = now
+        write_state["last_sent_vals"][key] = (min_ratio, max_ratio)
         return original_send(gnb_id, sst, sd, min_ratio, max_ratio)
 
     kpm_source.send_control = gated_send_control
 
     env = RANEnv(cfg, kpm_source, seed=args.seed, reward_mode="sla")
     print(f"[{args.run_id}] probe role: write_mode={args.write_mode} "
-          f"write_interval_s={args.write_interval_s}", file=sys.stderr)
+          f"write_interval_s={args.write_interval_s} "
+          f"write_magnitude_cap={args.write_magnitude_cap}", file=sys.stderr)
     try:
         with OmegaLogger(args.omega_jsonl) as omega:
             run_single(
@@ -603,6 +649,10 @@ def build_argparser() -> argparse.ArgumentParser:
     ap.add_argument("--load-mult", type=float, default=1.0)
     ap.add_argument("--write-interval-s", type=float, default=1.0)
     ap.add_argument("--write-mode", choices=["normal", "static"], default="normal")
+    ap.add_argument("--write-magnitude-cap", type=int, default=None,
+                     help="max |delta| in ratio units a single write may move from this process's own "
+                          "last-sent value for the same slice key; None = uncapped (default, current "
+                          "policy/step_ratio behavior unchanged)")
     ap.add_argument("--duration-s", type=float, default=300.0)
     ap.add_argument("--probe-episodes", type=int, default=500,
                      help="generous upper bound; the orchestrator's own --duration-s timeout is the real stop condition")
