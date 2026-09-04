@@ -37,6 +37,7 @@ at 100% dl_mac_buffer_occupation, sustained for the full --duration-s.
 import argparse
 import csv
 import json
+import os
 import re
 import subprocess
 import sys
@@ -49,6 +50,17 @@ CONF_DIR = RIG / "ORANSlice/oai_ran/targets/PROJECTS/GENERIC-NR-5GC/CONF"
 LOG_ROOT = RIG / "experiments/logs/m41_envelope"
 RESULTS_ROOT = RIG / "experiments/results/m41_envelope"
 MANIFEST_PATH = RESULTS_ROOT / "manifest.csv"
+
+# live_kpm_source.py (imported by both phase1_contention_gate.py and this
+# script's own probe role) needs this set. Set once, at module load, in
+# THIS process's environ so every subprocess.run(shell=True) call below
+# inherits it too (the contention gate runs as a separate subprocess and
+# does not otherwise see it -- this was missed on the first live attempt
+# of this script and caused an immediate, pre-live GATE FAIL).
+os.environ.setdefault(
+    "XAPP_OAI_PROTO_DIR",
+    str(RIG / "ORANSlice/oai_ran/openair2/E2_AGENT/oai-oran-protolib/builds"),
+)
 
 DEFAULT_CHECKPOINT = str(
     RIG / "experiments/results/m34_realistic_retrain_v2/seed900/train/dqn/offline_train/rep_0/checkpoint.pt"
@@ -427,11 +439,7 @@ def orchestrate(args) -> int:
 def probe_main(args) -> None:
     sys.path.insert(0, str(RIG / "framework"))
     sys.path.insert(0, str(RIG / "experiments/scripts"))
-    import os
-    os.environ.setdefault(
-        "XAPP_OAI_PROTO_DIR",
-        str(RIG / "ORANSlice/oai_ran/openair2/E2_AGENT/oai-oran-protolib/builds"),
-    )
+    # XAPP_OAI_PROTO_DIR is already set at module load time, above.
     from qoe_oran_framework.config import load_saclb_config
     from qoe_oran_framework.env import RANEnv
     from qoe_oran_framework.live_kpm_source import LiveKpmSource
