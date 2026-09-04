@@ -162,7 +162,16 @@ def run_contention_gate(ts: str) -> bool:
     return r.returncode == 0
 
 
-def restart_native_stack(ts: str) -> bool:
+# slice_id -> (tmux session name, ue conf file, rfsim serveraddr, netns or None)
+UE_DEF = {
+    "embb": ("ue1", "nrUE_slice1.conf", "127.0.0.1", None),
+    "mmtc": ("ue2", "nrUE_slice2.conf", "10.99.2.1", "ue2ns"),
+    "urllc": ("ue3", "nrUE_slice3.conf", "10.99.3.1", "ue3ns"),
+}
+
+
+def restart_native_stack(ts: str, slices: set[str] | None = None) -> bool:
+    slices = slices if slices is not None else {"embb", "urllc", "mmtc"}
     log_dir = RIG / "experiments/logs"
     tmux_kill = "for s in gnb ue1 ue2 ue3; do tmux kill-session -t \"$s\" 2>/dev/null || true; done"
     sh(tmux_kill)
@@ -170,10 +179,13 @@ def restart_native_stack(ts: str) -> bool:
     pkill_pattern("nr-softmodem")
     time.sleep(2)
 
+    needed_netns = {UE_DEF[s][3] for s in slices if UE_DEF[s][3] is not None}
     for ns, veth_h, veth_n, subnet_h, subnet_n in [
         ("ue2ns", "veth-ue2h", "veth-ue2n", "10.99.2.1/30", "10.99.2.2/30"),
         ("ue3ns", "veth-ue3h", "veth-ue3n", "10.99.3.1/30", "10.99.3.2/30"),
     ]:
+        if ns not in needed_netns:
+            continue
         exists = sh(f"ip netns list | grep -q {ns}").returncode == 0
         if not exists:
             sh(f"sudo ip netns add {ns}")
@@ -194,28 +206,26 @@ def restart_native_stack(ts: str) -> bool:
         print("[m41] FATAL: gNB did not come up", file=sys.stderr)
         return False
 
-    launches = [
-        ("ue1", f"sudo ./nr-uesoftmodem -r 106 --numerology 1 --band 78 -C 3619200000 --sa "
-                f"-O {CONF_DIR}/nrUE_slice1.conf --rfsim --rfsimulator.serveraddr 127.0.0.1"),
-        ("ue2", f"sudo ip netns exec ue2ns ./nr-uesoftmodem -r 106 --numerology 1 --band 78 -C 3619200000 --sa "
-                f"-O {CONF_DIR}/nrUE_slice2.conf --rfsim --rfsimulator.serveraddr 10.99.2.1"),
-        ("ue3", f"sudo ip netns exec ue3ns ./nr-uesoftmodem -r 106 --numerology 1 --band 78 -C 3619200000 --sa "
-                f"-O {CONF_DIR}/nrUE_slice3.conf --rfsim --rfsimulator.serveraddr 10.99.3.1"),
-    ]
-    for name, cmd in launches:
+    for slice_id in ("embb", "mmtc", "urllc"):  # fixed order: embb(UE1) first always, matches established practice
+        if slice_id not in slices:
+            continue
+        name, conf, addr, ns = UE_DEF[slice_id]
+        ns_prefix = f"sudo ip netns exec {ns} " if ns else "sudo "
+        cmd = (f"{ns_prefix}./nr-uesoftmodem -r 106 --numerology 1 --band 78 -C 3619200000 --sa "
+               f"-O {CONF_DIR}/{conf} --rfsim --rfsimulator.serveraddr {addr}")
         ue_log = log_dir / f"{name}_m41_{ts}.log"
         sh(f'tmux new-session -d -s {name} -c "{BUILD_DIR}"')
         sh(f'tmux send-keys -t {name} "{cmd} 2>&1 | tee {ue_log}" Enter')
         time.sleep(20)
         if "successfully configured" not in sh(f"cat {ue_log}").stdout:
-            print(f"[m41] FATAL: {name} did not attach", file=sys.stderr)
+            print(f"[m41] FATAL: {name} ({slice_id}) did not attach", file=sys.stderr)
             return False
 
-    checks = {
-        "embb (default netns)": "ping -I oaitun_ue1 -c2 -W2 8.8.8.8",
-        "mmtc (ue2ns)": "sudo ip netns exec ue2ns ping -I oaitun_ue1 -c2 -W2 8.8.8.8",
-        "urllc (ue3ns)": "sudo ip netns exec ue3ns ping -I oaitun_ue1 -c2 -W2 8.8.8.8",
-    }
+    checks = {}
+    for slice_id in slices:
+        _, _, _, ns = UE_DEF[slice_id]
+        prefix = f"sudo ip netns exec {ns} " if ns else ""
+        checks[f"{slice_id} ({ns or 'default netns'})"] = f"{prefix}ping -I oaitun_ue1 -c2 -W2 8.8.8.8"
     ok = True
     for label, check_cmd in checks.items():
         r = sh(check_cmd, timeout=10)
@@ -246,10 +256,11 @@ def get_ue_ip(netns: str | None) -> str:
     return m.group(1) if m else ""
 
 
-def start_traffic(load_mult: float, ts: str) -> dict:
+def start_traffic(load_mult: float, ts: str, slices: set[str] | None = None) -> dict:
+    slices = slices if slices is not None else {"embb", "urllc", "mmtc"}
     log_dir = LOG_ROOT / ts
     log_dir.mkdir(parents=True, exist_ok=True)
-    ue_ips = {"embb": get_ue_ip(None), "mmtc": get_ue_ip("ue2ns"), "urllc": get_ue_ip("ue3ns")}
+    ue_ips = {s: get_ue_ip(UE_DEF[s][3]) for s in slices}
     print(f"[m41] UE IPs: {ue_ips}", file=sys.stderr)
 
     embb_rate = fmt_bitrate_k(SLICE_TRAFFIC["embb"]["bitrate_k"] * load_mult)
@@ -257,17 +268,17 @@ def start_traffic(load_mult: float, ts: str) -> dict:
     mmtc_rate = fmt_bitrate_k(SLICE_TRAFFIC["mmtc"]["bitrate_k"] * load_mult)
 
     cmds = {
-        "embb": f"setsid nohup iperf3 -c 172.22.0.50 -p 5201 -B {ue_ips['embb']} -u -b {embb_rate} "
+        "embb": f"setsid nohup iperf3 -c 172.22.0.50 -p 5201 -B {ue_ips.get('embb')} -u -b {embb_rate} "
                 f"-l 1200 --reverse -t 0 < /dev/null > {log_dir}/embb_traffic.log 2>&1 &",
-        "urllc": f"setsid nohup sudo ip netns exec ue3ns iperf3 -c 172.22.0.50 -p 5202 -B {ue_ips['urllc']} "
+        "urllc": f"setsid nohup sudo ip netns exec ue3ns iperf3 -c 172.22.0.50 -p 5202 -B {ue_ips.get('urllc')} "
                  f"-u -b {urllc_rate} -l 100 --reverse -t 0 < /dev/null > {log_dir}/urllc_traffic.log 2>&1 &",
         "mmtc": (f"setsid nohup sudo ip netns exec ue2ns bash -c \""
-                 f"while true; do iperf3 -c 172.22.0.50 -p 5203 -B {ue_ips['mmtc']} -u -b {mmtc_rate} "
+                 f"while true; do iperf3 -c 172.22.0.50 -p 5203 -B {ue_ips.get('mmtc')} -u -b {mmtc_rate} "
                  f"-l 80 --reverse -t 2 >> {log_dir}/mmtc_traffic.log 2>&1; sleep 6; done"
                  f"\" < /dev/null > /dev/null 2>&1 &"),
     }
-    for slice_id, cmd in cmds.items():
-        sh(cmd + " disown -a")
+    for slice_id in slices:
+        sh(cmds[slice_id] + " disown -a")
     time.sleep(3)
     return ue_ips
 
@@ -432,7 +443,8 @@ def orchestrate(args) -> int:
     # (First live attempt of this script got this ordering backwards; fixed
     # here after that attempt's own TimeoutExpired traceback made the cause
     # obvious.)
-    bringup_ok = restart_native_stack(ts)
+    slices = set(args.slices.split(",")) if args.slices else {"embb", "urllc", "mmtc"}
+    bringup_ok = restart_native_stack(ts, slices)
     row["bringup_ok"] = bringup_ok
     if not bringup_ok:
         teardown(None, ts)
@@ -449,7 +461,7 @@ def orchestrate(args) -> int:
     probe_proc = None
     reached_probe_launch = False
     try:
-        start_traffic(args.load_mult, ts)
+        start_traffic(args.load_mult, ts, slices)
         print("[m41] traffic launched, 30s pre-gate stabilization window...", file=sys.stderr)
         time.sleep(30)
 
@@ -476,12 +488,12 @@ def orchestrate(args) -> int:
             return 1
         ts2 = time.strftime("%Y%m%d_%H%M%S")
         row["ts"] = ts2
-        bringup2_ok = restart_native_stack(ts2)
+        bringup2_ok = restart_native_stack(ts2, slices)
         if not bringup2_ok:
             row.update(survived=False, onset_reason="post_gate_bringup_failed")
             write_manifest_row(row)
             return 1
-        start_traffic(args.load_mult, ts2)
+        start_traffic(args.load_mult, ts2, slices)
         print("[m41] post-gate fresh stack up, traffic launched, 30s settle before the probe...",
               file=sys.stderr)
         time.sleep(30)
@@ -496,11 +508,8 @@ def orchestrate(args) -> int:
         if not reached_probe_launch:
             teardown(probe_proc, ts)
 
-    ue_logs = {
-        "embb": RIG / f"experiments/logs/ue1_m41_{ts}.log",
-        "mmtc": RIG / f"experiments/logs/ue2_m41_{ts}.log",
-        "urllc": RIG / f"experiments/logs/ue3_m41_{ts}.log",
-    }
+    ue_log_names = {"embb": "ue1", "mmtc": "ue2", "urllc": "ue3"}
+    ue_logs = {s: RIG / f"experiments/logs/{ue_log_names[s]}_m41_{ts}.log" for s in slices}
     retx_seen: dict = {}
     for lp in ue_logs.values():
         tail_new_retx(lp, retx_seen)  # baseline, so pre-probe retx (should be 0) doesn't count against us
@@ -535,9 +544,7 @@ def orchestrate(args) -> int:
 
             if int(elapsed) // 10 > last_log_tick:
                 last_log_tick = int(elapsed) // 10
-                loss = {
-                    "embb": check_loss(None), "mmtc": check_loss("ue2ns"), "urllc": check_loss("ue3ns"),
-                }
+                loss = {s: check_loss(UE_DEF[s][3]) for s in slices}
                 evidence = latest_omega_evidence(RESULTS_ROOT / args.condition_label / "omega_log.jsonl")
                 ram_mb = ram_available_mb()
                 tick = {
@@ -664,6 +671,11 @@ def build_argparser() -> argparse.ArgumentParser:
     ap.add_argument("--role", choices=["orchestrator", "probe"], default="orchestrator")
     ap.add_argument("--condition-label", default=None)
     ap.add_argument("--load-mult", type=float, default=1.0)
+    ap.add_argument("--slices", default=None,
+                     help="comma-separated subset of embb,urllc,mmtc to attach and traffic-load "
+                          "(default: all 3). E.g. --slices embb for a true single-UE condition -- "
+                          "distinct from --load-mult, which scales bitrate but never changes how "
+                          "many UEs are actually RRC-attached.")
     ap.add_argument("--write-interval-s", type=float, default=1.0)
     ap.add_argument("--write-mode", choices=["normal", "static"], default="normal")
     ap.add_argument("--write-magnitude-cap", type=int, default=None,
