@@ -211,14 +211,31 @@ def restart_native_stack(ts: str) -> bool:
             print(f"[m41] FATAL: {name} did not attach", file=sys.stderr)
             return False
 
+    checks = {
+        "embb (default netns)": "ping -I oaitun_ue1 -c2 -W2 8.8.8.8",
+        "mmtc (ue2ns)": "sudo ip netns exec ue2ns ping -I oaitun_ue1 -c2 -W2 8.8.8.8",
+        "urllc (ue3ns)": "sudo ip netns exec ue3ns ping -I oaitun_ue1 -c2 -W2 8.8.8.8",
+    }
     ok = True
-    for check_cmd in [
-        "ping -I oaitun_ue1 -c2 -W2 8.8.8.8",
-        "sudo ip netns exec ue2ns ping -I oaitun_ue1 -c2 -W2 8.8.8.8",
-        "sudo ip netns exec ue3ns ping -I oaitun_ue1 -c2 -W2 8.8.8.8",
-    ]:
-        if sh(check_cmd, timeout=10).returncode != 0:
-            ok = False
+    for label, check_cmd in checks.items():
+        r = sh(check_cmd, timeout=10)
+        if r.returncode != 0:
+            # One retry after a short grace period before declaring failure --
+            # this exact check previously failed completely silently (no
+            # diagnostic at all), got misread as a mysterious silent crash,
+            # and turned out to be this single unlogged branch. A transient
+            # post-restart ARP/route settle time is plausible at the pace
+            # this sweep runs at; a genuine failure will still fail the retry.
+            print(f"[m41] WARNING: connectivity check failed for {label}, "
+                  f"retrying once after 5s -- output: {r.stdout!r} {r.stderr!r}", file=sys.stderr)
+            time.sleep(5)
+            r2 = sh(check_cmd, timeout=10)
+            if r2.returncode != 0:
+                print(f"[m41] FATAL: connectivity check failed twice for {label} -- "
+                      f"output: {r2.stdout!r} {r2.stderr!r}", file=sys.stderr)
+                ok = False
+            else:
+                print(f"[m41] {label} connectivity OK on retry", file=sys.stderr)
     return ok
 
 
