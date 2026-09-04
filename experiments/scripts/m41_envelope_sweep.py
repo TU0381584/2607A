@@ -109,8 +109,24 @@ def run_pid_kill(pids) -> None:
 # Orchestrator role
 # ---------------------------------------------------------------------------
 
-def ensure_docker_core() -> bool:
+def ensure_docker_core(force_fresh: bool = False) -> bool:
     print("[m41] ensuring Docker core is up...", file=sys.stderr)
+    if force_fresh:
+        # The gate's own PIN phase drives real traffic-relayed backlog to
+        # 10M+ units through the live UPF/SMF/AMF containers. A native-only
+        # stack restart (gNB/UEs) never touches these -- if the gate leaves
+        # residual state in the core itself (conntrack, GTP-U tunnel
+        # buffers) that a native restart can't clear, every condition run
+        # after the first gate would inherit it. C1 and C2 both failing at
+        # the identical t=10s onset, far faster than clean combined-traffic
+        # baselines recorded earlier in this project's own M38 investigation
+        # (100+s), is exactly the symptom this would produce. down+up forces
+        # genuinely fresh container instances; the subscriber DB survives
+        # (named volume), so no reprovisioning is needed after.
+        print("[m41] forcing a full Docker core cycle (down+up) for a genuinely clean core...",
+              file=sys.stderr)
+        sh(f"cd {RIG}/docker_open5gs && docker compose -f 5g-sa-deploy-slicing.yaml down", timeout=60)
+        time.sleep(3)
     r = sh(f"cd {RIG}/docker_open5gs && docker compose -f 5g-sa-deploy-slicing.yaml up -d", timeout=60)
     if r.returncode != 0:
         print(f"[m41] FATAL: docker compose up failed: {r.stderr}", file=sys.stderr)
@@ -415,9 +431,14 @@ def orchestrate(args) -> int:
               "and this rig's own already-documented behavior (M8) is that this backlog "
               "does NOT drain back down within the gate's 30-poll restore window (confirmed "
               "directly: this run's own recovery mean == pinned max, unchanged). Doing a "
-              "full fresh restart now so the actual measured condition starts from a clean "
-              "slate, not from gate-damaged state.", file=sys.stderr)
+              "full fresh restart (native stack AND Docker core) now so the actual measured "
+              "condition starts from a genuinely clean slate.", file=sys.stderr)
         teardown(None, ts)
+        core_fresh_ok = ensure_docker_core(force_fresh=True)
+        if not core_fresh_ok:
+            row.update(survived=False, onset_reason="post_gate_core_cycle_failed")
+            write_manifest_row(row)
+            return 1
         ts2 = time.strftime("%Y%m%d_%H%M%S")
         row["ts"] = ts2
         bringup2_ok = restart_native_stack(ts2)
