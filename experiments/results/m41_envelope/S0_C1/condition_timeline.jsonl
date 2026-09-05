@@ -1,0 +1,1 @@
+{"t": 10.032258965999972, "loss_pct": {"embb": 100.0, "mmtc": 100.0, "urllc": 100.0}, "ram_available_mb": 1370.0, "sla_margin": {"urllc": -39.2, "embb": -369.2, "mmtc": 0.9999977533789206}, "ceilings": {"gnb-0:urllc": {"min_ratio": 1, "max_ratio": 3}, "gnb-0:embb": {"min_ratio": 1, "max_ratio": 2}, "gnb-0:mmtc": {"min_ratio": 1, "max_ratio": 1}}}
