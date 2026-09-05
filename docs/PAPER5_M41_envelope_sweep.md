@@ -337,3 +337,98 @@ log `SL_sched[i].{min_prbs,max_prbs}` per slot for ~15s around a
 single-write test and confirm UL vs DL direction on the failing DRB,
 to observe the mechanism directly rather than continue reasoning about
 it from static code or ruling out candidates one at a time.
+
+## Root cause found: config ratio scale vs. the scheduler's hard PRB floor
+
+Pursued the runtime instrumentation directly. Added wall-clock-timestamped
+`M41DBG` logging (temporary, not yet reverted) at four points: the E2
+write itself (`apply_slicing_ctrl()`), `dl_sched_unit()`'s per-slot
+`SL_sched[i].{min_prbs,max_prbs}` both pre- and post-`pf_dl_slice()`
+(rate-limited to every 20th call), and RLC's `retx_count` ramp-up at
+both increment sites plus the terminal `max_retx_reached()` call.
+Rebuilt `nr-softmodem`+`nr-uesoftmodem` clean. Ran one minimal capture
+(`experiments/scripts/m41_diag_single_write.py`, new, diagnostic-only,
+not an envelope-sweep condition -- no gate, no manifest row, since
+neither is relevant to a single mechanism-diagnosis capture): 3-UE,
+native load, `write_mode=static` (one write per slice, ever), 40s
+window, gNB and UE processes on the same host clock so wall-clock
+timestamps line up directly across both logs.
+
+**Confirmed mechanism, three independent ways:**
+
+1. **Live instrumentation.** The single write landed at
+   `t=1788605959.41` with `(min_ratio,max_ratio)` = `(1,1)` for mmtc,
+   `(1,2)` for embb, `(1,2)` for urllc. Immediately after, `SL_sched`'s
+   computed ceiling for every one of the three real slices
+   (`n_rb_sched_init=106`) was `max_prbs` = 1 or 2 raw PRBs -- and
+   stayed there, sampled every ~15ms for the full 40s window. The
+   *actual usage* (`pf_dl_slice`'s post-call `min_prbs`) was 0 in
+   **15,104/15,150** samples for mmtc and **14,536/15,150** for urllc
+   post-write (the ~600-normal count non-zero samples were all exactly
+   5-6 PRBs, matching HARQ retransmission grants, which structurally
+   bypass the slice ceiling -- not new-transmission scheduling).
+   Pre-write, the same slices scheduled freely (up to 70+ PRBs/slot).
+2. **Source-level confirmation.** `pf_dl_slice()`'s scheduling loop
+   (`gNB_scheduler_dlsch.c:1061`) guards on
+   `n_rb_remain_s >= min_rbSize` where `min_rbSize=5` (line 1058) and
+   `n_rb_remain_s` starts from the slice's own `max_prbs`. With
+   `max_prbs` in {1,2}, this guard is false on function entry --  the
+   loop body (the only new-transmission scheduling path) never
+   executes, not even once. This isn't a race or an uninitialized
+   read; it's a plain, deterministic guard-clause miss.
+3. **Config-level confirmation.** `saclb_live.yaml`'s per-slice ratios
+   (as % of the ~106-PRB carrier): urllc `nominal=3/floor=1/cap=3`,
+   embb `nominal=3/floor=1/cap=4`, mmtc `nominal=2/floor=1/cap=3`.
+   Every single value in every slice's *entire configured range* --
+   floor through cap -- converts to 1-4 raw PRBs, which is *always*
+   below the scheduler's 5-PRB floor. This isn't a bad policy decision
+   landing on a bad value; there is no good value available anywhere
+   in this config's range. The file's own header comments show this
+   was a deliberate, documented calibration against measured live
+   traffic (avg ~5.17 PRB/UE demand) -- but never cross-checked
+   against the gNB's own hard-coded minimum grant size, which lives in
+   C source three layers away from the YAML and was never read
+   against these numbers until this session's investigation.
+
+**Why this explains everything observed across the entire M41/M36-M40
+history:** any live control write -- the very first one, regardless of
+what triggered it (policy reject-decision, static single-send, or a
+plain reset-time default) -- applies a ratio from this range. The
+instant it lands, the affected slice's new-transmission DL scheduling
+stops completely (confirmed: ~100% zero-PRB usage post-write). Without
+DL grants, the gNB can't deliver the STATUS-PDU/ACK traffic the UE's
+own RLC AM sender is waiting on, so `retx_count` climbs every
+~90-100ms until it clears `max_retx_threshold=32` -- 6.9s for mmtc, 20.9s
+for embb, and urllc still climbing at capture end (+29s), in this
+capture; timing differences reflect each slice's pre-existing buffered
+margin, not different starvation severity (all three were equally at
+~0 PRBs). This is independent of write cadence (a single static write
+is sufficient -- matches every C2/S1/magnitude-cap test that failed
+identically), independent of magnitude (there is no "small enough"
+write in this config's range to avoid it), and independent of the
+`get_ue_list()`/`apply_slicing_ctrl()` lock fixes (neither touches
+what ratio gets chosen or what the floor is). Write-free baselines run
+clean indefinitely because no control write ever applies any ratio
+from this range at all -- ceilings stay at their generous compiled-in
+defaults (`min=0,max=100`).
+
+**The uninitialized `SL_sched[0]` bug from the Op B investigation is
+independently re-confirmed live** (`sid=0`'s first sampled ceiling
+line this run: `min_prbs=1465999376`, clearly garbage stack memory) --
+consistent with the skeptics' verdict that it's real but unconditional
+and unrelated to this failure (`sid=0` has no attached UE; its garbage
+value is inert here).
+
+**Recommended fix, not yet applied:** raise `min_ratio_floor` (and
+ideally `nominal_ratio`) in `saclb_live.yaml` for all three slices to
+at least ~5 PRBs' worth (on a 106-PRB carrier, roughly 5%, with margin
+for rounding -- e.g. 6-8%) so no value in the configured range can
+land below the scheduler's hard floor. This is a config change, not a
+source change, and it touches the ratio scale that produced the M8
+live-anchor numbers already discussed in the manuscript -- deliberately
+not applied without sign-off, since it's a substantive recalibration
+decision, not an obvious bug fix. The M41DBG instrumentation
+(gNB_scheduler_dlsch.c, nr_rlc_entity_am.c, nr_rlc_oai_api.c,
+e2_message_handlers.c) is left in place, not yet reverted, pending a
+decision on whether to keep it for a confirmation retest after any
+config change.
