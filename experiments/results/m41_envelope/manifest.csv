@@ -14,3 +14,6 @@ S1_magcap1,1.0,1.0,normal,1,300.0,20260904_134402,True,True,False,,post_gate_bri
 S1_magcap1,1.0,1.0,normal,1,300.0,20260904_135217,True,True,False,10.0,"100pct_loss:{'embb': 100.0, 'mmtc': 100.0, 'urllc': 100.0}",21.4,TODO(MEASURE),TODO(MEASURE)
 S2_embb_alone,1.0,1.0,normal,,300.0,20260904_153940,False,True,False,,gate_failed,,TODO(MEASURE),TODO(MEASURE)
 S2_embb_alone_hiload,5.0,1.0,normal,,300.0,20260904_154857,True,True,False,10.0,100pct_loss:{'embb': 100.0},15.3,TODO(MEASURE),TODO(MEASURE)
+postfix_S0_C1_retest,1.0,1.0,normal,,300.0,20260905_104650,,False,False,,bringup_failed,,TODO(MEASURE),TODO(MEASURE)
+postfix_S0_C1_retest_v2,1.0,1.0,normal,,300.0,20260905_105451,True,True,False,2.0,probe_exited_early,4.2,TODO(MEASURE),TODO(MEASURE)
+postfix_S0_C1_retest_v3,1.0,1.0,normal,,300.0,20260905_110304,True,True,False,10.0,"100pct_loss:{'urllc': 100.0, 'mmtc': 100.0, 'embb': 100.0}",21.5,TODO(MEASURE),TODO(MEASURE)

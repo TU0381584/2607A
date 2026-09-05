@@ -263,3 +263,77 @@ around it black-box (this project's own earlier, non-M41 investigation
 already proposed this and did not pursue it). Awaiting direction on
 either, or to close this out and write the empty-envelope result into
 the manuscript as-is.
+
+## Source-reading investigation (Op B) and the `get_ue_list()` fix retest
+
+Pursued thread (2) above via a multi-agent source-reading investigation
+(4 parallel surveys of the RLC/MAC scheduler and E2 write paths, 1
+synthesis, 3 independent adversarial skeptics) rather than continuing
+to screen the failure black-box.
+
+**Leading hypothesis produced (not confirmed):** an uninitialized-stack
+read of `SL_sched[0]` in `dl_sched_unit()` (`gNB_scheduler_dlsch.c:1506`
+inits from `i=1` while the real read/subtract loop at `:1514` starts at
+`i=0`, on a non-zeroed VLA post-qsort), combined with a floor-less
+cross-slice `min_prbs` subtraction in `pf_dl_slice()` and the hard
+5-PRB scheduling cliff, chained through RLC's own 32-retry/45ms budget.
+
+**Adversarial verification: refuted.** 2 of 3 skeptics traced that this
+bug is unconditional on `dl_num_slice >= 2` (always true) and would
+fire every slot regardless of whether any E2 write ever happened --
+directly contradicting the established fact that write-free
+traffic-only baselines run clean for 60-300+ seconds. The 3rd found
+that in the exact single-UE case, `SL_sched[0]`'s garbage value gets
+overwritten with real usage data before the real slice ever reads it --
+the mechanism doesn't survive tracing even for the case it targeted.
+
+**A second, distinct finding did survive:** `get_ue_list()`
+(`e2_message_handlers.c:324-418`) took no lock at all on live MAC
+scheduler state (`UE_info.mutex`/`sched_lock`), unlike its sibling
+`set_gbr_ue()`. It runs on the E2 agent's own real-time thread and
+fires on every single `poll()` -- the only candidate mechanism whose
+trigger condition actually matches "as long as the control loop
+exists." Flagged explicitly as a **hypothesis**, not proven: torn UE
+telemetry returned to the RL policy could drive a bad-but-plausible
+ceiling write via the now-correctly-locked `apply_slicing_ctrl()`.
+
+**Fix applied and retested live.** Locked `get_ue_list()`'s full
+critical section (list-count through field population) under
+`sched_lock` then `UE_info.mutex`, matching the double-lock convention
+already established by `dump_mac_stats()`/`mac_remove_nr_ue()`
+elsewhere in this codebase. `nr-softmodem` rebuilt clean via `ninja`.
+Retested with S0_C1's exact parameters (3-UE, native load, 1s write
+cadence, 300s) for a clean before/after comparison against the
+documented pre-fix baseline.
+
+(Two of my own operational mistakes contaminated the first two retest
+attempts before a clean run: a botched shell backgrounding launched a
+second, orphaned orchestrator that raced the deliberate one over the
+same tmux sessions -- caught and killed; then a launch using the
+system `python3` instead of the project's venv crashed the probe
+subprocess on `import numpy` in ~2s. Neither reached the actual
+control loop; both are noted here for the record, not folded into the
+result.)
+
+**Result: unchanged.** `postfix_S0_C1_retest_v3` failed at the
+identical t=10.0s onset, identical 100%-loss-across-all-three-slices
+signature, and the gNB-side stats show `dlsch_errors`/`ulsch_errors`
+near zero throughout (PHY healthy) while all three UE-side logs show
+the same `[RLC] max RETX reached on DRB 1` — matching every prior
+condition in this sweep exactly. **The `get_ue_list()` lock fix is a
+real, independently-justified correctness improvement (kept), but it
+does not explain or resolve this failure.** This directly rules out
+the lock-race hypothesis via a live test, joining CPU governor,
+scheduling contention, Docker-core residual state, write cadence,
+offered load, and write magnitude as ruled-out explanations.
+
+**Status after this thread:** every mechanism proposed so far --
+black-box (cadence/load/magnitude/UE-count) and now white-box
+(scheduler PRB-accounting bugs, E2 lock gaps) -- has either been
+directly ruled out by a live test or failed adversarial verification
+against the code. The empty envelope stands. The synthesis's own
+recommended next step, not yet pursued, is runtime instrumentation:
+log `SL_sched[i].{min_prbs,max_prbs}` per slot for ~15s around a
+single-write test and confirm UL vs DL direction on the failing DRB,
+to observe the mechanism directly rather than continue reasoning about
+it from static code or ruling out candidates one at a time.
