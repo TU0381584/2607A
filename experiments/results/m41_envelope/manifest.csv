@@ -19,3 +19,8 @@ postfix_S0_C1_retest_v2,1.0,1.0,normal,,300.0,20260905_105451,True,True,False,2.
 postfix_S0_C1_retest_v3,1.0,1.0,normal,,300.0,20260905_110304,True,True,False,10.0,"100pct_loss:{'urllc': 100.0, 'mmtc': 100.0, 'embb': 100.0}",21.5,TODO(MEASURE),TODO(MEASURE)
 postfix_configfix_S0_C1_retest,1.0,1.0,normal,,300.0,20260905_195139,True,True,False,191.9,"100pct_loss:{'mmtc': 0.0, 'urllc': 0.0, 'embb': 100.0}",201.4,TODO(MEASURE),TODO(MEASURE)
 postfix_configfix_S0_C1_retest_v2,1.0,1.0,normal,,300.0,20260905_200444,True,True,True,,,302.8,TODO(MEASURE),TODO(MEASURE)
+postfix_S0_C2_retest,1.0,1.0,static,,300.0,20260905_202922,True,True,True,,,303.9,TODO(MEASURE),TODO(MEASURE)
+postfix_S1_cadence5s,1.0,5.0,normal,,300.0,20260905_204219,True,True,True,,,303.6,TODO(MEASURE),TODO(MEASURE)
+postfix_S1_cadence30s,1.0,30.0,normal,,300.0,20260905_205459,True,True,True,,,303.5,TODO(MEASURE),TODO(MEASURE)
+postfix_S1_load0.5,0.5,1.0,normal,,300.0,20260905_210722,True,True,True,,,303.3,TODO(MEASURE),TODO(MEASURE)
+postfix_S1_load0.25,0.25,1.0,normal,,300.0,20260905_211958,True,True,True,,,302.9,TODO(MEASURE),TODO(MEASURE)

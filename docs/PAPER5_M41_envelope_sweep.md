@@ -491,3 +491,55 @@ tested against sustained high-reject-rate conditions the way this
 retest happened to explore only somewhat. `Lmax=10`'s own calibration
 (tuned against the pre-fix 1-2 PRB/step deficit scale) has not been
 revisited against the new, 6x-larger PRB quotas either.
+
+## GATE S0 and GATE S1 re-run post-fix: the envelope is full, not empty
+
+The original GATE S0/S1 screen (this doc's earlier sections) was run
+entirely on the miscalibrated config and its "empty envelope" result is
+now known to be an artifact of that bug, not a finding about the live
+control loop. Re-ran the identical protocol -- same conditions, same
+300s duration, same standard `m41_envelope_sweep.py` harness with its
+full gate+fresh-restart ritual -- with the fix in place, to get the
+real answer.
+
+| Axis | Value | Result (pre-fix) | Result (post-fix) |
+|---|---|---|---|
+| cadence (mult=1.0) | interval=1s (C1) | FAIL @10.0s | **SURVIVED, 0% loss, 0 RETX** |
+| write mode (mult=1.0, native) | static (C2) | FAIL @10.0s | **SURVIVED, 0% loss, 0 RETX** |
+| cadence (mult=1.0) | interval=5s | FAIL @10.0s | **SURVIVED, 0% loss, 0 RETX** |
+| cadence (mult=1.0) | interval=30s | FAIL @10.0s | **SURVIVED, 0% loss, 0 RETX** |
+| load (interval=1s) | mult=0.5 | FAIL @10.0s | **SURVIVED, 0% loss, 0 RETX** |
+| load (interval=1s) | mult=0.25 | FAIL @10.0s | **SURVIVED, 0% loss, 0 RETX** |
+
+**6/6 conditions survive the full 300s with zero packet loss at every
+checkpoint and zero RLC `retx_inc`/`max RETX reached` events on any of
+the three UEs** (confirmed directly against the UE-side logs for every
+condition, not inferred from the ping-based check alone). Manifest
+rows: `postfix_S0_C1_retest_v2`, `postfix_S0_C2_retest`,
+`postfix_S1_cadence5s`, `postfix_S1_cadence30s`, `postfix_S1_load0.5`,
+`postfix_S1_load0.25`, all `survived=True`.
+
+**This inverts the original GATE S1 conclusion entirely.** The prior
+"envelope empty at every level tested, no survivor anywhere" was
+correct as a description of what the miscalibrated config did, but
+wrong as a statement about this rig's live control loop, which was
+never actually under test -- every condition was failing on the same
+below-floor scheduling bug regardless of the axis being varied. With
+that bug fixed, the SAME grid comes back fully survived, not "somewhat
+better." There is no partial result here worth hedging on.
+
+**GATE S2 does not apply in its originally-planned form.** The
+external review's plan gated S2 behind "a promising region" identified
+by S1 -- meaningless now that all of S1 survived outright rather than
+identifying a narrow surviving pocket to refine. Two different framings
+of "what next" are both reasonable and not yet decided: (a) treat
+full-envelope survival at every originally-planned test point as
+sufficient and stop the sweep here, since the axes/values in this grid
+were chosen to characterize the old bug, not to find this fixed
+system's true limits; or (b) push the axes past their original range
+(higher load multipliers, faster cadence, larger simultaneous UE
+counts) specifically to find where the real boundary of this rig's
+live control loop now sits, which is arguably the more scientifically
+useful question now that the artifact is gone. Not decided
+unilaterally -- flagging per this investigation's own established
+practice of asking before extending scope on live-hardware testing.
