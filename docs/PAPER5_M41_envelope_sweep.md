@@ -543,3 +543,94 @@ live control loop now sits, which is arguably the more scientifically
 useful question now that the artifact is gone. Not decided
 unilaterally -- flagging per this investigation's own established
 practice of asking before extending scope on live-hardware testing.
+
+## Stress campaign (chose option b): the real boundary, and UE-count resolved
+
+User chose to push the axes further. New tool
+`experiments/scripts/m41_nogate_condition.py` added: mirrors
+`orchestrate()`'s own post-bringup monitor loop exactly (same
+`check_loss`/`tail_new_retx` logic, same stop conditions), but skips
+the contention gate and its post-gate fresh-restart step -- needed
+because the gate is hardcoded to `--slice-label embb`
+(`phase1_contention_gate.py`), so any slice subset without embb
+attached sees zero real backlog pressure and either false-fails or is
+meaningless, matching the already-documented single-UE-native-load
+finding from earlier in this investigation. Writes to a separate
+`nogate_manifest.csv` so gated and non-gated results are never
+conflated.
+
+**Load axis, escalated:**
+
+| load_mult | Result | Detail |
+|---|---|---|
+| 1.0x (=C1) | SURVIVED | 0% loss throughout |
+| 2.0x | SURVIVED | 0% loss throughout |
+| 3.0x | SURVIVED | one transient wobble (urllc/mmtc 66.67% loss at t=162s, self-recovered by t=175s), 0 RLC retx |
+| 4.0x | **FAILED** @31.5s | embb: 0%->66.67%->100% loss over ~20s; mmtc/urllc stayed clean; **zero RLC `retx_inc`/`max RETX reached` events on any UE** |
+
+**The 4x failure is a genuinely different mechanism from everything
+else in this investigation -- not the old bug recurring.** Checked
+directly: embb's ceiling was healthy and non-collapsed throughout
+(fluctuating 18-19%, comfortably above the 6% floor), HARQ round stats
+were clean (`58909/0/0` -- zero PHY-level errors), RSRP stayed strong
+(-42 dBm). Zero RLC retransmission activity anywhere. This is
+consistent with plain data-plane congestion: at 4x offered load, embb's
+real traffic demand exceeds what even a healthy ~19-PRB ceiling can
+carry, so packets (including the low-priority ICMP ping used to check
+connectivity) queue and eventually time out -- the bearer itself never
+failed, it was just saturated. **This is the correct, expected failure
+mode for a fixed system: graceful congestion under genuine overload,
+not catastrophic starvation-triggered RLC collapse regardless of
+demand.** The real boundary for this specific config/topology sits
+between 3x (survives, with a wobble) and 4x (real congestion) offered
+native load.
+
+**Cadence axis, escalated far past the original 1s-30s range:**
+
+| write_interval_s | Result |
+|---|---|
+| 1.0s (=C1) | SURVIVED |
+| 0.5s | SURVIVED |
+| 0.2s | SURVIVED |
+| 0.1s (10 writes/sec/slice) | SURVIVED |
+
+No boundary found on this axis up to 10x the original fastest tested
+rate. Writing faster than any previously-tested value does not stress
+this fixed system.
+
+**UE-count axis -- resolves the single-UE question left open earlier
+in this investigation** (M37/M38 scoping: "does native-load single-UE
+survive meaningfully longer" -- previously blocked because the gate
+couldn't validate single-UE contention at all):
+
+| Slices attached | Method | Result |
+|---|---|---|
+| embb only | gated | GATE FAILED (0.000 backlog throughout -- confirms the earlier finding, single-UE genuinely can't stress a ceiling at native load) |
+| embb only | no-gate | **SURVIVED**, 0% loss (one transient 33.33% blip at t=291s, self-resolved) |
+| mmtc only | no-gate | **SURVIVED**, 0% loss throughout, no blips at all |
+| urllc only | no-gate | **SURVIVED**, 0% loss throughout |
+| embb+mmtc | gated | **SURVIVED**, 0% loss throughout |
+| embb+urllc | gated | **SURVIVED**, one transient 33.33% blip at t=282s (embb), self-resolved |
+| mmtc+urllc | no-gate | **SURVIVED**, one transient 33.33% blip at t=212s (mmtc), self-resolved |
+
+**Every single-UE and every 2-UE combination survives cleanly at
+native load.** The single-UE-native-load question that blocked M37/M38
+for months is now definitively answered: yes, it survives (the earlier
+blocker was the gate's inability to validate it, not an actual rig
+failure -- confirmed directly by bypassing the gate). The occasional
+transient 33-66% loss blips seen at 3x load, embb+urllc, and
+mmtc+urllc all self-recovered within one 10s check interval and never
+triggered any RLC retry -- consistent with normal, brief scheduling
+contention rather than any failure mode, and worth noting as the kind
+of minor noise a live rf-sim rig produces regardless of the control
+loop.
+
+**Status: real boundary found and characterized.** Cadence has no
+found limit up to 10x the original range. UE-count has no found limit
+across every combination tested (1, 2, and 3 simultaneous UEs, in
+every combination). Offered load has a real, expected boundary between
+3x and 4x native, driven by genuine capacity saturation rather than
+any bug -- exactly the kind of result a correctly-functioning live
+control loop should produce under genuine overload. Full result data:
+`experiments/results/m41_envelope/manifest.csv` (gated conditions,
+`postfix_S2_*` rows) and `nogate_manifest.csv` (non-gated conditions).

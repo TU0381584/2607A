@@ -1,0 +1,5 @@
+condition_label,slices,load_mult,write_interval_s,write_mode,duration_s_target,ts,bringup_ok,survived,onset_s,onset_reason,elapsed_s
+postfix_nogate_embb_only,embb,1.0,1.0,normal,300.0,20260905_231344,True,True,,,304.0
+postfix_nogate_mmtc_only,mmtc,1.0,1.0,normal,300.0,20260905_232136,True,True,,,304.1
+postfix_nogate_urllc_only,urllc,1.0,1.0,normal,300.0,20260905_232914,True,True,,,302.4
+postfix_nogate_mmtc_urllc,"mmtc,urllc",1.0,1.0,normal,300.0,20260906_000044,True,True,,,302.6
