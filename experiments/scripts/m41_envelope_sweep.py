@@ -324,18 +324,26 @@ def tail_new_retx(log_path: Path, seen: dict) -> int:
 def check_loss(netns: str | None) -> float:
     prefix = f"sudo ip netns exec {netns} " if netns else ""
     r = sh(f"{prefix}ping -I oaitun_ue1 -c3 -W1 8.8.8.8", timeout=8)
-    m = re.search(r"([+-]?\d+)% packet loss", r.stdout)
+    # Real bug found 2026-09-05: ping prints a DECIMAL percentage whenever
+    # the received count isn't a clean fraction of the sent count (e.g. 1/3
+    # or 2/3 packets -> "66.6667% packet loss"). The old pattern
+    # r"([+-]?\d+)% packet loss" has no \. in its digit class, so \d+ can't
+    # cross the decimal point -- re.search then matches the FIRST place a
+    # bare digit run sits immediately before "%", which is the post-decimal
+    # digits ("6667"), not the real value (66.6667). This produced the
+    # previously-observed "anomalous 6667%" readings, which got clamped to
+    # 100 (assumed to be a duplicate-reply artifact on an already-broken
+    # link) -- but at least once (the postfix_configfix_S0_C1_retest run)
+    # this fired on a genuine partial-loss reading (1 of 3 received, high
+    # latency) that the clamp then misreported as complete 100% loss,
+    # which would have looked identical to the real RLC-exhaustion failure
+    # this whole investigation was chasing. Fixed to capture the full
+    # decimal value.
+    m = re.search(r"([+-]?\d+(?:\.\d+)?)% packet loss", r.stdout)
     if not m:
         return 100.0
     raw = float(m.group(1))
     if raw < 0 or raw > 100:
-        # Observed once live: a badly bouncing link can make ping report a
-        # nonsensical value here (e.g. "6667%") -- almost certainly a
-        # duplicate-reply artifact on a link that's failing anyway. Clamp
-        # rather than propagate a meaningless number into logged data; the
-        # link is unambiguously broken either way (real loss or duplicate
-        # storm both mean "not usable"), so clamping to 100 loses no
-        # decision-relevant information, only a bogus digit.
         print(f"[m41] WARNING: anomalous ping loss reading {raw}% (netns={netns}), "
               f"clamping to 100 -- raw output: {r.stdout!r}", file=sys.stderr)
         return 100.0

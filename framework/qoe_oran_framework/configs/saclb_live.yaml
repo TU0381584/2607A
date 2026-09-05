@@ -99,13 +99,41 @@ gnbs:
 # same values, wrong meaning. Kept identical order to remove that risk
 # entirely rather than rely on an assumption about the iteration order
 # not mattering.
+#
+# 2026-09-05: RECALIBRATED again -- the 2026-07-14 tuning above (nominal
+# 3/3/2, floor 1/1/1, cap 3/4/3) is the confirmed root cause of every
+# live RLC max-RETX failure investigated across M36-M41 (see
+# docs/PAPER5_M41_envelope_sweep.md's "Root cause found" section for the
+# full live+source+config triangulation). At B~106 real PRBs, EVERY value
+# in that entire range -- floor through cap, for all three slices --
+# converts to 1-4 raw PRBs, and gNB_scheduler_dlsch.c's pf_dl_slice()
+# hard-guards new-transmission scheduling on
+# `n_rb_remain_s >= min_rbSize` where min_rbSize=5: any ceiling in the
+# old range fails that guard on entry, so the affected slice gets zero
+# DL PRBs for as long as the ceiling holds, which starves the DL-side
+# STATUS/ACK delivery an AM RLC sender depends on and exhausts its
+# 32-retry budget within seconds. The 2026-07-14 tuning was measured
+# carefully against real live PRB demand (avg 5.17, max 12.00 for embb)
+# but never cross-checked against this scheduler constant, which lives
+# in C source no prior session had read against these numbers.
+# Uniformly scaled every nominal/floor/cap value below by 6x (not
+# re-derived from scratch) so the *floor* alone already clears the hard
+# minimum with a full PRB of margin (106*6% = 6.36 -> 6 PRBs) while
+# preserving every proportion the 2026-07-14 measurement established
+# (same relative nominal:floor:cap ratios per slice, same relative
+# scale across slices). ceiling_step_ratio (below, in arrivals:) is left
+# at 1 unchanged -- with the range now 6x wider, the same per-decision
+# step size means many more consecutive same-direction decisions are
+# needed to walk a ceiling back down to the floor, which independently
+# reduces exposure to the single-step batch-collapse mechanism
+# documented in action_mapping.py's apply().
 slices:
   - slice_id: urllc
     sst: 1
     sd: 1
-    nominal_ratio: 3
-    min_ratio_floor: 1
-    max_ratio_cap: 3  # copied from saclb_offline_live1gnb.yaml -- UNVERIFIED against live demand on this rig (avg_prbs_dl too coarse at this traffic rate to calibrate from directly; see header comment)
+    nominal_ratio: 18   # was 3 (2026-07-14); 6x scale-up, see 2026-09-05 comment above
+    min_ratio_floor: 6  # was 1; 106*6% = 6 PRBs, clears pf_dl_slice's min_rbSize=5 guard
+    max_ratio_cap: 18   # was 3 -- still UNVERIFIED against live demand on this rig, proportion preserved from the 2026-07-14 value, not re-measured
     latency_budget_ms: 15
     loss_budget_pct: 0.8
     priority_weight: 12.0
@@ -114,9 +142,9 @@ slices:
   - slice_id: embb
     sst: 1
     sd: 16777215  # 0xFFFFFF, corrected from 0 -- see comment above
-    nominal_ratio: 3
-    min_ratio_floor: 1
-    max_ratio_cap: 4  # verified below this rig's measured demand (mean 5.17, max 12.00 PRB) -- see comment above
+    nominal_ratio: 18   # was 3 (2026-07-14); 6x scale-up, see 2026-09-05 comment above
+    min_ratio_floor: 6  # was 1; 106*6% = 6 PRBs, clears pf_dl_slice's min_rbSize=5 guard
+    max_ratio_cap: 24   # was 4; proportion preserved from the measured-demand-verified 2026-07-14 value (mean 5.17, max 12.00 PRB)
     latency_budget_ms: 45
     loss_budget_pct: 2.0
     priority_weight: 3.5  # synced to saclb_offline_live1gnb.yaml's safety-margin weights (was 2.0)
@@ -125,9 +153,9 @@ slices:
   - slice_id: mmtc
     sst: 1
     sd: 2
-    nominal_ratio: 2
-    min_ratio_floor: 1
-    max_ratio_cap: 3  # UNVERIFIED against live demand on this rig -- old rig's reference value, no UE was ever attached to this slice here (Stage 8 curtailed)
+    nominal_ratio: 12   # was 2 (2026-07-14); 6x scale-up, see 2026-09-05 comment above
+    min_ratio_floor: 6  # was 1; 106*6% = 6 PRBs, clears pf_dl_slice's min_rbSize=5 guard
+    max_ratio_cap: 18   # was 3 -- still UNVERIFIED against live demand on this rig, proportion preserved from the 2026-07-14 value, not re-measured
     latency_budget_ms: 65
     loss_budget_pct: 3.5
     priority_weight: 0.3  # synced to saclb_offline_live1gnb.yaml's safety-margin weights (was 1.0)

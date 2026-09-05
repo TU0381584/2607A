@@ -419,16 +419,75 @@ consistent with the skeptics' verdict that it's real but unconditional
 and unrelated to this failure (`sid=0` has no attached UE; its garbage
 value is inert here).
 
-**Recommended fix, not yet applied:** raise `min_ratio_floor` (and
-ideally `nominal_ratio`) in `saclb_live.yaml` for all three slices to
-at least ~5 PRBs' worth (on a 106-PRB carrier, roughly 5%, with margin
-for rounding -- e.g. 6-8%) so no value in the configured range can
-land below the scheduler's hard floor. This is a config change, not a
-source change, and it touches the ratio scale that produced the M8
-live-anchor numbers already discussed in the manuscript -- deliberately
-not applied without sign-off, since it's a substantive recalibration
-decision, not an obvious bug fix. The M41DBG instrumentation
-(gNB_scheduler_dlsch.c, nr_rlc_entity_am.c, nr_rlc_oai_api.c,
-e2_message_handlers.c) is left in place, not yet reverted, pending a
-decision on whether to keep it for a confirmation retest after any
-config change.
+## Fix applied and confirmed live: full 300s survival, zero RLC failures
+
+User authorized applying the fix and retesting. Scaled every slice's
+`nominal_ratio`/`min_ratio_floor`/`max_ratio_cap` in `saclb_live.yaml`
+by 6x (proportions preserved from the 2026-07-14 measured-demand
+calibration, not re-derived): urllc 3/1/3 -> 18/6/18, embb 3/1/4 ->
+18/6/24, mmtc 2/1/3 -> 12/6/18. The floor alone now converts to
+106*6% = 6.36 -> 6 PRBs, a full PRB above `pf_dl_slice`'s hard
+`min_rbSize=5` guard. `ceiling_step_ratio` (1) left unchanged.
+Rebuilt nothing (config-only change, no recompile needed).
+
+**Retest 1** (`m41_diag_single_write.py`, same single-static-write
+methodology as the root-cause capture, 3-UE native load, 40s): the
+write landed as `(min,max)` = mmtc `(6,10)`, urllc `(6,17)`, embb
+`(6,17)` -- real, moderate reject-decisions this time, not an
+instant floor-collapse. **Zero `retx_inc`/`max RETX reached` events on
+any of the three UEs for the full 40s window** (vs. 123-413 RETX
+events per UE, failing within 7-30s, on the identical capture before
+the fix). Slices showed a genuine mix of idle (0 PRB, nothing queued)
+and real grants (5-18 PRB) rather than permanent zero -- the scheduler
+is working normally again.
+
+**Retest 2** (`m41_envelope_sweep.py`, full standard S0_C1 parameters:
+3-UE, native load, normal 1s write cadence, 300s, through the full
+gate+fresh-restart ritual): survived to t=192s with 0% loss on all
+three slices, then one anomalous-looking reading on embb -- investigated
+before concluding anything, since `max RETX reached` count was **zero**
+for embb (ue1) despite the apparent "100% loss." Root cause: a second,
+independent, real bug in the harness's own `check_loss()` -- its regex
+`([+-]?\d+)% packet loss` has no `.` in its digit class, so on any
+non-round ping loss reading (e.g. ping's own "66.6667% packet loss"
+whenever exactly 1 or 2 of 3 packets are lost) it matches only the
+post-decimal digits ("6667"), which then fails the `>100` sanity check
+and gets clamped to a false 100%. This is the same "anomalous 6667%"
+symptom from the write-magnitude-cap testing earlier in this
+investigation, now root-caused rather than just clamped-and-moved-on:
+it was never a duplicate-reply artifact, it was a decimal-parsing bug,
+and at least this once it silently converted a real, mild, transient
+reading (1 of 3 received, high latency, other two slices fully healthy)
+into an indistinguishable-from-catastrophic "100% loss" record. Fixed
+the regex to `([+-]?\d+(?:\.\d+)?)% packet loss` (captures the full
+decimal value). Also independently confirmed via the ceiling log that
+by t~190s every slice's ceiling had walked down to exactly the new
+floor `(6,6)` through sustained normal-cadence reject-decisions --  a
+real, expected dynamic at this floor value, not a bug, and worth
+knowing since it means the floor is the operating point that actually
+matters under sustained load, not just the nominal/cap values.
+
+**Retest 3** (identical to retest 2, with the `check_loss()` fix):
+**`survived=True` -- 0% loss on all three slices at every checkpoint
+from t=10s through t=290s, zero `retx_inc`/`max RETX reached` events
+on any UE across the full 300s.** This is the first live condition in
+the entire M36-M41 history to survive the standard 300s test. Manifest
+row: `postfix_configfix_S0_C1_retest_v2,...,survived=True,...`.
+
+**Status: root cause fixed and live-confirmed.** Both bugs found this
+session are real and independently useful: the config recalibration
+(the actual fix for the catastrophic universal failure) and the
+`check_loss()` decimal-parsing bug (a harness measurement bug, caught
+in the act of almost producing a false "the fix didn't work" reading).
+The M41DBG instrumentation is left in place in ORANSlice/ (gitignored,
+preserved at `docs/patches/m41_diagnostic_instrumentation.patch`),
+harmless at its current sampling rate, not yet reverted. Two items
+flagged, not yet acted on: `max_ratio_cap` for urllc/mmtc is still the
+old-era, never-independently-verified-against-live-demand value
+(proportion-preserved from the 2026-07-14 numbers, not re-measured),
+and embb's floor (6 PRB) is well below its own measured peak demand
+(12 PRB) -- both survived this specific test but haven't been stress-
+tested against sustained high-reject-rate conditions the way this
+retest happened to explore only somewhat. `Lmax=10`'s own calibration
+(tuned against the pre-fix 1-2 PRB/step deficit scale) has not been
+revisited against the new, 6x-larger PRB quotas either.
